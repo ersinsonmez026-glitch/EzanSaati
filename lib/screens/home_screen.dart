@@ -149,49 +149,76 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
 
-                  // Şehir ve tarih (dokununca şehir değişir)
+                  // Üst sıra: sol levha · şehir / tarih / saat · sağ levha
                   Positioned(
-                    top: 12,
-                    right: 12,
-                    child: InkWell(
-                      borderRadius: BorderRadius.circular(12),
-                      onTap: () => Navigator.of(context).push(
-                        MaterialPageRoute(builder: (_) => const CityPickerScreen()),
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(8),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                const Icon(Icons.location_on, color: Colors.white, size: 20, shadows: shadow),
-                                const SizedBox(width: 2),
-                                Text(
-                                  loc?.name ?? 'Konum Seç',
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 22,
-                                    fontWeight: FontWeight.w700,
-                                    shadows: shadow,
-                                  ),
-                                ),
-                              ],
+                    top: 8,
+                    left: 8,
+                    right: 8,
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Camilerdeki düzen: bakana göre solda "Muhammed", sağda "Allah"
+                        const _Medallion('assets/images/levha_muhammed.png'),
+                        Expanded(
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(12),
+                            onTap: () => Navigator.of(context).push(
+                              MaterialPageRoute(builder: (_) => const CityPickerScreen()),
                             ),
-                            const SizedBox(height: 2),
-                            Text(
-                              '${formatDateTr(now)}  ·  ${weekdayTr(now)}',
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                                shadows: shadow,
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 4),
+                              child: Column(
+                                children: [
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      const Icon(Icons.location_on,
+                                          color: Colors.white, size: 20, shadows: shadow),
+                                      const SizedBox(width: 2),
+                                      Flexible(
+                                        child: Text(
+                                          loc?.name ?? 'Konum Seç',
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 22,
+                                            fontWeight: FontWeight.w700,
+                                            shadows: shadow,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    '${formatDateTr(now)} · ${weekdayTr(now)}',
+                                    textAlign: TextAlign.center,
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w600,
+                                      shadows: shadow,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    '${two(now.hour)}:${two(now.minute)}:${two(now.second)}',
+                                    style: const TextStyle(
+                                      color: AppColors.goldLight,
+                                      fontSize: 26,
+                                      fontWeight: FontWeight.w800,
+                                      letterSpacing: 1,
+                                      shadows: shadow,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
-                          ],
+                          ),
                         ),
-                      ),
+                        const _Medallion('assets/images/levha_allah.png'),
+                      ],
                     ),
                   ),
 
@@ -262,6 +289,28 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// Üst köşelerdeki hat levhası.
+class _Medallion extends StatelessWidget {
+  final String asset;
+
+  const _Medallion(this.asset);
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 72,
+      height: 78,
+      child: DecoratedBox(
+        decoration: const BoxDecoration(
+          shape: BoxShape.circle,
+          boxShadow: [BoxShadow(color: Colors.black45, blurRadius: 12, spreadRadius: -4)],
+        ),
+        child: Image.asset(asset, fit: BoxFit.contain),
       ),
     );
   }
