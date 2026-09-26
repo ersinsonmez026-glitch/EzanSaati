@@ -1,5 +1,5 @@
-name: ezansaati
-description: "Ezan Saati Flutter Uygulaması"
+name: ezan_saati
+description: "Ezan Saati ve İslami Rehber Uygulaması"
 publish_to: 'none'
 
 version: 1.0.0+1
@@ -11,6 +11,10 @@ dependencies:
   flutter:
     sdk: flutter
   cupertino_icons: ^1.0.6
+  adhan: ^2.0.0+1              # Namaz vakti hesaplama (internetsiz)
+  geolocator: ^14.0.0          # GPS konumu
+  shared_preferences: ^2.3.0   # Seçilen şehri hatırlama
+  url_launcher: ^6.3.0         # Cami Bulucu için harita uygulamasını açma
 
 dev_dependencies:
   flutter_test:
@@ -19,3 +23,6 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+
+  assets:
+    - assets/images/
