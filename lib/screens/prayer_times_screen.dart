@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../services/location_store.dart';
 import '../services/prayer_calc.dart';
 import '../theme.dart';
+import '../widgets/page_shell.dart';
 import 'city_picker_screen.dart';
 
 /// Günün namaz vakitleri + önümüzdeki 30 günün imsakiyesi.
@@ -62,16 +63,10 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
   Widget build(BuildContext context) {
     final loc = _location.current;
 
-    return Scaffold(
-      backgroundColor: AppColors.darkGreen,
-      appBar: goldAppBar('Namaz Vakitleri', actions: [
-        IconButton(
-          tooltip: 'Şehir değiştir',
-          icon: const Icon(Icons.location_on),
-          onPressed: _changeCity,
-        ),
-      ]),
-      body: loc == null ? _noLocation() : _content(loc),
+    return PageShell(
+      title: 'Namaz Vakitleri',
+      subtitle: 'Vakitler, müminlere farz kılınmıştır',
+      children: [loc == null ? _noLocation() : _content(loc)],
     );
   }
 
@@ -109,8 +104,8 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
     final status = PrayerCalc.status(loc, now);
     final today = status.today;
 
-    return ListView(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         // Üst bilgi kartı
         InkWell(

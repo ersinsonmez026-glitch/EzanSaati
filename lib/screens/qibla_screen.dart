@@ -8,6 +8,8 @@ import '../services/compass.dart';
 import '../services/location_store.dart';
 import '../services/prayer_calc.dart';
 import '../theme.dart';
+import '../widgets/cards.dart';
+import '../widgets/page_shell.dart';
 import 'city_picker_screen.dart';
 
 /// Telefonun pusulasıyla çalışan Kıble bulucu.
@@ -85,15 +87,17 @@ class _QiblaScreenState extends State<QiblaScreen> {
   Widget build(BuildContext context) {
     final loc = LocationStore.instance.current;
 
-    return Scaffold(
-      backgroundColor: AppColors.darkGreen,
-      appBar: goldAppBar('Kıble Bulucu'),
-      body: loc == null ? _noLocation() : _content(loc),
+    return PageShell(
+      title: 'Kıble Bulucu',
+      subtitle: 'Kıbleniz daima kalbinizde...',
+      children: loc == null ? [_noLocation()] : _content(loc),
     );
   }
 
   Widget _noLocation() {
-    return Center(
+    return Padding(
+      padding: const EdgeInsets.only(top: 40),
+      child: Center(
       child: Padding(
         padding: const EdgeInsets.all(24),
         child: Column(
@@ -123,10 +127,11 @@ class _QiblaScreenState extends State<QiblaScreen> {
           ],
         ),
       ),
+      ),
     );
   }
 
-  Widget _content(AppLocation loc) {
+  List<Widget> _content(AppLocation loc) {
     final qibla = PrayerCalc.qiblaDirection(loc);
     final km = LocationStore.distanceKm(loc.lat, loc.lng, _kaabaLat, _kaabaLng);
     final heading = _heading;
@@ -149,9 +154,7 @@ class _QiblaScreenState extends State<QiblaScreen> {
       hint = 'Sola dönün (${(-diff!).round()}°)';
     }
 
-    return ListView(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-      children: [
+    return [
         Text(
           loc.name,
           textAlign: TextAlign.center,
@@ -237,13 +240,7 @@ class _QiblaScreenState extends State<QiblaScreen> {
         const SizedBox(height: 24),
 
         // Bilgi kartı
-        Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: AppColors.green,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppColors.gold.withValues(alpha: 0.5)),
-          ),
+        DarkCard(
           child: Row(
             children: [
               Expanded(
@@ -284,8 +281,7 @@ class _QiblaScreenState extends State<QiblaScreen> {
           textAlign: TextAlign.center,
           style: TextStyle(color: Colors.white38, fontSize: 12, fontStyle: FontStyle.italic),
         ),
-      ],
-    );
+    ];
   }
 
   Widget _info(String title, String value) {

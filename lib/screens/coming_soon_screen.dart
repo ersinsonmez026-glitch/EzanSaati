@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../theme.dart';
+import '../widgets/page_shell.dart';
 
 /// Henüz hazırlanmamış bölümler için geçici sayfa.
 class ComingSoonScreen extends StatelessWidget {
@@ -11,12 +12,11 @@ class ComingSoonScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.darkGreen,
-      appBar: goldAppBar(title),
-      body: Center(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
+    return PageShell(
+      title: title,
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(12),
           child: Column(
             children: [
               ConstrainedBox(
@@ -45,7 +45,7 @@ class ComingSoonScreen extends StatelessWidget {
             ],
           ),
         ),
-      ),
+      ],
     );
   }
 }

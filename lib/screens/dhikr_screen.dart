@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../widgets/page_shell.dart';
+
 class DhikrScreen extends StatefulWidget {
   const DhikrScreen({super.key});
 
@@ -25,25 +27,12 @@ class _DhikrScreenState extends State<DhikrScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFF002215),
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        title: const Text(
-          'Zikir Sayacı',
-          style: TextStyle(color: Color(0xFFD4AF37), fontFamily: 'serif'),
-        ),
-        centerTitle: true,
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
+    return PageShell(
+      title: 'Zikir Sayacı',
+      subtitle: 'Zikir, kalbin huzurudur...',
+      children: [
+        Column(
           children: [
-            const Text(
-              'Zikir, kalbin huzurudur...',
-              style: TextStyle(color: Colors.white70, fontStyle: FontStyle.italic),
-            ),
             const SizedBox(height: 30),
             GestureDetector(
               onTap: _increment,
@@ -102,7 +91,7 @@ class _DhikrScreenState extends State<DhikrScreen> {
             ),
           ],
         ),
-      ),
+      ],
     );
   }
 }
