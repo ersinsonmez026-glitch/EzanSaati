@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -138,14 +139,16 @@ class _HomeScreenState extends State<HomeScreen> {
             // ÜST YARI - ANA GÖRSEL + GERİ SAYIM
             // ============================================================
             Expanded(
-              flex: 50,
               child: Stack(
                 children: [
+                  // Arka plan: cami her ekran boyunda ortada dursun
                   Positioned.fill(
-                    child: Image.asset(
-                      'assets/images/home_hero.png',
-                      fit: BoxFit.cover,
-                      alignment: const Alignment(0, -0.3),
+                    child: LayoutBuilder(
+                      builder: (context, box) => Image.asset(
+                        'assets/images/home_hero.jpg',
+                        fit: BoxFit.cover,
+                        alignment: _heroAlignment(box.biggest),
+                      ),
                     ),
                   ),
 
@@ -206,7 +209,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                     '${two(now.hour)}:${two(now.minute)}:${two(now.second)}',
                                     style: const TextStyle(
                                       color: AppColors.goldLight,
-                                      fontSize: 26,
+                                      fontSize: 20,
                                       fontWeight: FontWeight.w800,
                                       letterSpacing: 1,
                                       shadows: shadow,
@@ -230,18 +233,34 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        // Ayet: satırlar yukarıdan aşağı genişler
                         const Padding(
-                          padding: EdgeInsets.only(left: 16, right: 120, bottom: 4),
-                          child: Text(
-                            '“Şüphesiz namaz, müminler üzerine vakitleri '
-                            'belirlenmiş bir farzdır.”\n— Nisâ, 103',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600,
-                              height: 1.3,
-                              shadows: shadow,
-                            ),
+                          padding: EdgeInsets.only(left: 14, bottom: 6),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                '“Şüphesiz\nnamaz, müminler\nüzerine vakitleri\nbelirlenmiş bir farzdır.”',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                  height: 1.3,
+                                  fontStyle: FontStyle.italic,
+                                  shadows: shadow,
+                                ),
+                              ),
+                              SizedBox(height: 2),
+                              Text(
+                                'Nisâ, 103',
+                                style: TextStyle(
+                                  color: AppColors.goldLight,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  shadows: shadow,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                         GestureDetector(
@@ -256,13 +275,12 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
 
             // ============================================================
-            // ALT YARI - 12 TUŞ
+            // ALT KISIM - 12 TUŞ (kaydırmasız, kendi yüksekliği kadar)
             // ============================================================
-            Expanded(
-              flex: 50,
-              child: GridView.builder(
-                padding: const EdgeInsets.fromLTRB(6, 8, 6, 8),
-                physics: const BouncingScrollPhysics(),
+            GridView.builder(
+                shrinkWrap: true,
+                padding: const EdgeInsets.fromLTRB(6, 6, 6, 6),
+                physics: const NeverScrollableScrollPhysics(),
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: 3,
                   crossAxisSpacing: 6,
@@ -286,11 +304,25 @@ class _HomeScreenState extends State<HomeScreen> {
                   );
                 },
               ),
-            ),
           ],
         ),
       ),
     );
+  }
+
+  /// Arka plan fotoğrafını, caminin kutunun ortasına geleceği şekilde hizalar.
+  static Alignment _heroAlignment(Size box) {
+    const imgW = 1536.0, imgH = 1024.0;
+    const mosqueX = 0.54, mosqueY = 0.45; // caminin fotoğraftaki yeri (oran)
+    final scale = math.max(box.width / imgW, box.height / imgH);
+    double axis(double frac, double scaled, double view) {
+      final extra = scaled - view;
+      if (extra <= 0.5) return 0;
+      final offset = (frac * scaled - view / 2).clamp(0.0, extra);
+      return offset / extra * 2 - 1;
+    }
+
+    return Alignment(axis(mosqueX, imgW * scale, box.width), axis(mosqueY, imgH * scale, box.height));
   }
 }
 
@@ -303,8 +335,8 @@ class _Medallion extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: 72,
-      height: 78,
+      width: 96,
+      height: 96,
       child: DecoratedBox(
         decoration: const BoxDecoration(
           shape: BoxShape.circle,
