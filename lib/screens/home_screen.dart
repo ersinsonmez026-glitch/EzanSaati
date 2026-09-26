@@ -157,8 +157,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Camilerdeki düzen: bakana göre solda "Muhammed", sağda "Allah"
-                        const _Medallion('assets/images/levha_muhammed.png'),
+                        // Tasarımdaki düzen: solda "Allah", sağda "Muhammed"
+                        const _Medallion('assets/images/levha_allah.png'),
                         Expanded(
                           child: InkWell(
                             borderRadius: BorderRadius.circular(12),
@@ -217,7 +217,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                           ),
                         ),
-                        const _Medallion('assets/images/levha_allah.png'),
+                        const _Medallion('assets/images/levha_muhammed.png'),
                       ],
                     ),
                   ),
