@@ -23,6 +23,9 @@ aralarında geniş boşluk, yazı ve çerçeve yok. Örnek: Dua Zinciri tasarım
 - [ ] Uygulamada çalınacak ilahilerin YouTube bağlantıları listesi (ilahi adı ; okuyan ; YouTube linki).
       Sadece resmî/izinli kanallardaki videolar; uygulama YouTube oynatıcısıyla gösterir.
 
+- [ ] Dini Hikâyeler için YouTube bağlantıları listesi (hikâye adı ; kategori: Peygamberler/Sahabeler ; YouTube linki).
+      Güvenilir, resmî kanallardan (ör. Diyanet ve benzeri) seçilmeli.
+
 ## 4. İsteğe bağlı
 - [ ] Namaz Öğren: aynı 12 duruşun tesettürlü kadın figürüyle hazırlanmış sürümü (uzun seccade, aynı tarz)
 - [ ] İlahiler ve Dini Hikâyeler sayfaları için kapak görselleri (sayfalar tasarlanınca netleşecek)

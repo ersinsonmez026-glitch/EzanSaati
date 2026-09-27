@@ -65,7 +65,10 @@ kaynak (HadeethEnc.com) ve sürüm belirtilerek kullanılmalı. Uygulama metinle
 ## 7. İlahiler sayfası
 - [ ] İlahi video listesi: her ilahi için seçilecek YouTube videosunun uygunluğu (okuyan, içerik, kalite)
 
-## 8. Diğer
+## 8. Dini Hikâyeler sayfası
+- [ ] Seçilecek hikâye videolarının içerik olarak doğruluğu ve uygunluğu
+
+## 9. Diğer
 - [ ] Sureler sayfası "Günün Ayeti" listesi (ayet seçimi uygun mu)
 - [ ] Hicri Takvim: dinî gün tarihleri (Diyanet takvimiyle son kontrol)
 - [ ] Ana ekrandaki ayet: Nisâ 103 meali
