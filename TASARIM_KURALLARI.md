@@ -33,4 +33,5 @@ Aynı düzen; zemin krem kâğıt. Seçili durum ve altın ayrıntılar yeşil t
 ## Sayaçların birbirine bağlanması
 - Dua Zinciri'nde okunan her şey (salavat, Yasin, İhlas, istiğfar, hatim cüzü) Online Dua toplamına da eklenir.
 - Zikir Sayacı'nda sayılan salavat / istiğfar vb., kişinin aynı türde aktif zincir görevi varsa o göreve ve
-  Online Dua toplamına otomatik eklenir (ayarlardan kapatılabilir).
+  Online Dua toplamına otomatik eklenir. Kapatma seçeneği yok: Zikir Sayacı'nda çekilen her zikir
+  (salavat, istiğfar, tesbihat vb.) kimlik bilgisi olmadan genel toplama her zaman eklenir.
