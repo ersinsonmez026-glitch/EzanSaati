@@ -39,9 +39,8 @@ hazır ve doğrulanmış kaynaklardan birebir alındığı için listede yok. A�
 - [ ] Sık sorulan sorular cevapları
 
 ## 3. Zikir Sayacı sayfası
-- [ ] 9 zikrin Arapça yazımı, okunuşu ve kısa anlamı (Sübhânallâh, Elhamdülillâh, Allâhü ekber,
-      Lâ ilâhe illallâh, Estağfirullâh, Allâhümme salli alâ Muhammed, Sübhânallâhi ve bihamdihî,
-      Lâ havle ve lâ kuvvete illâ billâh, Hasbünallâhü ve ni'me'l-vekîl)
+- [ ] 6 zikrin Arapça yazımı, okunuşu ve kısa anlamı (Sübhânallâh, Elhamdülillâh, Allâhü ekber,
+      Lâ ilâhe illallâh, Estağfirullâh, Salavât: Allâhümme salli alâ Muhammed)
 - [ ] Önerilen hedef sayıları (33 / 100)
 - [ ] Namazdan sonra tesbihat sırası (33-33-33 ve ardından tevhid) ve tevhid metni
 
