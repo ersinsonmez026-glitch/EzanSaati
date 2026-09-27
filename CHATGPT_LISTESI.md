@@ -19,6 +19,10 @@ aralarında geniş boşluk, yazı ve çerçeve yok. Örnek: Dua Zinciri tasarım
 - [ ] Her klasörde mesajlar.csv: gorsel;baslik;mesaj;sure;ayet (en az 25 mesaj; ayetli mesajlarda sadece
       sure adı ve ayet numarası, ayet metni yazılmayacak; hadis metni yazılmayacak)
 
-## 3. İsteğe bağlı
+## 3. İlahiler (sizden)
+- [ ] Uygulamada çalınacak ilahilerin YouTube bağlantıları listesi (ilahi adı ; okuyan ; YouTube linki).
+      Sadece resmî/izinli kanallardaki videolar; uygulama YouTube oynatıcısıyla gösterir.
+
+## 4. İsteğe bağlı
 - [ ] Namaz Öğren: aynı 12 duruşun tesettürlü kadın figürüyle hazırlanmış sürümü (uzun seccade, aynı tarz)
 - [ ] İlahiler ve Dini Hikâyeler sayfaları için kapak görselleri (sayfalar tasarlanınca netleşecek)
