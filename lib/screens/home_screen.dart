@@ -185,7 +185,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                           overflow: TextOverflow.ellipsis,
                                           style: const TextStyle(
                                             color: Colors.white,
-                                            fontSize: 22,
+                                            fontSize: 18,
                                             fontWeight: FontWeight.w700,
                                             shadows: shadow,
                                           ),
@@ -199,7 +199,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                     textAlign: TextAlign.center,
                                     style: const TextStyle(
                                       color: Colors.white,
-                                      fontSize: 14,
+                                      fontSize: 12.5,
                                       fontWeight: FontWeight.w600,
                                       shadows: shadow,
                                     ),
@@ -209,7 +209,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                     '${two(now.hour)}:${two(now.minute)}:${two(now.second)}',
                                     style: const TextStyle(
                                       color: AppColors.goldLight,
-                                      fontSize: 20,
+                                      fontSize: 16,
                                       fontWeight: FontWeight.w800,
                                       letterSpacing: 1,
                                       shadows: shadow,
@@ -243,7 +243,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 '“Şüphesiz\nnamaz, müminler\nüzerine vakitleri\nbelirlenmiş bir farzdır.”',
                                 style: TextStyle(
                                   color: Colors.white,
-                                  fontSize: 14,
+                                  fontSize: 11,
                                   fontWeight: FontWeight.w600,
                                   height: 1.3,
                                   fontStyle: FontStyle.italic,
@@ -255,7 +255,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 'Nisâ, 103',
                                 style: TextStyle(
                                   color: AppColors.goldLight,
-                                  fontSize: 12,
+                                  fontSize: 9.5,
                                   fontWeight: FontWeight.w600,
                                   shadows: shadow,
                                 ),
@@ -335,8 +335,8 @@ class _Medallion extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: 96,
-      height: 96,
+      width: 78,
+      height: 78,
       child: DecoratedBox(
         decoration: const BoxDecoration(
           shape: BoxShape.circle,
