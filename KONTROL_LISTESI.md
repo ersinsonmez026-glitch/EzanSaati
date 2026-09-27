@@ -56,7 +56,13 @@ kaynak (HadeethEnc.com) ve sürüm belirtilerek kullanılmalı. Uygulama metinle
 - [ ] Hazır mesaj metinleri (Cuma, Kandil, Ramazan, Bayram, Hayırlı Sabahlar, Dua; toplam 19 kısa mesaj)
       dil ve üslup olarak uygun mu
 
-## 6. Diğer
+## 6. Ramazan sayfası
+- [ ] Oruç niyeti cümlesi ve açıklaması ("Sahura kalkmak da niyet yerine geçer")
+- [ ] İftar duası: Arapça, okunuş, anlam (elle yazıldı)
+- [ ] Kadir Gecesi duası: Arapça, okunuş, anlam, kaynak (Tirmizî, Deavât)
+- [ ] 2027 tarihleri (Diyanet): Ramazan 8 Şubat, Kadir Gecesi 5 Mart, Bayram 9-11 Mart; kandil tarihleri
+
+## 7. Diğer
 - [ ] Sureler sayfası "Günün Ayeti" listesi (ayet seçimi uygun mu)
 - [ ] Hicri Takvim: dinî gün tarihleri (Diyanet takvimiyle son kontrol)
 - [ ] Ana ekrandaki ayet: Nisâ 103 meali

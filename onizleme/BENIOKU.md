@@ -15,6 +15,7 @@ Bunlar Flutter koduna aktarılacak sayfaların örnekleridir; uygulamanın kendi
 | 08-hadisler.html | Hadisler | Taslak (metinler uygulamada HadeethEnc.com'dan alınacak) |
 | 09-dini-mesajlar.html | Dini Mesajlar | Taslak (görseller ve mesajlar eklenecek) |
 | 10-dua-zinciri.html | Dua Zinciri + Online Dua | Taslak (sunucu gerekiyor) |
+| 11-ramazan.html | Ramazan (imsakiye, niyet ve dua, önemli günler) | Taslak |
 
 ## kaynak/
 Flutter'a aktarırken kullanılacak veriler ve görseller:
