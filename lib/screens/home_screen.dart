@@ -57,7 +57,7 @@ class _HomeScreenState extends State<HomeScreen> {
   ];
 
   // Görseli henüz hazırlanmamış tuşlar
-  static const _noPhoto = {'ilahiler', 'dini_hikayeler'};
+  static const _noPhoto = <String>{};
 
   Timer? _ticker;
   PrayerStatus? _status;
@@ -146,12 +146,25 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFD8C59C), // koyu krem
       body: SafeArea(
-        child: Column(
+        child: LayoutBuilder(builder: (context, box) {
+          // Tuş alanının yüksekliği: 5 sıra, 3 sütun
+          const gap = 6.0, pad = 6.0;
+          final tileW = (box.maxWidth - 2 * pad - 2 * gap) / 3;
+          final rows = ((_items.length + 1) / 3).ceil();
+          final gridH = rows * tileW / 1.3 + (rows - 1) * gap + 2 * pad;
+          // Üst görsel en az 300 olsun; ekran kısaysa sayfa kaydırılır
+          final heroH = math.max(300.0, box.maxHeight - gridH);
+          return SingleChildScrollView(
+            physics: heroH + gridH > box.maxHeight + 1
+                ? const ClampingScrollPhysics()
+                : const NeverScrollableScrollPhysics(),
+            child: Column(
           children: [
             // ============================================================
             // ÜST YARI - ANA GÖRSEL + GERİ SAYIM
             // ============================================================
-            Expanded(
+            SizedBox(
+              height: heroH,
               child: Stack(
                 children: [
                   // Arka plan: cami her ekran boyunda ortada dursun
@@ -295,7 +308,7 @@ class _HomeScreenState extends State<HomeScreen> {
             // ============================================================
             GridView.builder(
                 shrinkWrap: true,
-                padding: const EdgeInsets.fromLTRB(6, 6, 6, 6),
+                padding: const EdgeInsets.all(6),
                 physics: const NeverScrollableScrollPhysics(),
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: 3,
@@ -318,7 +331,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 },
               ),
           ],
-        ),
+            ),
+          );
+        }),
       ),
     );
   }
