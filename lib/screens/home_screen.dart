@@ -278,7 +278,10 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                         GestureDetector(
                           onTap: () => _onTap(_items.first),
-                          child: CountdownBanner(status: _status),
+                          child: FractionallySizedBox(
+                            widthFactor: 0.86,
+                            child: CountdownBanner(status: _status),
+                          ),
                         ),
                       ],
                     ),
@@ -298,7 +301,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   crossAxisCount: 3,
                   crossAxisSpacing: 6,
                   mainAxisSpacing: 6,
-                  childAspectRatio: 1.42,
+                  childAspectRatio: 1.3,
                 ),
                 itemCount: _items.length + 1, // son yer yeni özellik için boş
                 itemBuilder: (context, index) {
@@ -323,7 +326,7 @@ class _HomeScreenState extends State<HomeScreen> {
   /// Arka plan fotoğrafını, caminin kutunun ortasına geleceği şekilde hizalar.
   static Alignment _heroAlignment(Size box) {
     const imgW = 1536.0, imgH = 1024.0;
-    const mosqueX = 0.54, mosqueY = 0.45; // caminin fotoğraftaki yeri (oran)
+    const mosqueX = 0.54, mosqueY = 0.62; // caminin fotoğraftaki yeri (oran)
     final scale = math.max(box.width / imgW, box.height / imgH);
     double axis(double frac, double scaled, double view) {
       final extra = scaled - view;
