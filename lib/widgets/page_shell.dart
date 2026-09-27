@@ -26,7 +26,7 @@ class PageShell extends StatelessWidget {
     this.showSettings = true,
   });
 
-  static const double fullHeight = 104; // açık başlık
+  static const double fullHeight = 118; // açık başlık
   static const double barHeight = 44; // kapanınca kalan şerit
 
   @override
@@ -75,7 +75,7 @@ class _HeaderDelegate extends SliverPersistentHeaderDelegate {
   Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
     const shadow = [Shadow(color: Colors.black87, blurRadius: 6, offset: Offset(0, 2))];
     // Üst sıra (levhalar, logo, konum) ilk 45 pikselde kaybolur
-    final topOpacity = (1 - shrinkOffset / 45).clamp(0.0, 1.0);
+    final topOpacity = (1 - shrinkOffset / 55).clamp(0.0, 1.0);
     final canPop = Navigator.of(context).canPop();
 
     return DecoratedBox(
@@ -94,9 +94,9 @@ class _HeaderDelegate extends SliverPersistentHeaderDelegate {
               top: -shrinkOffset,
               height: maxExtent,
               child: Image.asset(
-                'assets/images/header_night.jpg',
+                'assets/images/header_page.jpg', // cami solda, konumla çakışmasın
                 fit: BoxFit.cover,
-                alignment: const Alignment(0, 0.15),
+                alignment: const Alignment(0, 0.25),
               ),
             ),
             const DecoratedBox(
@@ -113,7 +113,7 @@ class _HeaderDelegate extends SliverPersistentHeaderDelegate {
             // Üst sıra
             if (topOpacity > 0)
               Positioned(
-                top: topInset + 6 - shrinkOffset,
+                top: topInset + 8 - shrinkOffset,
                 left: 10,
                 right: 10,
                 child: Opacity(
@@ -121,7 +121,7 @@ class _HeaderDelegate extends SliverPersistentHeaderDelegate {
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      Image.asset('assets/images/levha_allah.png', width: 44, height: 44),
+                      Image.asset('assets/images/levha_allah.png', width: 54, height: 54),
                       Expanded(
                         child: Column(
                           children: [
@@ -171,7 +171,7 @@ class _HeaderDelegate extends SliverPersistentHeaderDelegate {
                           ],
                         ),
                       ),
-                      Image.asset('assets/images/levha_muhammed.png', width: 44, height: 44),
+                      Image.asset('assets/images/levha_muhammed.png', width: 54, height: 54),
                     ],
                   ),
                 ),
