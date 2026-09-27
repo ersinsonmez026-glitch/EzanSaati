@@ -334,7 +334,7 @@ button:focus-visible,select:focus-visible{outline:2px solid #d4af37;outline-offs
   <main class="view" id="vHome">
     <section class="mapp"><svg id="map" viewBox="0 0 360 240"></svg>
       <div class="mb"><button type="button" id="zin" aria-label="Yakınlaştır">+</button><button type="button" id="zout" aria-label="Uzaklaştır">−</button><button type="button" id="me" aria-label="Konumum">◎</button></div>
-      <span class="lg">© OpenStreetMap katkıcıları</span></section>
+      <span class="lg">Uydu görünümü (önizleme)</span></section>
     <div class="seg3" id="mode"><button type="button" class="on" data-m="walk"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="13" cy="4" r="2.2"/><path d="M10.5 8.5l3-1.5 2 3.5 3 1.5-.8 1.6-3.6-1.7-1-1.5-1 4 2.9 3.2V22h-2v-3.6L10 15.8 8.8 22H6.8l1.6-9.6-1.5.8V16H5v-4z"/></svg> Yürüyerek</button><button type="button" data-m="car"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M5 11l1.6-4.3A2 2 0 0 1 8.5 5.4h7a2 2 0 0 1 1.9 1.3L19 11a2 2 0 0 1 2 2v4h-2v2h-3v-2H8v2H5v-2H3v-4a2 2 0 0 1 2-2zm2.2 0h9.6l-1.2-3.4H8.4z"/><circle cx="7" cy="14.5" r="1.4" fill="#073826"/><circle cx="17" cy="14.5" r="1.4" fill="#073826"/></svg> Araçla</button></div>
     <div id="route"></div>
     <div class="sec"><h2>Yakındaki Camiler</h2><small id="cnt"></small></div>
@@ -401,16 +401,28 @@ button:focus-visible,select:focus-visible{outline:2px solid #d4af37;outline-offs
   var sel=0,mode="walk",zoom=1;
   function tmin(m){return mode==="walk"?Math.max(1,Math.round(m/80)):Math.max(1,Math.round(m/400))}
   function km(m){return m<1000?m+" m":(m/1000).toFixed(1).replace(".",",")+" km"}
-  function map(){var h='<defs><pattern id="gr" width="30" height="30" patternUnits="userSpaceOnUse"><path d="M30 0H0V30" fill="none" stroke="rgba(212,175,55,.07)"/></pattern><radialGradient id="bg" cx="50%" cy="45%" r="70%"><stop offset="0" stop-color="#0a3323"/><stop offset="1" stop-color="#000c07"/></radialGradient></defs>';
+  function map(){var h='<defs><filter id="sat" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="3" seed="7"/><feColorMatrix values="0 0 0 0 .38  0 0 0 0 .40  0 0 0 0 .34  0 0 0 .55 0"/><feComposite in2="SourceGraphic" operator="in"/></filter>'+
+      '<filter id="veg"><feTurbulence type="fractalNoise" baseFrequency=".08" numOctaves="4" seed="3"/><feColorMatrix values="0 0 0 0 .20  0 0 0 0 .30  0 0 0 0 .16  0 0 0 1.4 -.55"/></filter></defs>';
     h+='<g transform="translate(180 150) scale('+zoom+') translate(-180 -150)">';
-    h+='<rect x="-400" y="-400" width="1200" height="1000" fill="url(#bg)"/><rect x="-400" y="-400" width="1200" height="1000" fill="url(#gr)"/>';
-    // sokaklar
-    [[0,110,360,110],[0,150,360,150],[0,176,360,176],[0,190,360,190],[0,60,360,60],[120,0,120,240],[140,0,140,240],[180,0,180,240],[238,0,238,240],[250,0,250,240],[92,0,92,240],[300,0,300,240]].forEach(function(l,i){h+='<line x1="'+l[0]+'" y1="'+l[1]+'" x2="'+l[2]+'" y2="'+l[3]+'" stroke="rgba(243,236,217,'+(i%3?0.1:0.18)+')" stroke-width="'+(i%3?3:5)+'" stroke-linecap="round"/>'});
-    h+='<path d="M-20 225 C 80 205 160 238 380 214" stroke="rgba(80,150,190,.35)" stroke-width="10" fill="none"/>';
-    var r=M[sel].r;h+='<polyline points="'+r.map(function(p){return p.join(",")}).join(" ")+'" fill="none" stroke="#f9c265" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="'+(mode==="walk"?"2 7":"0")+'"/>';
+    h+='<rect x="-400" y="-400" width="1200" height="1000" fill="#5f6356"/><rect x="-400" y="-400" width="1200" height="1000" filter="url(#veg)"/>';
+    var r0=rnd(11);
+    // yapı adaları ve çatılar
+    var xs=[-60,0,92,120,140,180,238,250,300,360,420],ys=[-60,0,60,110,150,176,190,240,300];
+    for(var i=0;i<xs.length-1;i++)for(var j=0;j<ys.length-1;j++){var x0=xs[i]+5,y0=ys[j]+5,w=xs[i+1]-xs[i]-10,hh=ys[j+1]-ys[j]-10;if(w<6||hh<6)continue;
+      h+='<rect x="'+x0+'" y="'+y0+'" width="'+w+'" height="'+hh+'" fill="#6d6e63" opacity=".9"/>';
+      for(var k=0;k<Math.max(1,Math.round(w*hh/260));k++){var bw=6+r0()*14,bh=6+r0()*12,bx=x0+r0()*Math.max(1,w-bw),by=y0+r0()*Math.max(1,hh-bh),c=["#8a5a44","#9b6b4f","#b8b4a8","#a39f94","#7b4e3c","#c9c4b6"][Math.floor(r0()*6)];
+        h+='<rect x="'+bx.toFixed(1)+'" y="'+by.toFixed(1)+'" width="'+bw.toFixed(1)+'" height="'+bh.toFixed(1)+'" fill="'+c+'" stroke="rgba(0,0,0,.35)" stroke-width=".6"/>'}
+      if(r0()<.25)h+='<circle cx="'+(x0+w/2)+'" cy="'+(y0+hh/2)+'" r="'+Math.min(w,hh)/3+'" fill="#3f5a32" opacity=".85"/>'}
+    h+='<rect x="-400" y="-400" width="1200" height="1000" filter="url(#sat)"/>';
+    // yollar
+    [[-60,110,420,110],[-60,150,420,150],[-60,176,420,176],[-60,190,420,190],[-60,60,420,60],[120,-60,120,300],[140,-60,140,300],[180,-60,180,300],[238,-60,238,300],[250,-60,250,300],[92,-60,92,300],[300,-60,300,300]].forEach(function(l,i){h+='<line x1="'+l[0]+'" y1="'+l[1]+'" x2="'+l[2]+'" y2="'+l[3]+'" stroke="#8f8e86" stroke-width="'+(i%3?4:6)+'"/>'});
+    h+='<path d="M-60 228 C 80 206 160 240 420 214 L420 300 L-60 300z" fill="#2c4a57"/><path d="M-60 228 C 80 206 160 240 420 214" stroke="#9aa39a" stroke-width="2" fill="none" opacity=".6"/>';
+    h+='<rect x="-400" y="-400" width="1200" height="1000" fill="rgba(0,20,12,.18)"/>';
+    var r=M[sel].r;h+='<polyline points="'+r.map(function(p){return p.join(",")}).join(" ")+'" fill="none" stroke="rgba(0,0,0,.55)" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/><polyline points="'+r.map(function(p){return p.join(",")}).join(" ")+'" fill="none" stroke="#f9c265" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="'+(mode==="walk"?"2 7":"0")+'"/>';
     M.forEach(function(c,i){var on=i===sel;h+='<g transform="translate('+c.x+' '+c.y+')" data-i="'+i+'" style="cursor:pointer"><circle r="'+(on?14:11)+'" fill="'+(on?"#6e5114":"#01170f")+'" stroke="'+(on?"#ffe08a":"#d4af37")+'" stroke-width="1.8"/><g transform="translate(-8 -8) scale(.67)" style="color:'+(on?"#ffe08a":"#e9c96a")+'">'+DOME.replace('<svg','<svg width="24" height="24"')+'</g></g>'});
-    h+='<circle cx="180" cy="150" r="16" fill="rgba(80,180,255,.18)"/><circle cx="180" cy="150" r="7" fill="#3aa0ff" stroke="#fff" stroke-width="2.5"/></g>';
+    h+='<circle cx="180" cy="150" r="16" fill="rgba(80,180,255,.25)"/><circle cx="180" cy="150" r="7" fill="#3aa0ff" stroke="#fff" stroke-width="2.5"/></g>';
     document.getElementById("map").innerHTML=h}
+  function rnd(s){return function(){s=(s*9301+49297)%233280;return s/233280}}
   function list(){document.getElementById("cnt").textContent=M.length+" cami · 1,5 km içinde";
     document.getElementById("ml").innerHTML=M.map(function(c,i){return'<div class="mr'+(i===sel?' on':'')+'" data-i="'+i+'"><span class="ic">'+DOME+'</span><b>'+c.n+'</b><span class="d">'+km(c.m)+'<small>'+tmin(c.m)+' dk</small></span><span class="cv">›</span></div>'}).join("")}
   function route(){var c=M[sel];

@@ -35,3 +35,7 @@ Aynı düzen; zemin krem kâğıt. Seçili durum ve altın ayrıntılar yeşil t
 - Zikir Sayacı'nda sayılan salavat / istiğfar vb., kişinin aynı türde aktif zincir görevi varsa o göreve ve
   Online Dua toplamına otomatik eklenir. Kapatma seçeneği yok: Zikir Sayacı'nda çekilen her zikir
   (salavat, istiğfar, tesbihat vb.) kimlik bilgisi olmadan genel toplama her zaman eklenir.
+
+## Cami Bulucu haritası
+- Uygulamada Google Haritalar'ın uydu (karma) görünümü kullanılacak (mobil harita gösterimi ücretsiz; API anahtarı gerekir).
+- Camiler OpenStreetMap'ten, yol tarifi ücretsiz rota servisinden (OSRM / OpenRouteService) alınıp bizim tasarımımızla gösterilecek.
