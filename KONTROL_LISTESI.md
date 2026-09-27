@@ -44,7 +44,15 @@ hazır ve doğrulanmış kaynaklardan birebir alındığı için listede yok. A�
 - [ ] Önerilen hedef sayıları (33 / 100)
 - [ ] Namazdan sonra tesbihat sırası (33-33-33 ve ardından tevhid) ve tevhid metni
 
-## 4. Diğer
+## 4. Hadisler sayfası
+Metinler HadeethEnc.com'dan (Hadis Tercümeleri Ansiklopedisi) alınacak. Kullanım şartı: metin değiştirilmeden,
+kaynak (HadeethEnc.com) ve sürüm belirtilerek kullanılmalı. Uygulama metinleri doğrudan HadeethEnc'ten çekecek.
+- [ ] Seçilen hadislerin uygunluğu (HadeethEnc no: 5803, 66511, 4709, 4555, 5437, 8289, 5435, 5348, 3852,
+      66255, 5516, 5478, 3074, 5493, 3779) ve eklenecek diğerleri
+- [ ] HadeethEnc Türkçe çevirilerindeki yazım hataları (ör. "dışgörünüşünüze", "hamtederek") HadeethEnc'e
+      bildirilecek; kendimiz düzeltemeyiz (kullanım şartı)
+
+## 5. Diğer
 - [ ] Sureler sayfası "Günün Ayeti" listesi (ayet seçimi uygun mu)
 - [ ] Hicri Takvim: dinî gün tarihleri (Diyanet takvimiyle son kontrol)
 - [ ] Ana ekrandaki ayet: Nisâ 103 meali
