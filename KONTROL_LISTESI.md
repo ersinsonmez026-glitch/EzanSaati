@@ -38,7 +38,14 @@ hazır ve doğrulanmış kaynaklardan birebir alındığı için listede yok. A�
 - [ ] Namazın şartları ve rükünleri
 - [ ] Sık sorulan sorular cevapları
 
-## 3. Diğer
+## 3. Zikir Sayacı sayfası
+- [ ] 9 zikrin Arapça yazımı, okunuşu ve kısa anlamı (Sübhânallâh, Elhamdülillâh, Allâhü ekber,
+      Lâ ilâhe illallâh, Estağfirullâh, Allâhümme salli alâ Muhammed, Sübhânallâhi ve bihamdihî,
+      Lâ havle ve lâ kuvvete illâ billâh, Hasbünallâhü ve ni'me'l-vekîl)
+- [ ] Önerilen hedef sayıları (33 / 100)
+- [ ] Namazdan sonra tesbihat sırası (33-33-33 ve ardından tevhid) ve tevhid metni
+
+## 4. Diğer
 - [ ] Sureler sayfası "Günün Ayeti" listesi (ayet seçimi uygun mu)
 - [ ] Hicri Takvim: dinî gün tarihleri (Diyanet takvimiyle son kontrol)
 - [ ] Ana ekrandaki ayet: Nisâ 103 meali
