@@ -94,9 +94,9 @@ class _HeaderDelegate extends SliverPersistentHeaderDelegate {
               top: -shrinkOffset,
               height: maxExtent,
               child: Image.asset(
-                'assets/images/header_page.jpg', // cami solda, konumla çakışmasın
+                'assets/images/header_page.jpg', // cami ortada; logo ve konum minarelerin arasında
                 fit: BoxFit.cover,
-                alignment: const Alignment(0, 0.25),
+                alignment: Alignment.center,
               ),
             ),
             const DecoratedBox(
@@ -104,8 +104,8 @@ class _HeaderDelegate extends SliverPersistentHeaderDelegate {
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
-                  colors: [Color(0x73000000), Color(0x8C021C12), Color(0xEB021C12)],
-                  stops: [0, 0.55, 1],
+                  colors: [Color(0x33000000), Color(0x00000000), Color(0x40021C12), Color(0xD9021C12)],
+                  stops: [0, 0.4, 0.62, 1],
                 ),
               ),
             ),
@@ -113,18 +113,19 @@ class _HeaderDelegate extends SliverPersistentHeaderDelegate {
             // Üst sıra
             if (topOpacity > 0)
               Positioned(
-                top: topInset + 8 - shrinkOffset,
+                top: topInset + 6 - shrinkOffset,
                 left: 10,
                 right: 10,
                 child: Opacity(
                   opacity: topOpacity,
                   child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Image.asset('assets/images/levha_allah.png', width: 54, height: 54),
+                      Image.asset('assets/images/levha_allah.png', width: 64, height: 64),
                       Expanded(
                         child: Column(
                           children: [
+                            const SizedBox(height: 4),
                             const Text(
                               '☾ Ezan Saati',
                               style: TextStyle(
@@ -171,7 +172,7 @@ class _HeaderDelegate extends SliverPersistentHeaderDelegate {
                           ],
                         ),
                       ),
-                      Image.asset('assets/images/levha_muhammed.png', width: 54, height: 54),
+                      Image.asset('assets/images/levha_muhammed.png', width: 64, height: 64),
                     ],
                   ),
                 ),
