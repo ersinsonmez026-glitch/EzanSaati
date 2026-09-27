@@ -8,6 +8,7 @@ class MenuTile extends StatelessWidget {
   final String title;
   final IconData icon;
   final TileStyle style;
+  final bool hasPhoto; // görseli henüz yoksa simgeli gösterilir
   final VoidCallback onTap;
 
   const MenuTile({
@@ -17,6 +18,7 @@ class MenuTile extends StatelessWidget {
     required this.icon,
     required this.style,
     required this.onTap,
+    this.hasPhoto = true,
   });
 
   @override
@@ -41,7 +43,8 @@ class MenuTile extends StatelessWidget {
 
     Widget child;
     BoxDecoration deco;
-    switch (style) {
+    final effective = (style == TileStyle.resimli && !hasPhoto) ? TileStyle.yesil : style;
+    switch (effective) {
       case TileStyle.resimli:
         deco = BoxDecoration(
           borderRadius: radius,
@@ -66,7 +69,7 @@ class MenuTile extends StatelessWidget {
         );
       case TileStyle.krem:
       case TileStyle.yesil:
-        final krem = style == TileStyle.krem;
+        final krem = effective == TileStyle.krem;
         deco = BoxDecoration(
           borderRadius: radius,
           gradient: LinearGradient(
@@ -82,7 +85,7 @@ class MenuTile extends StatelessWidget {
         child = Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, size: 32, color: krem ? const Color(0xFF8A6414) : const Color(0xFFE2C26E)),
+            Icon(icon, size: 28, color: krem ? const Color(0xFF8A6414) : const Color(0xFFE2C26E)),
             const SizedBox(height: 6),
             Padding(padding: const EdgeInsets.symmetric(horizontal: 4), child: FittedBox(child: label)),
           ],
@@ -96,6 +99,22 @@ class MenuTile extends StatelessWidget {
         behavior: HitTestBehavior.opaque,
         onTap: onTap,
         child: DecoratedBox(decoration: deco, child: child),
+      ),
+    );
+  }
+}
+
+/// Yeni özellik için ayrılmış boş yer.
+class EmptyTile extends StatelessWidget {
+  const EmptyTile({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(14),
+        color: const Color(0x2EFFF8E6),
+        border: Border.all(color: const Color(0x738A6414), width: 1.5),
       ),
     );
   }

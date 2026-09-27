@@ -6,9 +6,9 @@ import '../widgets/page_shell.dart';
 /// Henüz hazırlanmamış bölümler için geçici sayfa.
 class ComingSoonScreen extends StatelessWidget {
   final String title;
-  final String image;
+  final String? image;
 
-  const ComingSoonScreen({super.key, required this.title, required this.image});
+  const ComingSoonScreen({super.key, required this.title, this.image});
 
   @override
   Widget build(BuildContext context) {
@@ -19,10 +19,11 @@ class ComingSoonScreen extends StatelessWidget {
           padding: const EdgeInsets.all(12),
           child: Column(
             children: [
-              ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 360),
-                child: Image.asset(image),
-              ),
+              if (image != null)
+                ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 360),
+                  child: Image.asset(image!),
+                ),
               const SizedBox(height: 24),
               const Icon(Icons.hourglass_top, color: AppColors.gold, size: 36),
               const SizedBox(height: 12),

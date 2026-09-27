@@ -51,8 +51,13 @@ class _HomeScreenState extends State<HomeScreen> {
     _MenuItem('dua_cemberi', 'Dua Çemberi', Icons.groups, null),
     _MenuItem('ramazan', 'Ramazan', Icons.nightlight_round, null),
     _MenuItem('cami_bulucu', 'Cami Bulucu', Icons.place, null), // Harita uygulamasını açar
+    _MenuItem('ilahiler', 'İlahiler', Icons.music_note, null),
+    _MenuItem('dini_hikayeler', 'Dini Hikâyeler', Icons.menu_book_outlined, null),
     _MenuItem('ayarlar', 'Ayarlar', Icons.settings, () => const SettingsScreen()),
   ];
+
+  // Görseli henüz hazırlanmamış tuşlar
+  static const _noPhoto = {'ilahiler', 'dini_hikayeler'};
 
   Timer? _ticker;
   PrayerStatus? _status;
@@ -125,7 +130,10 @@ class _HomeScreenState extends State<HomeScreen> {
       return;
     }
     final page = item.page?.call() ??
-        ComingSoonScreen(title: item.title, image: 'assets/images/tiles/${item.image}.jpg');
+        ComingSoonScreen(
+          title: item.title,
+          image: _noPhoto.contains(item.image) ? null : 'assets/images/tiles/${item.image}.jpg',
+        );
     Navigator.of(context).push(MaterialPageRoute(builder: (_) => page));
   }
 
@@ -290,16 +298,18 @@ class _HomeScreenState extends State<HomeScreen> {
                   crossAxisCount: 3,
                   crossAxisSpacing: 6,
                   mainAxisSpacing: 6,
-                  childAspectRatio: 1.18,
+                  childAspectRatio: 1.42,
                 ),
-                itemCount: _items.length,
+                itemCount: _items.length + 1, // son yer yeni özellik için boş
                 itemBuilder: (context, index) {
+                  if (index == _items.length) return const EmptyTile();
                   final item = _items[index];
                   return MenuTile(
                     image: item.image,
                     title: item.title,
                     icon: item.icon,
                     style: AppPrefs.instance.tileStyle,
+                    hasPhoto: !_noPhoto.contains(item.image),
                     onTap: () => _onTap(item),
                   );
                 },
