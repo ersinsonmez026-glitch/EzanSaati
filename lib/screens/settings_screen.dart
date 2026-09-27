@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../services/app_prefs.dart';
 import '../services/location_store.dart';
 import '../theme.dart';
 import 'city_picker_screen.dart';
@@ -85,6 +86,25 @@ class _SettingsScreenState extends State<SettingsScreen> {
             title: const Text('Konumumu güncelle', style: titleStyle),
             subtitle: const Text('GPS ile bulunduğunuz yeri yeniden bulur', style: subStyle),
             onTap: _busy ? null : _useGps,
+          ),
+          _section('GÖRÜNÜM'),
+          ListTile(
+            leading: const Icon(Icons.grid_view, color: AppColors.gold),
+            title: const Text('Ana ekran tuşları', style: titleStyle),
+            subtitle: Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: SegmentedButton<TileStyle>(
+                segments: [
+                  for (final t in TileStyle.values) ButtonSegment(value: t, label: Text(t.label)),
+                ],
+                selected: {AppPrefs.instance.tileStyle},
+                showSelectedIcon: false,
+                onSelectionChanged: (v) async {
+                  await AppPrefs.instance.setTileStyle(v.first);
+                  if (mounted) setState(() {});
+                },
+              ),
+            ),
           ),
           _section('HESAPLAMA'),
           const ListTile(

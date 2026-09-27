@@ -4,10 +4,12 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../services/app_prefs.dart';
 import '../services/location_store.dart';
 import '../services/prayer_calc.dart';
 import '../theme.dart';
 import '../widgets/countdown_banner.dart';
+import '../widgets/menu_tile.dart';
 import 'city_picker_screen.dart';
 import 'coming_soon_screen.dart';
 import 'dhikr_screen.dart';
@@ -22,9 +24,10 @@ import 'surahs_screen.dart';
 class _MenuItem {
   final String image;
   final String title;
+  final IconData icon;
   final Widget Function()? page;
 
-  const _MenuItem(this.image, this.title, this.page);
+  const _MenuItem(this.image, this.title, this.icon, this.page);
 }
 
 class HomeScreen extends StatefulWidget {
@@ -37,18 +40,18 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   // Tuşların sırası burada. Yer değiştirmek için satırların sırasını değiştir.
   static final List<_MenuItem> _items = [
-    _MenuItem('namaz_vakitleri', 'Namaz Vakitleri', () => const PrayerTimesScreen()),
-    _MenuItem('sureler', 'Sureler', () => const SurahsScreen()),
-    _MenuItem('dualar', 'Dualar', () => const PrayersScreen()),
-    _MenuItem('namaz_ogren', 'Namaz Öğren', () => const LearnNamazScreen()),
-    _MenuItem('zikir_sayaci', 'Zikir Sayacı', () => const DhikrScreen()),
-    _MenuItem('kible_bulucu', 'Kıble Bulucu', () => const QiblaScreen()),
-    _MenuItem('hadisler', 'Hadisler', null),
-    _MenuItem('dini_mesajlar', 'Dini Mesajlar', null),
-    _MenuItem('dua_cemberi', 'Dua Çemberi', null),
-    _MenuItem('ramazan', 'Ramazan', null),
-    _MenuItem('cami_bulucu', 'Cami Bulucu', null), // Harita uygulamasını açar
-    _MenuItem('ayarlar', 'Ayarlar', () => const SettingsScreen()),
+    _MenuItem('namaz_vakitleri', 'Namaz Vakitleri', Icons.schedule, () => const PrayerTimesScreen()),
+    _MenuItem('sureler', 'Sureler', Icons.menu_book, () => const SurahsScreen()),
+    _MenuItem('dualar', 'Dualar', Icons.volunteer_activism, () => const PrayersScreen()),
+    _MenuItem('namaz_ogren', 'Namaz Öğren', Icons.mosque, () => const LearnNamazScreen()),
+    _MenuItem('zikir_sayaci', 'Zikir Sayacı', Icons.touch_app, () => const DhikrScreen()),
+    _MenuItem('kible_bulucu', 'Kıble Bulucu', Icons.explore, () => const QiblaScreen()),
+    _MenuItem('hadisler', 'Hadisler', Icons.auto_stories, null),
+    _MenuItem('dini_mesajlar', 'Dini Mesajlar', Icons.mail_outline, null),
+    _MenuItem('dua_cemberi', 'Dua Çemberi', Icons.groups, null),
+    _MenuItem('ramazan', 'Ramazan', Icons.nightlight_round, null),
+    _MenuItem('cami_bulucu', 'Cami Bulucu', Icons.place, null), // Harita uygulamasını açar
+    _MenuItem('ayarlar', 'Ayarlar', Icons.settings, () => const SettingsScreen()),
   ];
 
   Timer? _ticker;
@@ -59,6 +62,7 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     _location.addListener(_refresh);
+    AppPrefs.instance.addListener(_refresh);
     _refresh();
     _ticker = Timer.periodic(const Duration(seconds: 1), (_) => _refresh());
     WidgetsBinding.instance.addPostFrameCallback((_) => _askLocationIfNeeded());
@@ -68,6 +72,7 @@ class _HomeScreenState extends State<HomeScreen> {
   void dispose() {
     _ticker?.cancel();
     _location.removeListener(_refresh);
+    AppPrefs.instance.removeListener(_refresh);
     super.dispose();
   }
 
@@ -120,7 +125,7 @@ class _HomeScreenState extends State<HomeScreen> {
       return;
     }
     final page = item.page?.call() ??
-        ComingSoonScreen(title: item.title, image: 'assets/images/${item.image}.png');
+        ComingSoonScreen(title: item.title, image: 'assets/images/tiles/${item.image}.jpg');
     Navigator.of(context).push(MaterialPageRoute(builder: (_) => page));
   }
 
@@ -131,7 +136,7 @@ class _HomeScreenState extends State<HomeScreen> {
     const shadow = [Shadow(color: Colors.black87, blurRadius: 5, offset: Offset(1, 1))];
 
     return Scaffold(
-      backgroundColor: AppColors.cream,
+      backgroundColor: const Color(0xFFD8C59C), // koyu krem
       body: SafeArea(
         child: Column(
           children: [
@@ -285,22 +290,17 @@ class _HomeScreenState extends State<HomeScreen> {
                   crossAxisCount: 3,
                   crossAxisSpacing: 6,
                   mainAxisSpacing: 6,
-                  childAspectRatio: 720 / 500,
+                  childAspectRatio: 1.18,
                 ),
                 itemCount: _items.length,
                 itemBuilder: (context, index) {
                   final item = _items[index];
-                  return Semantics(
-                    button: true,
-                    label: item.title,
-                    child: GestureDetector(
-                      behavior: HitTestBehavior.opaque,
-                      onTap: () => _onTap(item),
-                      child: Image.asset(
-                        'assets/images/${item.image}.png',
-                        fit: BoxFit.contain,
-                      ),
-                    ),
+                  return MenuTile(
+                    image: item.image,
+                    title: item.title,
+                    icon: item.icon,
+                    style: AppPrefs.instance.tileStyle,
+                    onTap: () => _onTap(item),
                   );
                 },
               ),

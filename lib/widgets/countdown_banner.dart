@@ -11,7 +11,7 @@ class CountdownBanner extends StatelessWidget {
   const CountdownBanner({super.key, required this.status});
 
   // Görselin kendi oranı (2048 x 592)
-  static const double aspect = 2048 / 592;
+  static const double aspect = 2048 / 400;
 
   @override
   Widget build(BuildContext context) {
@@ -28,8 +28,8 @@ class CountdownBanner extends StatelessWidget {
             return Positioned(
               left: fx * w - w * fw / 2,
               width: w * fw,
-              top: fy * h - h * 0.10,
-              height: h * 0.20,
+              top: fy * h - h * 0.1475,
+              height: h * 0.295,
               child: Center(
                 child: FittedBox(fit: BoxFit.scaleDown, child: child),
               ),
@@ -55,20 +55,20 @@ class CountdownBanner extends StatelessWidget {
                 child: Image.asset('assets/images/countdown.png', fit: BoxFit.fill),
               ),
               // Sol: şu anki vakit
-              at(0.223, 0.365, Text('Şu An', style: style(0.021, AppColors.goldLight))),
-              at(0.223, 0.470,
+              at(0.223, 0.35, Text('Şu An', style: style(0.021, AppColors.goldLight))),
+              at(0.223, 0.505,
                   Text(s?.current.name ?? '--', style: style(0.036, Colors.white, weight: FontWeight.w800))),
-              at(0.223, 0.575, Text('Vakti', style: style(0.021, AppColors.goldLight))),
+              at(0.223, 0.66, Text('Vakti', style: style(0.021, AppColors.goldLight))),
               // Orta: geri sayım
-              at(0.5, 0.445,
+              at(0.5, 0.4675,
                   Text(s == null ? '--:--:--' : formatDuration(s.remaining),
                       style: style(0.05, Colors.white, weight: FontWeight.w800)),
                   fw: 0.17),
               // Sağ: sıradaki vakit
-              at(0.78, 0.365, Text('Sonraki Vakit', style: style(0.021, AppColors.goldLight))),
-              at(0.78, 0.470,
+              at(0.78, 0.35, Text('Sonraki Vakit', style: style(0.021, AppColors.goldLight))),
+              at(0.78, 0.505,
                   Text(s?.next.name ?? '--', style: style(0.036, Colors.white, weight: FontWeight.w800))),
-              at(0.78, 0.575,
+              at(0.78, 0.66,
                   Text(s == null ? '--:--' : formatHm(s.next.time),
                       style: style(0.024, const Color(0xFFDDE6F0)))),
             ],

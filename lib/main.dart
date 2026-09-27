@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import 'screens/home_screen.dart';
+import 'services/app_prefs.dart';
 import 'services/location_store.dart';
 import 'theme.dart';
 
@@ -14,6 +15,7 @@ Future<void> main() async {
 
   // Kayıtlı şehir/konum varsa açılışta yükle.
   await LocationStore.instance.load();
+  await AppPrefs.instance.load();
 
   runApp(const EzanSaatiApp());
 }
