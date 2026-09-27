@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
-import '../screens/city_picker_screen.dart';
 import '../screens/settings_screen.dart';
 import '../services/location_store.dart';
+import '../services/prayer_calc.dart';
 import '../theme.dart';
 
 /// Ana ekran dışındaki bütün sayfaların ortak şablonu.
@@ -52,6 +52,15 @@ class PageShell extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Gündüz (imsak ile akşam arası) mı? Seçili konum yoksa 06:00-19:00 kabul edilir.
+bool _isDaytime() {
+  final now = DateTime.now();
+  final loc = LocationStore.instance.current;
+  if (loc == null) return now.hour >= 6 && now.hour < 19;
+  final t = PrayerCalc.forDay(loc, now).slots;
+  return now.isAfter(t[0].time) && now.isBefore(t[4].time);
 }
 
 class _HeaderDelegate extends SliverPersistentHeaderDelegate {
@@ -123,53 +132,12 @@ class _HeaderDelegate extends SliverPersistentHeaderDelegate {
                     children: [
                       Image.asset('assets/images/levha_allah.png', width: 64, height: 64),
                       Expanded(
-                        child: Column(
-                          children: [
-                            const SizedBox(height: 4),
-                            const Text(
-                              '☾ Ezan Saati',
-                              style: TextStyle(
-                                color: AppColors.goldLight,
-                                fontSize: 15,
-                                fontWeight: FontWeight.w700,
-                                fontFamily: 'serif',
-                                shadows: shadow,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            ListenableBuilder(
-                              listenable: LocationStore.instance,
-                              builder: (context, _) => InkWell(
-                                borderRadius: BorderRadius.circular(20),
-                                onTap: () => Navigator.of(context).push(
-                                  MaterialPageRoute(builder: (_) => const CityPickerScreen()),
-                                ),
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
-                                  decoration: BoxDecoration(
-                                    color: Colors.black.withValues(alpha: 0.35),
-                                    borderRadius: BorderRadius.circular(20),
-                                    border: Border.all(color: AppColors.gold.withValues(alpha: 0.85)),
-                                  ),
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      const Icon(Icons.location_on, color: AppColors.gold, size: 13),
-                                      const SizedBox(width: 3),
-                                      Text(
-                                        '${LocationStore.instance.current?.name ?? 'Konum Seç'} ›',
-                                        style: const TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 11.5,
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
+                        child: Center(
+                          child: Image.asset(
+                            _isDaytime() ? 'assets/images/logo_krem.png' : 'assets/images/logo_yesil.png',
+                            height: 70,
+                            fit: BoxFit.contain,
+                          ),
                         ),
                       ),
                       Image.asset('assets/images/levha_muhammed.png', width: 64, height: 64),
