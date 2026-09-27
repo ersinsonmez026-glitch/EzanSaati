@@ -28,3 +28,9 @@ Aynı düzen; zemin krem kâğıt. Seçili durum ve altın ayrıntılar yeşil t
 ## Süsler
 - Önemli kartlarda çift çerçeve ve altın köşe süsleri; başlık üstünde küçük "✦ ❖ ✦" süsü
 - Büyük başlıklar altın geçişli yazı
+- Başlık logosu küçük tutulur (yaklaşık 50 px), arkadaki cami kubbesi görünür kalmalı
+
+## Sayaçların birbirine bağlanması
+- Dua Zinciri'nde okunan her şey (salavat, Yasin, İhlas, istiğfar, hatim cüzü) Online Dua toplamına da eklenir.
+- Zikir Sayacı'nda sayılan salavat / istiğfar vb., kişinin aynı türde aktif zincir görevi varsa o göreve ve
+  Online Dua toplamına otomatik eklenir (ayarlardan kapatılabilir).

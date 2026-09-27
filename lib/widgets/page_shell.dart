@@ -132,10 +132,11 @@ class _HeaderDelegate extends SliverPersistentHeaderDelegate {
                     children: [
                       Image.asset('assets/images/levha_allah.png', width: 64, height: 64),
                       Expanded(
-                        child: Center(
+                        child: Align(
+                          alignment: Alignment.topCenter,
                           child: Image.asset(
                             _isDaytime() ? 'assets/images/logo_krem.png' : 'assets/images/logo_yesil.png',
-                            height: 70,
+                            height: 50, // küçük: arkadaki cami kubbesi görünsün
                             fit: BoxFit.contain,
                           ),
                         ),
