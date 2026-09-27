@@ -52,7 +52,11 @@ kaynak (HadeethEnc.com) ve sürüm belirtilerek kullanılmalı. Uygulama metinle
 - [ ] HadeethEnc Türkçe çevirilerindeki yazım hataları (ör. "dışgörünüşünüze", "hamtederek") HadeethEnc'e
       bildirilecek; kendimiz düzeltemeyiz (kullanım şartı)
 
-## 5. Diğer
+## 5. Dini Mesajlar sayfası
+- [ ] Hazır mesaj metinleri (Cuma, Kandil, Ramazan, Bayram, Hayırlı Sabahlar, Dua; toplam 19 kısa mesaj)
+      dil ve üslup olarak uygun mu
+
+## 6. Diğer
 - [ ] Sureler sayfası "Günün Ayeti" listesi (ayet seçimi uygun mu)
 - [ ] Hicri Takvim: dinî gün tarihleri (Diyanet takvimiyle son kontrol)
 - [ ] Ana ekrandaki ayet: Nisâ 103 meali
