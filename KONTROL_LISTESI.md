@@ -62,7 +62,13 @@ kaynak (HadeethEnc.com) ve sürüm belirtilerek kullanılmalı. Uygulama metinle
 - [ ] Kadir Gecesi duası: Arapça, okunuş, anlam, kaynak (Tirmizî, Deavât)
 - [ ] 2027 tarihleri (Diyanet): Ramazan 8 Şubat, Kadir Gecesi 5 Mart, Bayram 9-11 Mart; kandil tarihleri
 
-## 7. Diğer
+## 7. İlahiler sayfası
+- [ ] Yunus Emre ilahilerinin sözleri (hafızadan yazıldı; güvenilir bir Yunus Emre Divanı baskısıyla karşılaştırılmalı):
+      Dağlar ile Taşlar ile, Bana Seni Gerek Seni, Gel Gör Beni Aşk Neyledi (3 kıta), Hak Cihana Doludur (1 kıta)
+- [ ] Eklenecek diğer ilahiler (sadece telif süresi dolmuş klasik şairler: Yunus Emre, Eşrefoğlu Rûmî,
+      Aziz Mahmud Hüdâyî, Niyâzî-i Mısrî vb.; güncel bestecilerin sözleri kullanılmayacak)
+
+## 8. Diğer
 - [ ] Sureler sayfası "Günün Ayeti" listesi (ayet seçimi uygun mu)
 - [ ] Hicri Takvim: dinî gün tarihleri (Diyanet takvimiyle son kontrol)
 - [ ] Ana ekrandaki ayet: Nisâ 103 meali
