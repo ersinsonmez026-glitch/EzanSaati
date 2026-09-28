@@ -1,44 +1,50 @@
 name: Kur'an ses kaynağı kullanım şartları (geçici)
 
-# Geçici: aday kaynakların kullanım şartları sayfalarını okur ve ilgili maddeleri
-# log'a yazar. Ses dosyası indirmez, depoya hiçbir şey yazmaz. İş bitince silinecek.
+# Geçici: Islamic Network şartlarının tamamını ve ses adreslerini doğrular.
+# Yalnız HEAD isteği atar; ses dosyası indirmez, depoya yazmaz. İş bitince silinecek.
 on:
   push:
     branches: [claude/charming-davinci-6c5fkr]
     paths: [.github/workflows/kuran-ses-arastirma.yml]
 
 jobs:
-  terms:
+  verify:
     runs-on: ubuntu-latest
     steps:
-      - name: Kullanım şartları
+      - name: Şartlar ve 114 sûre kontrolü
         shell: python
         run: |
-          import re, time, html, urllib.request
+          import re, time, html, json, urllib.request
           UA = {'User-Agent': 'Mozilla/5.0 (EzanSaati terms check; https://github.com/ersinsonmez026-glitch/EzanSaati)'}
-          KW = re.compile(r'licen|copyright|terms|permi|commercial|stream|redistribut|attribut|third.party|'
-                          r'telif|izin|hakları|kullanım|ticari|lisans|©', re.I)
-          pages = [
-            'https://kuran.diyanet.gov.tr/', 'https://kuran.diyanet.gov.tr/mushaf', 'https://www.diyanet.gov.tr/tr-TR/Kurumsal/Detay/11/yasal-uyari',
-            'https://dijital.diyanet.gov.tr/', 'https://quran.foundation/terms', 'https://api-docs.quran.foundation/docs/terms-of-service',
-            'https://api-docs.quran.foundation/docs/quran-api-overview', 'https://quran.com/terms-and-conditions',
-            'https://quranicaudio.com/', 'https://quranicaudio.com/about', 'https://alquran.cloud/terms-and-conditions',
-            'https://alquran.cloud/api', 'https://islamic.network/', 'https://mp3quran.net/eng', 'https://mp3quran.net/eng/api',
-            'https://mp3quran.net/api/v3/reciters?language=eng', 'https://everyayah.com/', 'https://everyayah.com/recitations_ayat.html',
-            'https://qurancomplex.gov.sa/en/', 'https://www.qurancentral.com/terms-of-use/', 'https://tanzil.net/docs/recitations',
-          ]
-          for url in pages:
-              time.sleep(2)
+          def get(u):
+              return urllib.request.urlopen(urllib.request.Request(u, headers=UA), timeout=60).read().decode('utf-8', 'replace')
+          def text(u):
+              raw = get(u)
+              t = html.unescape(re.sub(r'<script.*?</script>|<style.*?</style>', ' ', raw, flags=re.S))
+              return re.sub(r'\s+', ' ', re.sub(r'<[^>]+>', ' ', t))
+          for u in ['https://alquran.cloud/terms-and-conditions', 'https://alquran.cloud/cdn', 'https://alquran.cloud/api']:
               try:
-                  raw = urllib.request.urlopen(urllib.request.Request(url, headers=UA), timeout=60).read().decode('utf-8', 'replace')
-              except Exception as e:
-                  print(f'\n##### {url}\nHATA: {e}'); continue
-              if url.endswith('reciters?language=eng'):
-                  print(f'\n##### {url}\n{raw[:1500]}'); continue
-              text = html.unescape(re.sub(r'<script.*?</script>|<style.*?</style>', ' ', raw, flags=re.S))
-              text = re.sub(r'\s+', ' ', re.sub(r'<[^>]+>', ' \n ', text))
-              sents = re.split(r'(?<=[.!?])\s+', text)
-              hits = [s.strip()[:400] for s in sents if KW.search(s)]
-              title = (re.search(r'<title>(.*?)</title>', raw, re.S) or [None, ''])[1].strip()[:100]
-              print(f'\n##### {url}\nBAŞLIK: {title} | uzunluk {len(text)} | eşleşme {len(hits)}')
-              for h in hits[:40]: print(' -', h)
+                  t = text(u); i = t.find('Section I'); i = i if i >= 0 else 0
+                  print(f'\n##### {u}\n{t[i:i+6000]}')
+              except Exception as e: print(f'\n##### {u}\nHATA {e}')
+              time.sleep(2)
+          # Tam sûre ses sürümleri (API)
+          try:
+              ed = json.loads(get('https://api.alquran.cloud/v1/edition?format=audio&type=versebyverse'))['data']
+              print('\nAYET AYET SES SÜRÜMLERİ:', len(ed))
+              for e in ed: print(' ', e['identifier'], '|', e['englishName'], '|', e.get('language'))
+          except Exception as e: print('edition HATA', e)
+          # Tam sûre dosyaları: 114 sûre için HEAD
+          for rec in ['ar.alafasy', 'ar.husary', 'ar.abdulbasitmurattal', 'ar.minshawi', 'ar.abdurrahmaansudais', 'ar.mahermuaiqly']:
+              for br in [128, 64]:
+                  ok, bad, size = 0, [], 0
+                  for n in range(1, 115):
+                      u = f'https://cdn.islamic.network/quran/audio-surah/{br}/{rec}/{n}.mp3'
+                      try:
+                          r = urllib.request.urlopen(urllib.request.Request(u, headers=UA, method='HEAD'), timeout=30)
+                          ok += 1; size += int(r.headers.get('Content-Length') or 0)
+                      except Exception as e:
+                          bad.append(n)
+                      time.sleep(0.15)
+                  print(f'SÛRE {rec} {br}kbps: {ok}/114 erişilebilir, eksik={bad[:20]}, toplam {size//1048576} MB')
+                  if ok == 114: break
