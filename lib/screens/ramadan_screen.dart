@@ -253,12 +253,12 @@ class _RamadanScreenState extends State<RamadanScreen> {
                   child: Row(
                     children: [
                       Expanded(
-                        child: _timeCell(Icons.nightlight_round, 'Sahur (İmsak)',
+                        child: _timeCell(kVakitIkonlari[0], 'Sahur (İmsak)',
                             today == null ? '--:--' : formatHm(today.slots[0].time)),
                       ),
                       Container(width: 1, color: const Color(0x40D4AF37)),
                       Expanded(
-                        child: _timeCell(Icons.wb_twilight, 'İftar (Akşam)',
+                        child: _timeCell(kVakitIkonlari[4], 'İftar (Akşam)',
                             today == null ? '--:--' : formatHm(today.slots[4].time)),
                       ),
                     ],
@@ -272,12 +272,12 @@ class _RamadanScreenState extends State<RamadanScreen> {
     );
   }
 
-  Widget _timeCell(IconData icon, String label, String value) {
+  Widget _timeCell(String icon, String label, String value) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 10),
       child: Column(
         children: [
-          GoldIcon(icon, size: 22),
+          ArtIcon(icon, size: 30),
           const SizedBox(height: 2),
           Text(label, style: const TextStyle(color: RC.creamSoft, fontSize: 11)),
           Text(value,

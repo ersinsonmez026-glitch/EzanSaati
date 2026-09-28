@@ -361,15 +361,6 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
     );
   }
 
-  static const _icons = [
-    Icons.wb_twilight, // İmsak: ufuktan doğan ışık
-    Icons.wb_sunny, // Güneş
-    Icons.mosque, // Öğle
-    Icons.wb_cloudy, // İkindi
-    Icons.wb_twilight, // Akşam: batan güneş
-    Icons.nightlight_round, // Yatsı: hilal
-  ];
-
   Widget _row(int i, PrayerSlot slot, DateTime now, int ci, bool beforeImsak, PrayerStatus st) {
     final cur = _offset == 0 && i == ci && !(i == 5 && beforeImsak);
     final past = _offset < 0 || (_offset == 0 && !slot.time.isAfter(now) && !cur);
@@ -419,9 +410,7 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
                         colors: [Color(0xFF0B3F2B), Color(0xFF062A1C)]),
                 border: Border(right: BorderSide(color: RC.gold(0.5))),
               ),
-              child: cur
-                  ? Icon(_icons[i], size: 24, color: const Color(0xFF1D1406))
-                  : GoldIcon(_icons[i], size: 24),
+              child: ArtIcon(kVakitIkonlari[i], size: 34),
             ),
             const SizedBox(width: 10),
             Expanded(

@@ -12,23 +12,23 @@ premium bir sete geçirilecek. Tüm simgeler TEK SETTE ve AYNI TARZDA hazırlanm
 - Teslim: her simge ayrı, 512×512 şeffaf PNG (ayrıca tek sayfada hepsinin önizlemesi). Yazı, çerçeve, filigran yok.
 - Aynı çizgi kalınlığı, aynı ışık yönü (sol üst), aynı köşe yuvarlaklığı; küçük boyutta (24 px) da okunaklı.
 
-### 1a. Ana ekran tuşları (12) — kart görselleri hazır; bu simgeler Krem/Yeşil tuş görünümü ve sayfa başlıkları için
-- [ ] Namaz Vakitleri — saat kadranı, üstünde küçük hilal
-- [ ] Sureler — rahle üzerinde açık Kur'an
-- [ ] Dualar — açık dua eden eller
-- [ ] Zikir Sayacı — tesbih (33 tane, püsküllü)
-- [ ] Kıble Bulucu — pusula, ibrenin ucunda Kâbe
-- [ ] Cami Bulucu — konum iğnesi içinde cami silueti
-- [ ] Dua Çemberi — halka şeklinde birbirine bağlı kişiler / dua eden eller çemberi
-- [ ] Hadisler — kapalı kitap üzerinde mühür / hat süsü
-- [ ] Ramazan — Ramazan feneri, yanında hilal
-- [ ] Namaz Öğren — seccade üzerinde namaz kılan figür silueti
-- [ ] Dini Mesajlar — mühürlü zarf
-- [ ] Ayarlar — İslami desenli dişli
+### 1a. Ana ekran tuşları (12) — geldi (28 Eylül 2026), assets/images/ikon; kart görselleri hazır; bu simgeler Krem/Yeşil tuş görünümü ve sayfa başlıkları için
+- [x] Namaz Vakitleri — saat kadranı, üstünde küçük hilal
+- [x] Sureler — rahle üzerinde açık Kur'an
+- [x] Dualar — açık dua eden eller
+- [x] Zikir Sayacı — tesbih (33 tane, püsküllü)
+- [x] Kıble Bulucu — pusula, ibrenin ucunda Kâbe
+- [x] Cami Bulucu — konum iğnesi içinde cami silueti
+- [x] Dua Çemberi — halka şeklinde birbirine bağlı kişiler / dua eden eller çemberi
+- [x] Hadisler — kapalı kitap üzerinde mühür / hat süsü
+- [x] Ramazan — Ramazan feneri, yanında hilal
+- [x] Namaz Öğren — seccade üzerinde namaz kılan figür silueti
+- [x] Dini Mesajlar — mühürlü zarf
+- [x] Ayarlar — İslami desenli dişli
 
-### 1b. Namaz vakitleri (6)
-- [ ] İmsak (hilal + yıldız, şafak çizgisi) · Güneş (ufuktan doğan güneş) · Öğle (tepe güneşi)
-- [ ] İkindi (alçalmış güneş) · Akşam (batan güneş) · Yatsı (hilal)
+### 1b. Namaz vakitleri (6) — geldi (28 Eylül 2026); Yatsı hilali İmsak simgesinden kesildi, Öğle için cami simgesi
+- [x] İmsak (hilal + yıldız, şafak çizgisi) · Güneş (ufuktan doğan güneş) · Öğle (tepe güneşi)
+- [x] İkindi (alçalmış güneş) · Akşam (batan güneş) · Yatsı (hilal)
 
 ### 1c. Sayfa içi genel simgeler
 - [ ] Konum iğnesi, konumumu bul (hedef), takvim, hicrî takvim (hilalli takvim), kandil (asılı kandil lambası),

@@ -36,3 +36,29 @@ class GoldIcon extends StatelessWidget {
     );
   }
 }
+
+/// Hazır altın simge görseli (assets/images/ikon). Yaklaşık 26 pikselden büyük yerlerde kullanılır;
+/// küçük araç simgelerinde [GoldIcon] daha net kalır.
+class ArtIcon extends StatelessWidget {
+  final String name;
+  final double size;
+  final String? semanticLabel;
+
+  const ArtIcon(this.name, {super.key, this.size = 32, this.semanticLabel});
+
+  @override
+  Widget build(BuildContext context) {
+    return Image.asset(
+      'assets/images/ikon/$name.webp',
+      width: size,
+      height: size,
+      fit: BoxFit.contain,
+      filterQuality: FilterQuality.medium,
+      semanticLabel: semanticLabel,
+      excludeFromSemantics: semanticLabel == null,
+    );
+  }
+}
+
+/// Altı vaktin simgeleri (İmsak, Güneş, Öğle, İkindi, Akşam, Yatsı) — [ArtIcon] adları.
+const kVakitIkonlari = ['imsak', 'gunes', 'cami', 'ikindi', 'aksam', 'yatsi'];

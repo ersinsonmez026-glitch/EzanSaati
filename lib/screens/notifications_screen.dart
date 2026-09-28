@@ -147,7 +147,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               GroupItem(
                 pal: _pal,
                 enabled: s.enabled,
-                icon: _icons[i],
+                art: kVakitIkonlari[i],
                 title: PrayerCalc.names[i],
                 subtitle: !s.enabled || !s.vakit[i]
                     ? 'Kapalı'
@@ -222,15 +222,6 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       ],
     );
   }
-
-  static const _icons = [
-    Icons.wb_twilight,
-    Icons.wb_sunny,
-    Icons.mosque,
-    Icons.wb_cloudy,
-    Icons.wb_twilight,
-    Icons.nightlight_round,
-  ];
 
   Widget _hero(String desc) {
     return Container(

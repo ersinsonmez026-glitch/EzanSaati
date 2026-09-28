@@ -218,7 +218,7 @@ class _MosqueFinderScreenState extends State<MosqueFinderScreen> {
               color: const Color(0x40000000),
               border: Border.all(color: RC.goldBorder, width: 1.5),
             ),
-            child: const Center(child: GoldIcon(Icons.mosque, size: 28)),
+            child: const Center(child: ArtIcon('cami_bulucu', size: 40)),
           ),
           const SizedBox(width: 14),
           Expanded(

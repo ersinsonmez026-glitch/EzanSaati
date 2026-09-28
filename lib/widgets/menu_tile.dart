@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 
 import '../services/app_prefs.dart';
+import 'gold_icon.dart';
 
 /// Ana ekrandaki tek bir tuş. Görünümü ayarlardan seçilir.
 class MenuTile extends StatelessWidget {
   final String image; // tiles klasöründeki dosya adı (uzantısız)
   final String title;
-  final IconData icon;
+  final String icon; // assets/images/ikon içindeki simge adı
   final TileStyle style;
   final bool hasPhoto; // görseli henüz yoksa simgeli gösterilir
   final VoidCallback onTap;
@@ -75,9 +76,7 @@ class MenuTile extends StatelessWidget {
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: krem
-                ? const [Color(0xFFEADBB8), Color(0xFFDCC9A0)]
-                : const [Color(0xFF0D4630), Color(0xFF05281B)],
+            colors: krem ? const [Color(0xFFEADBB8), Color(0xFFDCC9A0)] : const [Color(0xFF0D4630), Color(0xFF05281B)],
           ),
           border: Border.all(color: krem ? const Color(0x8C8A6414) : const Color(0x8CD4AF37)),
           boxShadow: const [BoxShadow(color: Color(0x333C280A), blurRadius: 4, offset: Offset(0, 2))],
@@ -85,8 +84,8 @@ class MenuTile extends StatelessWidget {
         child = Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, size: 28, color: krem ? const Color(0xFF8A6414) : const Color(0xFFE2C26E)),
-            const SizedBox(height: 6),
+            ArtIcon(icon, size: 40),
+            const SizedBox(height: 4),
             Padding(padding: const EdgeInsets.symmetric(horizontal: 4), child: FittedBox(child: label)),
           ],
         );

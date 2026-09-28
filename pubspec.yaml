@@ -43,6 +43,7 @@ flutter:
     - assets/images/mesaj/
     - assets/images/zikir/
     - assets/images/kible/
+    - assets/images/ikon/
     - assets/data/
     - assets/fonts/OFL.txt
 

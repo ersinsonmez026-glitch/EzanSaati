@@ -28,7 +28,7 @@ import '../widgets/gold_icon.dart';
 class _MenuItem {
   final String image;
   final String title;
-  final IconData icon;
+  final String icon; // assets/images/ikon içindeki simge (Krem/Yeşil görünüm)
   final Widget Function() page;
 
   const _MenuItem(this.image, this.title, this.icon, this.page);
@@ -44,18 +44,18 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   // 12 tuş, 3 sütun × 4 sıra. Sıra sabittir (kullanıcı onayı), değiştirme.
   static final List<_MenuItem> _items = [
-    _MenuItem('namaz_vakitleri', 'Namaz Vakitleri', Icons.schedule, () => const PrayerTimesScreen()),
-    _MenuItem('sureler', 'Sureler', Icons.menu_book, () => const SurahsScreen()),
-    _MenuItem('dualar', 'Dualar', Icons.volunteer_activism, () => const PrayersScreen()),
-    _MenuItem('zikir_sayaci', 'Zikir Sayacı', Icons.touch_app, () => const DhikrScreen()),
-    _MenuItem('kible_bulucu', 'Kıble Bulucu', Icons.explore, () => const QiblaScreen()),
-    _MenuItem('cami_bulucu', 'Cami Bulucu', Icons.place, () => const MosqueFinderScreen()),
-    _MenuItem('dua_cemberi', 'Dua Çemberi', Icons.groups, () => const DuaCircleScreen()),
-    _MenuItem('hadisler', 'Hadisler', Icons.auto_stories, () => const HadithsScreen()),
-    _MenuItem('ramazan', 'Ramazan', Icons.nightlight_round, () => const RamadanScreen()),
-    _MenuItem('namaz_ogren', 'Namaz Öğren', Icons.mosque, () => const LearnNamazScreen()),
-    _MenuItem('dini_mesajlar', 'Dini Mesajlar', Icons.mail_outline, () => const MessagesScreen()),
-    _MenuItem('ayarlar', 'Ayarlar', Icons.settings, () => const SettingsScreen()),
+    _MenuItem('namaz_vakitleri', 'Namaz Vakitleri', 'namaz_vakitleri', () => const PrayerTimesScreen()),
+    _MenuItem('sureler', 'Sureler', 'kuran', () => const SurahsScreen()),
+    _MenuItem('dualar', 'Dualar', 'dualar', () => const PrayersScreen()),
+    _MenuItem('zikir_sayaci', 'Zikir Sayacı', 'tesbih', () => const DhikrScreen()),
+    _MenuItem('kible_bulucu', 'Kıble Bulucu', 'kible_bulucu', () => const QiblaScreen()),
+    _MenuItem('cami_bulucu', 'Cami Bulucu', 'cami_bulucu', () => const MosqueFinderScreen()),
+    _MenuItem('dua_cemberi', 'Dua Çemberi', 'dua_cemberi', () => const DuaCircleScreen()),
+    _MenuItem('hadisler', 'Hadisler', 'hadisler', () => const HadithsScreen()),
+    _MenuItem('ramazan', 'Ramazan', 'fener', () => const RamadanScreen()),
+    _MenuItem('namaz_ogren', 'Namaz Öğren', 'cami', () => const LearnNamazScreen()),
+    _MenuItem('dini_mesajlar', 'Dini Mesajlar', 'dini_mesajlar', () => const MessagesScreen()),
+    _MenuItem('ayarlar', 'Ayarlar', 'ayarlar', () => const SettingsScreen()),
   ];
   static const _rows = 4;
 
@@ -406,7 +406,7 @@ class _LocationSheetState extends State<_LocationSheet> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const GoldIcon(Icons.mosque, size: 48),
+          const ArtIcon('cami', size: 60),
           const SizedBox(height: 12),
           const Text(
             'Hoş Geldiniz',

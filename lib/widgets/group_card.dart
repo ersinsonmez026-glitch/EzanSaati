@@ -61,7 +61,8 @@ class GroupCard extends StatelessWidget {
 /// Grup içindeki satır: solda simge kutusu, başlık ve açıklama, sağda anahtar/ok/değer.
 class GroupItem extends StatelessWidget {
   final PagePalette pal;
-  final IconData icon;
+  final IconData? icon;
+  final String? art; // [icon] yerine hazır simge görseli (assets/images/ikon)
   final String title;
   final String? subtitle;
   final Widget? trailing;
@@ -72,14 +73,15 @@ class GroupItem extends StatelessWidget {
   const GroupItem({
     super.key,
     required this.pal,
-    required this.icon,
+    this.icon,
+    this.art,
     required this.title,
     this.subtitle,
     this.trailing,
     this.onTap,
     this.enabled = true,
     this.below,
-  });
+  }) : assert(icon != null || art != null);
 
   @override
   Widget build(BuildContext context) {
@@ -89,7 +91,7 @@ class GroupItem extends StatelessWidget {
           width: 36,
           height: 36,
           decoration: BoxDecoration(color: pal.pill, borderRadius: BorderRadius.circular(10)),
-          child: Center(child: GoldIcon(icon, size: 20, light: !pal.night)),
+          child: Center(child: art != null ? ArtIcon(art!, size: 30) : GoldIcon(icon!, size: 20, light: !pal.night)),
         ),
         const SizedBox(width: 10),
         Expanded(
