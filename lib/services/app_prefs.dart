@@ -1,14 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-/// Ana ekran tuş görünümü: resimli, krem veya yeşil.
+/// Ana ekran tuş görünümü: görselli, krem veya yeşil. (Sıra kayıtlı ayarla uyumlu kalsın diye değişmez.)
 enum TileStyle { resimli, krem, yesil }
 
 extension TileStyleName on TileStyle {
   String get label => switch (this) {
-        TileStyle.resimli => 'Resimli',
+        TileStyle.resimli => 'Görsel',
         TileStyle.krem => 'Krem',
         TileStyle.yesil => 'Yeşil',
+      };
+}
+
+/// Gündüz (krem) / gece (yeşil) görünümü: otomatik vakte göre ya da kullanıcının seçtiği.
+enum DayMode { otomatik, gunduz, gece }
+
+extension DayModeName on DayMode {
+  String get label => switch (this) {
+        DayMode.otomatik => 'Otomatik',
+        DayMode.gunduz => 'Gündüz',
+        DayMode.gece => 'Gece',
       };
 }
 
@@ -18,8 +29,11 @@ class AppPrefs extends ChangeNotifier {
   static final AppPrefs instance = AppPrefs._();
 
   static const _kTile = 'tile_style';
+  static const _kDay = 'day_mode';
   TileStyle _tileStyle = TileStyle.resimli;
   TileStyle get tileStyle => _tileStyle;
+  DayMode _dayMode = DayMode.otomatik;
+  DayMode get dayMode => _dayMode;
 
   Future<void> load() async {
     final prefs = await SharedPreferences.getInstance();
@@ -28,6 +42,18 @@ class AppPrefs extends ChangeNotifier {
       _tileStyle = TileStyle.values[i];
       notifyListeners();
     }
+    final d = prefs.getInt(_kDay);
+    if (d != null && d >= 0 && d < DayMode.values.length) {
+      _dayMode = DayMode.values[d];
+      notifyListeners();
+    }
+  }
+
+  Future<void> setDayMode(DayMode m) async {
+    _dayMode = m;
+    notifyListeners();
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt(_kDay, m.index);
   }
 
   Future<void> setTileStyle(TileStyle s) async {

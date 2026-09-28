@@ -45,7 +45,7 @@ class GroupCard extends StatelessWidget {
                 const SizedBox(width: 10),
                 Expanded(
                   child:
-                      Text(title, style: const TextStyle(color: RC.cream, fontSize: 16, fontWeight: FontWeight.w700)),
+                      GoldText(title, maxLines: 1, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
                 ),
                 if (trailing != null) trailing!,
               ],

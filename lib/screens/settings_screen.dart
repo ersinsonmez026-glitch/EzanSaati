@@ -19,7 +19,7 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
-  final _pal = PagePalette.current();
+  PagePalette get _pal => PagePalette.current(); // Gündüz/Gece değişince hemen yenilensin
   final _location = LocationStore.instance;
   bool _busy = false;
 
@@ -93,13 +93,30 @@ class _SettingsScreenState extends State<SettingsScreen> {
               pal: _pal,
               icon: Icons.dashboard_outlined,
               title: 'Ana ekran tuşları',
-              subtitle: 'Resimli, krem ya da yeşil tuşlar',
+              subtitle: 'Görselli, yeşil ya da krem tuşlar',
               below: ChoiceRow<TileStyle>(
                 pal: _pal,
-                options: [for (final t in TileStyle.values) (t, t.label)],
+                options: [
+                  for (final t in const [TileStyle.resimli, TileStyle.yesil, TileStyle.krem]) (t, t.label)
+                ],
                 value: AppPrefs.instance.tileStyle,
                 onChanged: (v) async {
                   await AppPrefs.instance.setTileStyle(v);
+                  if (mounted) setState(() {});
+                },
+              ),
+            ),
+            GroupItem(
+              pal: _pal,
+              icon: Icons.brightness_6_outlined,
+              title: 'Gündüz / gece görünümü',
+              subtitle: 'Otomatik: imsakten akşama krem, akşamdan sonra yeşil görünüm ve gece manzarası',
+              below: ChoiceRow<DayMode>(
+                pal: _pal,
+                options: [for (final m in DayMode.values) (m, m.label)],
+                value: AppPrefs.instance.dayMode,
+                onChanged: (v) async {
+                  await AppPrefs.instance.setDayMode(v);
                   if (mounted) setState(() {});
                 },
               ),

@@ -25,26 +25,21 @@ class MenuTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final radius = BorderRadius.circular(14);
-    final label = Text(
+    final effective = (style == TileStyle.resimli && !hasPhoto) ? TileStyle.yesil : style;
+    final label = GoldText(
       title,
       maxLines: 1,
-      softWrap: false,
-      overflow: TextOverflow.fade,
       textAlign: TextAlign.center,
-      style: TextStyle(
-        fontFamily: 'serif',
-        fontWeight: FontWeight.w700,
-        fontSize: 12.5,
-        color: style == TileStyle.krem ? const Color(0xFF2E2412) : const Color(0xFFF6EBCF),
-        shadows: style == TileStyle.resimli
-            ? const [Shadow(color: Colors.black87, blurRadius: 3, offset: Offset(0, 1))]
-            : null,
-      ),
+      tone: switch (effective) {
+        TileStyle.resimli => GoldTone.onPhoto,
+        TileStyle.krem => GoldTone.onLight,
+        TileStyle.yesil => GoldTone.onDark,
+      },
+      style: const TextStyle(fontFamily: 'serif', fontWeight: FontWeight.w700, fontSize: 12.5, letterSpacing: 0.2),
     );
 
     Widget child;
     BoxDecoration deco;
-    final effective = (style == TileStyle.resimli && !hasPhoto) ? TileStyle.yesil : style;
     switch (effective) {
       case TileStyle.resimli:
         deco = BoxDecoration(

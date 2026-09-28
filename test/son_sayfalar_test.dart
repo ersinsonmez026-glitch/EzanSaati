@@ -4,11 +4,14 @@ import 'package:ezan_saati/screens/hadiths_screen.dart';
 import 'package:ezan_saati/screens/mosque_finder_screen.dart';
 import 'package:ezan_saati/screens/notifications_screen.dart';
 import 'package:ezan_saati/screens/settings_screen.dart';
+import 'package:ezan_saati/services/app_prefs.dart';
 import 'package:ezan_saati/services/ezan_notifications.dart';
 import 'package:ezan_saati/services/hadith_store.dart';
 import 'package:ezan_saati/services/location_store.dart';
 import 'package:ezan_saati/services/mosque_store.dart';
 import 'package:ezan_saati/services/takvim.dart';
+import 'package:ezan_saati/widgets/page_shell.dart';
+import 'package:ezan_saati/widgets/reading_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -181,7 +184,8 @@ void main() {
       await t.pumpWidget(const MaterialApp(home: NotificationsScreen()));
       await t.pump();
       expect(find.text('Bildirim Ayarları'), findsOneWidget);
-      expect(find.text('Vakitler'), findsOneWidget);
+      expect(find.text('Ezan Vakitleri'), findsOneWidget);
+      expect(find.text('Tüm ezan bildirimleri'), findsOneWidget);
       expect(find.text('Kandil ve bayramlar'), findsOneWidget);
       expect(find.textContaining('Bildirimler kapalı'), findsOneWidget);
     });
@@ -193,7 +197,7 @@ void main() {
     addTearDown(t.view.reset);
     await t.pumpWidget(const MaterialApp(home: SettingsScreen()));
     await t.pump();
-    for (final l in ['Konum', 'Görünüm', 'Bildirimler', 'Hesaplama', 'Hakkında', 'Resimli', 'Krem', 'Yeşil']) {
+    for (final l in ['Konum', 'Görünüm', 'Bildirimler', 'Hesaplama', 'Hakkında', 'Görsel', 'Krem', 'Yeşil', 'Otomatik', 'Gündüz', 'Gece']) {
       expect(find.text(l), findsWidgets, reason: l);
     }
     await t.tap(find.text('Gizlilik ve kaynaklar'));
@@ -215,5 +219,17 @@ void main() {
     await t.pump();
     expect(find.text('İzmir'), findsOneWidget);
     expect(find.text('Adana'), findsNothing);
+  });
+
+  test('Gündüz/Gece seçimi vakitten bağımsız görünümü belirler ve saklanır', () async {
+    await AppPrefs.instance.setDayMode(DayMode.gece);
+    expect(isDaytime(), isFalse);
+    expect(PagePalette.current().night, isTrue);
+    await AppPrefs.instance.setDayMode(DayMode.gunduz);
+    expect(isDaytime(), isTrue);
+    expect(PagePalette.current().night, isFalse);
+    await AppPrefs.instance.setDayMode(DayMode.otomatik);
+    expect(isDaytime(), isDaytimeByClock());
+    expect((await SharedPreferences.getInstance()).getInt('day_mode'), DayMode.otomatik.index);
   });
 }

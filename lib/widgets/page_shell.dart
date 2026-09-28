@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../screens/settings_screen.dart';
+import '../services/app_prefs.dart';
 import '../services/location_store.dart';
 import '../services/prayer_calc.dart';
 import '../theme.dart';
@@ -65,9 +66,16 @@ class PageShell extends StatelessWidget {
   }
 }
 
+/// Gündüz görünümü mü? Kullanıcı Gündüz/Gece seçtiyse o, yoksa vakte göre ([isDaytimeByClock]).
+/// Başlık manzarası, ana görsel ve krem/yeşil sayfa görünümü buna göre seçilir.
+bool isDaytime() => switch (AppPrefs.instance.dayMode) {
+      DayMode.gunduz => true,
+      DayMode.gece => false,
+      DayMode.otomatik => isDaytimeByClock(),
+    };
+
 /// Gündüz (imsak ile akşam arası) mı? Seçili konum yoksa 06:00-19:00 kabul edilir.
-/// Başlık manzarası ve krem/yeşil sayfa görünümü buna göre seçilir.
-bool isDaytime() {
+bool isDaytimeByClock() {
   final now = DateTime.now();
   final loc = LocationStore.instance.current;
   if (loc == null) return now.hour >= 6 && now.hour < 19;
@@ -94,7 +102,6 @@ class _HeaderDelegate extends SliverPersistentHeaderDelegate {
 
   @override
   Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
-    const shadow = [Shadow(color: Colors.black87, blurRadius: 6, offset: Offset(0, 2))];
     // Üst sıra (levhalar, logo, konum) ilk 45 pikselde kaybolur
     final topOpacity = (1 - shrinkOffset / 55).clamp(0.0, 1.0);
     final canPop = Navigator.of(context).canPop();
@@ -181,17 +188,14 @@ class _HeaderDelegate extends SliverPersistentHeaderDelegate {
                         : null,
                   ),
                   Expanded(
-                    child: Text(
-                      title,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 20,
-                        fontWeight: FontWeight.w700,
-                        fontFamily: 'serif',
-                        shadows: shadow,
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: GoldText(
+                        title,
+                        maxLines: 1,
+                        textAlign: TextAlign.center,
+                        tone: GoldTone.onPhoto,
+                        style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700, fontFamily: 'serif'),
                       ),
                     ),
                   ),

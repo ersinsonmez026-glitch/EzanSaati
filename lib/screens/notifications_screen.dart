@@ -52,7 +52,10 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         return;
       }
     }
-    await _update((s) => s.enabled = on);
+    await _update((s) {
+      s.enabled = on;
+      if (on && !s.vakit.contains(true)) s.vakit = [true, false, true, true, true, true];
+    });
     if (mounted) showNote(context, on ? 'Ezan bildirimleri açıldı' : 'Ezan bildirimleri kapatıldı');
   }
 
@@ -63,7 +66,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     final today = loc == null ? null : PrayerCalc.forDay(loc, DateTime.now());
     const gap = SizedBox(height: 10);
     final desc = !s.enabled
-        ? 'Bildirimler kapalı. Açmak için aşağıdaki ilk düğmeyi kullanın.'
+        ? 'Bildirimler kapalı. Açmak için "Tüm ezan bildirimleri" düğmesini kullanın.'
         : '${s.activeCount} vakitte bildirim açık.${s.before > 0 ? ' Ezandan ${s.before} dakika önce de hatırlatılır.' : ''}';
 
     return PageShell(
@@ -75,22 +78,61 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         gap,
         GroupCard(
           pal: _pal,
+          icon: Icons.schedule,
+          title: 'Ezan Vakitleri',
+          children: [
+            GroupItem(
+              pal: _pal,
+              icon: Icons.notifications_none,
+              title: 'Tüm ezan bildirimleri',
+              subtitle: 'Hepsini tek düğmeyle aç veya kapat',
+              trailing: GoldSwitch(value: s.enabled, label: 'Tüm ezan bildirimleri', onChanged: _setEnabled),
+            ),
+            for (var i = 0; i < 6; i++)
+              GroupItem(
+                pal: _pal,
+                enabled: s.enabled,
+                art: kVakitIkonlari[i],
+                title: PrayerCalc.names[i],
+                subtitle: !s.enabled || !s.vakit[i]
+                    ? 'Kapalı'
+                    : (i == 1
+                        ? 'Sadece uyarı'
+                        : (s.before > 0 ? '${s.before} dk önce de hatırlatılır' : 'Vakitte bildirim')),
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (today != null)
+                      Text(formatHm(today.slots[i].time),
+                          style: TextStyle(
+                            color: _pal.ink,
+                            fontSize: 15,
+                            fontWeight: FontWeight.w700,
+                            fontFeatures: const [FontFeature.tabularFigures()],
+                          )),
+                    const SizedBox(width: 10),
+                    GoldSwitch(
+                      value: s.vakit[i],
+                      label: PrayerCalc.names[i],
+                      onChanged: s.enabled ? (v) => _update((x) => x.vakit[i] = v) : null,
+                    ),
+                  ],
+                ),
+              ),
+          ],
+        ),
+        gap,
+        GroupCard(
+          pal: _pal,
           icon: Icons.notifications_active,
           title: 'Bildirim Ayarları',
           children: [
             GroupItem(
               pal: _pal,
-              icon: Icons.notifications_none,
-              title: 'Ezan bildirimleri',
-              subtitle: 'Tümünü tek düğmeyle aç veya kapat',
-              trailing: GoldSwitch(value: s.enabled, label: 'Ezan bildirimleri', onChanged: _setEnabled),
-            ),
-            GroupItem(
-              pal: _pal,
               enabled: s.enabled,
               icon: Icons.volume_up_outlined,
               title: 'Bildirim sesi',
-              subtitle: 'Telefonun bildirim sesi ya da sessiz',
+              subtitle: 'Telefonun bildirim sesiyle ya da sessiz',
               below: ChoiceRow<bool>(
                 pal: _pal,
                 options: const [(true, 'Sesli'), (false, 'Sessiz')],
@@ -123,57 +165,6 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                 onChanged: (v) => _update((x) => x.before = v),
               ),
             ),
-          ],
-        ),
-        gap,
-        GroupCard(
-          pal: _pal,
-          icon: Icons.schedule,
-          title: 'Vakitler',
-          trailing: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text('Tümü', style: TextStyle(color: RC.cream, fontSize: 12.5)),
-              const SizedBox(width: 6),
-              GoldSwitch(
-                value: s.vakit.every((v) => v),
-                label: 'Tüm vakitler',
-                onChanged: s.enabled ? (v) => _update((x) => x.vakit = List.filled(6, v)) : null,
-              ),
-            ],
-          ),
-          children: [
-            for (var i = 0; i < 6; i++)
-              GroupItem(
-                pal: _pal,
-                enabled: s.enabled,
-                art: kVakitIkonlari[i],
-                title: PrayerCalc.names[i],
-                subtitle: !s.enabled || !s.vakit[i]
-                    ? 'Kapalı'
-                    : (i == 1
-                        ? 'Sadece uyarı'
-                        : (s.before > 0 ? '${s.before} dk önce de hatırlatılır' : 'Vakitte bildirim')),
-                trailing: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    if (today != null)
-                      Text(formatHm(today.slots[i].time),
-                          style: TextStyle(
-                            color: _pal.ink,
-                            fontSize: 15,
-                            fontWeight: FontWeight.w700,
-                            fontFeatures: const [FontFeature.tabularFigures()],
-                          )),
-                    const SizedBox(width: 10),
-                    GoldSwitch(
-                      value: s.vakit[i],
-                      label: PrayerCalc.names[i],
-                      onChanged: s.enabled ? (v) => _update((x) => x.vakit[i] = v) : null,
-                    ),
-                  ],
-                ),
-              ),
           ],
         ),
         gap,
@@ -225,7 +216,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
   Widget _hero(String desc) {
     return Container(
-      padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
+      padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
       decoration: BoxDecoration(
         color: const Color(0xFF062A1C),
         borderRadius: BorderRadius.circular(18),
@@ -238,25 +229,30 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           opacity: 0.35,
         ),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
         children: [
           Container(
-            width: 58,
-            height: 58,
+            width: 48,
+            height: 48,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               color: const Color(0x40000000),
               border: Border.all(color: RC.goldBorder, width: 1.5),
             ),
-            child: const Center(child: GoldIcon(Icons.notifications_active, size: 28)),
+            child: const Center(child: GoldIcon(Icons.notifications_active, size: 24)),
           ),
-          const SizedBox(height: 6),
-          const Text('Bildirimler',
-              style: TextStyle(color: Colors.white, fontSize: 26, height: 1.1, fontWeight: FontWeight.w800)),
-          const Text('Ezan vakitlerini kaçırmayın', style: TextStyle(color: RC.goldText, fontSize: 13.5)),
-          const SizedBox(height: 6),
-          Text(desc, style: const TextStyle(color: Color(0xD9FFFFFF), fontSize: 12, height: 1.45)),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('Ezan vakitlerini kaçırmayın',
+                    style: TextStyle(color: RC.goldText, fontSize: 15, fontWeight: FontWeight.w700)),
+                const SizedBox(height: 3),
+                Text(desc, style: const TextStyle(color: Color(0xD9FFFFFF), fontSize: 12, height: 1.4)),
+              ],
+            ),
+          ),
         ],
       ),
     );

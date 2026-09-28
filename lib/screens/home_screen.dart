@@ -9,6 +9,8 @@ import '../services/prayer_calc.dart';
 import '../theme.dart';
 import '../widgets/countdown_banner.dart';
 import '../widgets/menu_tile.dart';
+import '../widgets/page_shell.dart';
+import '../widgets/reading_ui.dart';
 import 'city_picker_screen.dart';
 import 'dhikr_screen.dart';
 import 'dua_circle_screen.dart';
@@ -115,7 +117,7 @@ class _HomeScreenState extends State<HomeScreen> {
     const shadow = [Shadow(color: Colors.black87, blurRadius: 5, offset: Offset(1, 1))];
 
     return Scaffold(
-      backgroundColor: const Color(0xFFD8C59C), // koyu krem
+      backgroundColor: isDaytime() ? const Color(0xFFD8C59C) : const Color(0xFF03170F), // koyu krem / gece yeşili
       body: SafeArea(
         child: LayoutBuilder(builder: (context, box) {
           final w = box.maxWidth, h = box.maxHeight;
@@ -188,11 +190,14 @@ class _HomeScreenState extends State<HomeScreen> {
         // Arka plan: cami her ekran boyunda ortada dursun
         Positioned.fill(
           child: LayoutBuilder(
-            builder: (context, box) => Image.asset(
-              'assets/images/home_hero.jpg',
-              fit: BoxFit.cover,
-              alignment: _heroAlignment(box.biggest),
-            ),
+            builder: (context, box) {
+              final day = isDaytime();
+              return Image.asset(
+                day ? 'assets/images/home_hero.jpg' : 'assets/images/home_hero_gece.jpg',
+                fit: BoxFit.cover,
+                alignment: day ? _heroAlignment(box.biggest) : _nightAlignment(box.biggest),
+              );
+            },
           ),
         ),
 
@@ -269,7 +274,13 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
               ),
-              _Medallion('assets/images/levha_muhammed.png', size: medal),
+              Column(
+                children: [
+                  _Medallion('assets/images/levha_muhammed.png', size: medal),
+                  SizedBox(height: 4 * k),
+                  _DayNightButton(size: 34 * k),
+                ],
+              ),
             ],
           ),
         ),
@@ -326,9 +337,12 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   /// Arka plan fotoğrafını, caminin kutunun ortasına geleceği şekilde hizalar.
-  static Alignment _heroAlignment(Size box) {
-    const imgW = 1536.0, imgH = 1024.0;
-    const mosqueX = 0.54, mosqueY = 0.62; // caminin fotoğraftaki yeri (oran)
+  static Alignment _heroAlignment(Size box) => _alignOn(box, 1536, 1024, 0.54, 0.62);
+
+  /// Gece manzarası (1672×941): cami sağda, (0.70, 0.57) civarında.
+  static Alignment _nightAlignment(Size box) => _alignOn(box, 1672, 941, 0.70, 0.57);
+
+  static Alignment _alignOn(Size box, double imgW, double imgH, double mosqueX, double mosqueY) {
     final scale = math.max(box.width / imgW, box.height / imgH);
     double axis(double frac, double scaled, double view) {
       final extra = scaled - view;
@@ -338,6 +352,46 @@ class _HomeScreenState extends State<HomeScreen> {
     }
 
     return Alignment(axis(mosqueX, imgW * scale, box.width), axis(mosqueY, imgH * scale, box.height));
+  }
+}
+
+/// Gündüz/gece geçiş tuşu. Vakte göre olan görünümün tersine geçer; yeniden basınca otomatiğe döner.
+class _DayNightButton extends StatelessWidget {
+  final double size;
+
+  const _DayNightButton({required this.size});
+
+  @override
+  Widget build(BuildContext context) {
+    final day = isDaytime();
+    return Semantics(
+      button: true,
+      label: day ? 'Gece görünümüne geç' : 'Gündüz görünümüne geç',
+      excludeSemantics: true,
+      child: GestureDetector(
+        onTap: () {
+          final toDay = !day;
+          final mode = toDay == isDaytimeByClock() ? DayMode.otomatik : (toDay ? DayMode.gunduz : DayMode.gece);
+          AppPrefs.instance.setDayMode(mode);
+          showNote(
+            context,
+            mode == DayMode.otomatik
+                ? 'Görünüm yine vakte göre değişecek'
+                : '${toDay ? 'Gündüz' : 'Gece'} görünümü seçildi. Ayarlar\'dan Otomatik\'e alabilirsiniz.',
+          );
+        },
+        child: Container(
+          width: size,
+          height: size,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: const Color(0x66000000),
+            border: Border.all(color: const Color(0xB3D4AF37), width: 1.2),
+          ),
+          child: Center(child: GoldIcon(day ? Icons.nightlight_round : Icons.wb_sunny, size: size * 0.52)),
+        ),
+      ),
+    );
   }
 }
 
