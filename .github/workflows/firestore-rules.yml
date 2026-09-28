@@ -1,0 +1,49 @@
+name: Firestore kurallarını yayınla
+
+# firestore.rules ve firestore.indexes.json dosyalarını Firebase projesine uygular.
+# Önce kurallar Firestore emülatöründe test edilir; test geçmezse yayınlanmaz.
+# Gerekli sır: FIREBASE_SERVICE_ACCOUNT (Firebase hizmet hesabı anahtarı, JSON).
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - firestore.rules
+      - firestore.indexes.json
+      - firebase.json
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Kuralları emülatörde test et
+        working-directory: test_rules
+        run: |
+          npm install --no-audit --no-fund
+          npm test
+
+      - name: Firebase'e yayınla
+        env:
+          SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: |
+          if [ -z "$SERVICE_ACCOUNT" ]; then
+            echo "::error::FIREBASE_SERVICE_ACCOUNT sırrı tanımlı değil (Settings > Secrets and variables > Actions)."
+            exit 1
+          fi
+          printf '%s' "$SERVICE_ACCOUNT" > "$RUNNER_TEMP/sa.json"
+          export GOOGLE_APPLICATION_CREDENTIALS="$RUNNER_TEMP/sa.json"
+          ./test_rules/node_modules/.bin/firebase deploy --only firestore:rules,firestore:indexes \
+            --project ezansaati-premium-2026 --non-interactive
+          rm -f "$RUNNER_TEMP/sa.json"

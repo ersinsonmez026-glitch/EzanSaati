@@ -4,6 +4,12 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      mode:
+        description: 'Derleme türü (release ya da debug)'
+        type: choice
+        options: [release, debug]
+        default: release
 
 jobs:
   android:
@@ -28,11 +34,11 @@ jobs:
         run: flutter pub get
 
       - name: APK derle
-        run: flutter build apk --release
+        run: flutter build apk --${{ inputs.mode || 'release' }}
 
       - name: APK'yı yükle
         uses: actions/upload-artifact@v4
         with:
-          name: EzanSaati-apk
-          path: build/app/outputs/flutter-apk/app-release.apk
+          name: EzanSaati-${{ inputs.mode == 'debug' && 'debug-' || '' }}apk
+          path: build/app/outputs/flutter-apk/app-${{ inputs.mode || 'release' }}.apk
           retention-days: 14
