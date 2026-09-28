@@ -65,7 +65,7 @@ class _HomeScreenState extends State<HomeScreen> {
   static int get _cellCount => (_items.length + 2) ~/ 3 * 3;
 
   // Görseli henüz hazırlanmamış tuşlar
-  static const _noPhoto = <String>{'bebek_isimleri'};
+  static const _noPhoto = <String>{};
 
   Timer? _ticker;
   PrayerStatus? _status;
