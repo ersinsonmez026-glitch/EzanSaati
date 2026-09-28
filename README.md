@@ -30,7 +30,7 @@ flutter run
 | Dualar (106 dua, günün duası, arama, favoriler) | ✅ |
 | Namaz Öğren (rekât rekât anlatım, duruş görselleri, abdest/gusül/teyemmüm) | ✅ |
 | Ezan bildirimleri (vakit vakit aç/kapa, sesli/sessiz, titreşim, vakit öncesi hatırlatma, kandil ve bayram hatırlatması; internetsiz, 10 gün ileriye kurulur) | ✅ |
-| Dini Mesajlar (30 mesaj, günün mesajı, arama, kategori, favori, görsel paylaşma) | ✅ |
+| Dini Mesajlar (96 mesaj: 41 ayetli Cuma, 20 Kandil, 20 Bayram, Ramazan, Sabah, Dua; günün mesajı, arama, kategori, favori, görsel paylaşma) | ✅ |
 | Ramazan (geri sayım, şehre göre imsakiye, niyet ve dualar, 2027 önemli günler) | ✅ |
 | Dua Çemberi – 1. aşama (çember kurma, rehberden kişi seçme, paylaştırma, WhatsApp daveti; veriler telefonda) | ✅ |
 | Dua Çemberi – 2. aşama (Firebase: uygulama içi davet/kabul/ret, ortak ilerleme ve tamamlanma) | ✅ (konsol ayarı gerekli, aşağıda) |

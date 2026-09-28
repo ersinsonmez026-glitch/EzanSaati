@@ -4,6 +4,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'takvim.dart';
+
 // ---------------------------------------------------------------------------
 // Kur'an: assets/data/kuran.json
 // Arapça metin Tanzil Projesi, meal Ruvvâd Tercüme Merkezi (QuranEnc.com).
@@ -146,8 +148,9 @@ class DuaData {
 }
 
 // ---------------------------------------------------------------------------
-// Dini Mesajlar: assets/data/mesajlar.json (30 hazır mesaj, değiştirilmeden)
-// Ayetli mesajlarda meal Ruvvâd Tercüme Merkezi (QuranEnc.com) mealidir.
+// Dini Mesajlar: assets/data/mesajlar.json (96 hazır mesaj)
+// Ayetli mesajlarda meal Ruvvâd Tercüme Merkezi (QuranEnc.com) mealidir; uzun ayetlerden birebir
+// alıntı yapılır, atlanan yerler "…" ile gösterilir. Kaynak: "Talâk Sûresi, 2-3" gibi.
 // ---------------------------------------------------------------------------
 
 class ReligiousMessage {
@@ -204,7 +207,41 @@ const kMessageCategories = {
   'dua': 'Dua',
 };
 
-const kMessageFavKey = 'mesaj_fav';
+const kMessageFavKey = 'mesaj_fav_v2'; // mesaj listesi yenilenince sıra değişti, eski favoriler karışmasın
+
+/// Günün mesajının türü: kandil günü kandil, bayram (ve arefesi) bayram, Ramazan ayı Ramazan,
+/// cuma günü cuma, diğer günler sabah ve dua mesajları (Diyanet dinî günler takvimine göre).
+Set<String> dailyMessageCategories(DateTime day, List<ReligiousDay> religious) {
+  final d = DateTime(day.year, day.month, day.day);
+  DateTime? ramazanStart;
+  for (final e in religious) {
+    final gun = int.tryParse(RegExp(r'\((\d+) gün\)').firstMatch(e.name)?.group(1) ?? '') ?? 1;
+    final end = e.date.add(Duration(days: gun - 1));
+    if (!d.isBefore(e.date) && !d.isAfter(end)) {
+      if (e.name.contains('Kandili')) return {'kandil'};
+      if (e.name.contains('Bayramı')) return {'bayram'}; // arefe dahil
+    }
+    if (e.name == 'Ramazan Başlangıcı') ramazanStart = e.date;
+    if (ramazanStart != null &&
+        e.name.startsWith('Ramazan Bayramı') &&
+        !d.isBefore(ramazanStart) &&
+        d.isBefore(e.date)) {
+      return {'ramazan'};
+    }
+  }
+  if (d.weekday == DateTime.friday) return {'cuma'};
+  return {'sabah', 'dua'};
+}
+
+/// Günün mesajı: [dailyMessageCategories] içinden her gün sıradaki mesaj.
+int dailyMessageIndex(List<ReligiousMessage> all, DateTime day, List<ReligiousDay> religious) {
+  final cats = dailyMessageCategories(day, religious);
+  final pool = [
+    for (var i = 0; i < all.length; i++)
+      if (cats.contains(all[i].category)) i
+  ];
+  return pool.isEmpty ? dayOfYear(day) % all.length : pool[dayOfYear(day) % pool.length];
+}
 
 class MessageData {
   static Future<List<ReligiousMessage>>? _all;

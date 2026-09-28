@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../services/content_store.dart';
+import '../services/takvim.dart';
 import '../widgets/message_card.dart';
 import '../widgets/page_shell.dart';
 import '../widgets/reading_ui.dart';
@@ -8,7 +9,7 @@ import 'message_share_screen.dart';
 import '../widgets/gold_icon.dart';
 
 /// Dini Mesajlar: günün mesajı, arama, kategori ve favoriler, kart ızgarası.
-/// Tasarım: onizleme/09-dini-mesajlar.html · Veri: assets/data/mesajlar.json (30 mesaj)
+/// Tasarım: onizleme/09-dini-mesajlar.html · Veri: assets/data/mesajlar.json (96 mesaj)
 class MessagesScreen extends StatefulWidget {
   const MessagesScreen({super.key});
 
@@ -25,20 +26,21 @@ class _MessagesScreenState extends State<MessagesScreen> {
   ReadingPrefs? _prefs;
   String _query = '';
   String _cat = 'tum';
-  int _dayIdx = dayOfYear(DateTime.now());
+  int _dayIdx = 0;
 
   @override
   void initState() {
     super.initState();
-    Future.wait([MessageData.all(), ReadingPrefs.get()]).then((r) {
+    Future.wait([MessageData.all(), ReadingPrefs.get(), TakvimData.load()]).then((r) {
       if (!mounted) return;
       final all = r[0] as List<ReligiousMessage>;
       final prefs = r[1] as ReadingPrefs;
+      final takvim = r[2] as TakvimData;
       final saved = prefs.getString(_catKey);
       setState(() {
         _all = all;
         _prefs = prefs;
-        _dayIdx = _dayIdx % all.length;
+        _dayIdx = dailyMessageIndex(all, DateTime.now(), takvim.religious);
         if (saved != null && (saved == 'tum' || saved == _favFilter || kMessageCategories.containsKey(saved))) {
           _cat = saved;
         }
