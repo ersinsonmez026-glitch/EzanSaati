@@ -1,11 +1,14 @@
 package com.example.ezan_saati
 
+import android.app.Activity
 import android.content.Context
+import android.content.Intent
 import android.hardware.GeomagneticField
 import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
+import android.provider.ContactsContract
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.EventChannel
@@ -15,6 +18,9 @@ class MainActivity : FlutterActivity() {
 
     // Manyetik kuzey ile gerçek kuzey arasındaki fark (derece)
     private var declination = 0f
+
+    // Dua Çemberi: telefonun kişi seçicisinden dönecek sonuç
+    private var pendingContact: MethodChannel.Result? = null
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
@@ -34,6 +40,58 @@ class MainActivity : FlutterActivity() {
         }
 
         EventChannel(messenger, "ezan_saati/compass").setStreamHandler(CompassStream())
+
+        // Rehber izni istemeden, telefonun kendi kişi seçicisiyle tek kişi seçilir.
+        MethodChannel(messenger, "ezan_saati/contacts").setMethodCallHandler { call, result ->
+            if (call.method != "pick") {
+                result.notImplemented()
+                return@setMethodCallHandler
+            }
+            pendingContact?.success(null)
+            pendingContact = result
+            try {
+                val intent = Intent(Intent.ACTION_PICK, ContactsContract.CommonDataKinds.Phone.CONTENT_URI)
+                startActivityForResult(intent, PICK_CONTACT)
+            } catch (e: Exception) {
+                pendingContact = null
+                result.error("NO_PICKER", "Kişi seçici açılamadı.", null)
+            }
+        }
+    }
+
+    @Deprecated("Deprecated in Java")
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode != PICK_CONTACT) return
+        val result = pendingContact ?: return
+        pendingContact = null
+        val uri = data?.data
+        if (resultCode != Activity.RESULT_OK || uri == null) {
+            result.success(null)
+            return
+        }
+        try {
+            contentResolver.query(
+                uri,
+                arrayOf(
+                    ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME,
+                    ContactsContract.CommonDataKinds.Phone.NUMBER
+                ),
+                null, null, null
+            )?.use { c ->
+                if (c.moveToFirst()) {
+                    result.success(mapOf("name" to (c.getString(0) ?: ""), "phone" to (c.getString(1) ?: "")))
+                    return
+                }
+            }
+            result.success(null)
+        } catch (e: Exception) {
+            result.error("READ_FAILED", "Kişi okunamadı.", null)
+        }
+    }
+
+    companion object {
+        private const val PICK_CONTACT = 4711
     }
 
     /** Telefonun yön sensörünü Flutter'a akıtır: [yön (0-360), doğruluk (0-3)] */

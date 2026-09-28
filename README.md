@@ -33,7 +33,9 @@ flutter run
 | Ramazan (geri sayım, şehre göre imsakiye, niyet ve dualar, 2027 önemli günler) | ✅ |
 | Dini Hikâyeler (Kur'an'daki 9 kıssa, Ruvvâd meali, kaynak gösterimi) | ✅ |
 | Bebek İsimleri (Kur'an'da geçen 32 isim ayetleriyle, 18 İslami isim; arama ve favori) | ✅ |
-| Hadisler (kaynak doğrulaması bekliyor), Dua Çemberi, İlahiler (eser listesi bekliyor) | ⏳ |
+| Dua Çemberi – 1. aşama (çember kurma, rehberden kişi seçme, paylaştırma, WhatsApp daveti; veriler telefonda) | ✅ |
+| Dua Çemberi – 2. aşama (uygulama içi davet/kabul, canlı ilerleme, Online Dua toplamı; sunucu gerekiyor) | ⏳ |
+| Hadisler (kaynak doğrulaması bekliyor), İlahiler (eser listesi bekliyor) | ⏳ |
 
 ## Klasörler
 

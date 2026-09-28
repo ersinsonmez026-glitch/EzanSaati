@@ -14,6 +14,7 @@ import 'baby_names_screen.dart';
 import 'city_picker_screen.dart';
 import 'coming_soon_screen.dart';
 import 'dhikr_screen.dart';
+import 'dua_circle_screen.dart';
 import 'learn_namaz_screen.dart';
 import 'messages_screen.dart';
 import 'prayer_times_screen.dart';
@@ -52,7 +53,7 @@ class _HomeScreenState extends State<HomeScreen> {
     _MenuItem('kible_bulucu', 'Kıble Bulucu', Icons.explore, () => const QiblaScreen()),
     _MenuItem('hadisler', 'Hadisler', Icons.auto_stories, null),
     _MenuItem('dini_mesajlar', 'Dini Mesajlar', Icons.mail_outline, () => const MessagesScreen()),
-    _MenuItem('dua_cemberi', 'Dua Çemberi', Icons.groups, null),
+    _MenuItem('dua_cemberi', 'Dua Çemberi', Icons.groups, () => const DuaCircleScreen()),
     _MenuItem('ramazan', 'Ramazan', Icons.nightlight_round, () => const RamadanScreen()),
     _MenuItem('cami_bulucu', 'Cami Bulucu', Icons.place, null), // Harita uygulamasını açar
     _MenuItem('ilahiler', 'İlahiler', Icons.music_note, null),
