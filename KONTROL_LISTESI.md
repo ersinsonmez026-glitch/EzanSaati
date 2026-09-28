@@ -75,6 +75,14 @@ Metinler Kur'an verisinden birebir alınır; kontrol edilecek olan yalnızca se�
 - [ ] Hz. Yûsuf: Yûsuf 4-101 · Hz. Mûsâ: Kasas 3-43 · Hz. Yûnus: Sâffât 139-148, Enbiyâ 87-88
 - [ ] Hz. Eyyûb: Sâd 41-44, Enbiyâ 83-84 · Ashâb-ı Kehf: Kehf 9-26 · Fil Vakası: Fîl 1-5
 
+## 8b. Bebek İsimleri (assets/data/bebek_isimleri.json)
+Kur'an'da geçen isimlerin ayetleri Arapça metinden otomatik doğrulandı (testte de kontrol ediliyor).
+- [ ] İsim anlamları (TDV İslâm Ansiklopedisi'nden özetlendi) ve "bilgi" satırları
+- [ ] Listeye alınmayanlar: Kur'an'da adı geçmeyenler ve olumsuz anılan kişiler; Üzeyr, Tâlût, Zeyd, Lokmân gibi
+      peygamber olmayan kişilerin listede olması uygun mu
+- [ ] İslami isimler: kelime olarak Kur'an'da geçen isimlerin (Nur, Hüdâ, Tûbâ, Beyza, Hilal, Şifa, Seher, Emin,
+      Halil, Sâdık, Selim) anlamları Ruvvâd mealindeki karşılıktır
+
 ## 9. Diğer
 - [ ] Sureler sayfası "Günün Ayeti" listesi (ayet seçimi uygun mu)
 - [ ] Hicri Takvim: dinî gün tarihleri (Diyanet takvimiyle son kontrol)

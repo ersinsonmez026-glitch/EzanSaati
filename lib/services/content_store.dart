@@ -366,6 +366,84 @@ class StoryData {
 }
 
 // ---------------------------------------------------------------------------
+// Bebek İsimleri: assets/data/bebek_isimleri.json
+// "kuran": yalnızca Kur'an'ın Arapça metninde kişi adı olarak geçen isimler (ayetleriyle).
+// "islami": anlamı güvenilir kaynakla doğrulanabilen İslami isimler.
+// ---------------------------------------------------------------------------
+
+class BabyName {
+  final String category; // kuran | islami
+  final String name;
+  final bool girl;
+  final String meaning;
+  final String info;
+  final String source;
+  final List<(int, int)> verses; // (sure, ayet); yalnızca "kuran" kategorisinde
+
+  const BabyName({
+    required this.category,
+    required this.name,
+    required this.girl,
+    required this.meaning,
+    required this.info,
+    required this.source,
+    this.verses = const [],
+  });
+
+  /// Favori anahtarı: "kuran:Meryem"
+  String get id => '$category:$name';
+}
+
+class BabyNameCategory {
+  final String key;
+  final String title;
+  final String description;
+  final List<BabyName> names;
+
+  const BabyNameCategory(this.key, this.title, this.description, this.names);
+}
+
+const kBabyNameFavKey = 'isim_fav';
+
+class BabyNameData {
+  final BabyNameCategory quran;
+  final BabyNameCategory islamic;
+
+  const BabyNameData(this.quran, this.islamic);
+
+  static Future<BabyNameData>? _loading;
+
+  static Future<BabyNameData> load() => _loading ??= () async {
+        final j = jsonDecode(await rootBundle.loadString('assets/data/bebek_isimleri.json')) as Map<String, dynamic>;
+        BabyNameCategory cat(String key) {
+          final c = j[key] as Map<String, dynamic>;
+          return BabyNameCategory(
+            key,
+            c['baslik'] as String,
+            c['aciklama'] as String,
+            [
+              for (final n in c['isimler'] as List)
+                BabyName(
+                  category: key,
+                  name: (n as Map)['isim'] as String,
+                  girl: n['cinsiyet'] == 'kiz',
+                  meaning: n['anlam'] as String,
+                  info: n['bilgi'] as String,
+                  source: n['kaynak'] as String,
+                  verses: [
+                    for (final v in (n['ayetler'] as List?) ?? const [])
+                      (((v as List)[0] as num).toInt(), (v[1] as num).toInt()),
+                  ],
+                ),
+            ],
+          );
+        }
+
+        return BabyNameData(cat('kuran'), cat('islami'));
+      }();
+}
+
+// ---------------------------------------------------------------------------
 // Okuma tercihleri: favoriler, kaldığın yer, yazı boyutu
 // ---------------------------------------------------------------------------
 

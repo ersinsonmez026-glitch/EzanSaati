@@ -32,6 +32,7 @@ flutter run
 | Dini Mesajlar (30 mesaj, günün mesajı, arama, kategori, favori, görsel paylaşma) | ✅ |
 | Ramazan (geri sayım, şehre göre imsakiye, niyet ve dualar, 2027 önemli günler) | ✅ |
 | Dini Hikâyeler (Kur'an'daki 9 kıssa, Ruvvâd meali, kaynak gösterimi) | ✅ |
+| Bebek İsimleri (Kur'an'da geçen 32 isim ayetleriyle, 18 İslami isim; arama ve favori) | ✅ |
 | Hadisler (kaynak doğrulaması bekliyor), Dua Çemberi, İlahiler (eser listesi bekliyor) | ⏳ |
 
 ## Klasörler

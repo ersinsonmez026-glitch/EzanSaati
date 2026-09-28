@@ -10,6 +10,7 @@ import '../services/prayer_calc.dart';
 import '../theme.dart';
 import '../widgets/countdown_banner.dart';
 import '../widgets/menu_tile.dart';
+import 'baby_names_screen.dart';
 import 'city_picker_screen.dart';
 import 'coming_soon_screen.dart';
 import 'dhikr_screen.dart';
@@ -57,10 +58,14 @@ class _HomeScreenState extends State<HomeScreen> {
     _MenuItem('ilahiler', 'İlahiler', Icons.music_note, null),
     _MenuItem('dini_hikayeler', 'Dini Hikâyeler', Icons.menu_book_outlined, () => const StoriesScreen()),
     _MenuItem('ayarlar', 'Ayarlar', Icons.settings, () => const SettingsScreen()),
+    _MenuItem('bebek_isimleri', 'Bebek İsimleri', Icons.child_care, () => const BabyNamesScreen()),
   ];
 
+  // 3 sütunlu tuş alanındaki hücre sayısı (son sıra boş yerlerle tamamlanır)
+  static int get _cellCount => (_items.length + 2) ~/ 3 * 3;
+
   // Görseli henüz hazırlanmamış tuşlar
-  static const _noPhoto = <String>{};
+  static const _noPhoto = <String>{'bebek_isimleri'};
 
   Timer? _ticker;
   PrayerStatus? _status;
@@ -153,7 +158,7 @@ class _HomeScreenState extends State<HomeScreen> {
           // Tuş alanının yüksekliği: 5 sıra, 3 sütun
           const gap = 6.0, pad = 6.0;
           final tileW = (box.maxWidth - 2 * pad - 2 * gap) / 3;
-          final rows = ((_items.length + 1) / 3).ceil();
+          final rows = _cellCount ~/ 3;
           final gridH = rows * tileW / 1.3 + (rows - 1) * gap + 2 * pad;
           // Üst görsel en az 300 olsun; ekran kısaysa sayfa kaydırılır
           final heroH = math.max(300.0, box.maxHeight - gridH);
@@ -319,9 +324,9 @@ class _HomeScreenState extends State<HomeScreen> {
                   mainAxisSpacing: 6,
                   childAspectRatio: 1.3,
                 ),
-                itemCount: _items.length + 1, // son yer yeni özellik için boş
+                itemCount: _cellCount, // sıra tamamlanmazsa kalan yerler boş
                 itemBuilder: (context, index) {
-                  if (index == _items.length) return const EmptyTile();
+                  if (index >= _items.length) return const EmptyTile();
                   final item = _items[index];
                   return MenuTile(
                     image: item.image,
