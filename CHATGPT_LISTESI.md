@@ -26,6 +26,12 @@ aralarında geniş boşluk, yazı ve çerçeve yok. Örnek: Dua Zinciri tasarım
 - [ ] Dini Hikâyeler için YouTube bağlantıları listesi (hikâye adı ; kategori: Peygamberler/Sahabeler ; YouTube linki).
       Güvenilir, resmî kanallardan (ör. Diyanet ve benzeri) seçilmeli.
 
-## 4. İsteğe bağlı
+## 4. Başlık ve ana ekran görselleri (yeni kimlik)
+- [ ] Başlık arka planı, gündüz + gece (3:1, 1800x600, aynı manzara, yazısız, logosuz)
+- [ ] Ana ekran arka planı, gündüz + gece (16:9, 1920x1080, aynı manzara)
+- [ ] Logonun sadece sembol hâli (hilal + cami, yazılı şerit yok), gerçek şeffaf PNG
+- [ ] Allah levhası ve tam logo gerçek şeffaf PNG olarak (damalı desen resmin içinde olmasın)
+
+## 5. İsteğe bağlı
 - [ ] Namaz Öğren: aynı 12 duruşun tesettürlü kadın figürüyle hazırlanmış sürümü (uzun seccade, aynı tarz)
 - [ ] İlahiler ve Dini Hikâyeler sayfaları için kapak görselleri (sayfalar tasarlanınca netleşecek)
