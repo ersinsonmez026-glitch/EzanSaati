@@ -115,7 +115,7 @@ class _HadithReadScreenState extends State<HadithReadScreen> {
           onNext: _index < last ? () => _go(_index + 1) : null,
         ),
         const SizedBox(height: 10),
-        SourceNote(pal: _pal, text: 'Kaynak: HadeethEnc.com (Hadis Tercümeleri Ansiklopedisi), ${h.url}'),
+        SourceNote(pal: _pal, text: 'Kaynak: HadeethEnc.com (Nebevi Hadisler Ansiklopedisi Tercümesi), ${h.url}'),
       ],
     );
   }

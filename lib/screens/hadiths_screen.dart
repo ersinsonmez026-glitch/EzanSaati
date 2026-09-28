@@ -202,7 +202,7 @@ class _HadithsScreenState extends State<HadithsScreen> {
       gap,
       SourceNote(
         pal: _pal,
-        text: 'Kaynak: HadeethEnc.com (Hadis Tercümeleri Ansiklopedisi). Metinler, Türkçe tercümeleri ve '
+        text: 'Kaynak: HadeethEnc.com (Nebevi Hadisler Ansiklopedisi Tercümesi). Metinler, Türkçe tercümeleri ve '
             'açıklamaları değiştirilmeden gösterilir.',
       ),
     ];

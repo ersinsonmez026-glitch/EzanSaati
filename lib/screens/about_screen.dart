@@ -54,7 +54,7 @@ class AboutScreen extends StatelessWidget {
               ('Namaz vakitleri', 'Diyanet İşleri Başkanlığı hesaplama yöntemi (adhan kütüphanesi)'),
               ('Dinî günler', 'Diyanet İşleri Başkanlığı dinî günler takvimi'),
               ('Hicrî takvim', 'Ümmü\'l-Kurâ hesabı; Diyanet takviminden bir gün farklı olabilir'),
-              ('Hadisler', 'HadeethEnc.com (Hadis Tercümeleri Ansiklopedisi), metinler değiştirilmeden'),
+              ('Hadisler', 'HadeethEnc.com (Nebevi Hadisler Ansiklopedisi Tercümesi), metinler değiştirilmeden'),
               ('Harita verisi', '© OpenStreetMap katkıcıları (ODbL)'),
               ('Arapça yazı tipi', 'Amiri (SIL Open Font License)'),
             ])

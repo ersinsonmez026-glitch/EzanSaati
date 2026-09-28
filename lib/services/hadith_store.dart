@@ -3,7 +3,7 @@ import 'dart:io';
 
 import 'package:shared_preferences/shared_preferences.dart';
 
-/// Hadisler: metinler HadeethEnc.com'dan (Hadis Tercümeleri Ansiklopedisi) değiştirilmeden alınır.
+/// Hadisler: metinler HadeethEnc.com'dan (Nebevi Hadisler Ansiklopedisi Tercümesi) değiştirilmeden alınır.
 /// Kullanım şartı: metin değiştirilmeden, kaynak (HadeethEnc.com) belirtilerek. Resmî API:
 /// https://hadeethenc.com/api/v1/hadeeths/one/?language=tr&id=ID
 /// İndirilen metinler telefonda saklanır; internet yokken de açılır, haftada bir yenilenir.
