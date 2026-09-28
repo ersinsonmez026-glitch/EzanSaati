@@ -1,0 +1,19 @@
+name: Hadis bağlantısı kontrolü (geçici)
+
+# Geçici: HadeethEnc hadis sayfası adres biçimini dener. Yalnızca log'a yazar. İş bitince silinecek.
+on:
+  push:
+    branches: [claude/charming-davinci-6c5fkr]
+    paths: [.github/workflows/son-arastirma.yml]
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          for u in https://hadeethenc.com/tr/browse/hadith/66511 https://hadeethenc.com/tr/browse/hadith/5803 https://hadeethenc.com/tr/home; do
+            echo "== $u"
+            curl -sSL -A "Mozilla/5.0" -o page.html -w "%{http_code} %{url_effective}\n" "$u" || true
+            grep -o "<title>[^<]*" page.html | head -1
+            grep -o "Kolaylaştırın[^<]\{0,60\}" page.html | head -2
+          done
