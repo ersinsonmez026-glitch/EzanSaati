@@ -302,6 +302,70 @@ class RamazanData {
 }
 
 // ---------------------------------------------------------------------------
+// Dini Hikâyeler: assets/data/kissalar.json
+// Yalnızca Kur'an'daki kıssalar; dosyada sure/ayet aralıkları tutulur,
+// metinler kuran.json'dan değiştirilmeden alınır.
+// ---------------------------------------------------------------------------
+
+/// Bir kıssanın tek sure içindeki ayet aralığı.
+class StoryPassage {
+  final int surah;
+  final int from;
+  final int to;
+
+  const StoryPassage(this.surah, this.from, this.to);
+
+  int get count => to - from + 1;
+}
+
+class QuranStory {
+  final int index;
+  final String title;
+  final String category;
+  final List<StoryPassage> passages;
+
+  const QuranStory(this.index, this.title, this.category, this.passages);
+
+  int get ayahCount => passages.fold(0, (n, p) => n + p.count);
+
+  /// "Hûd Sûresi, 25-49. ayetler" biçiminde kaynak satırları.
+  List<String> sourceLines(QuranData q) => [
+        for (final p in passages)
+          '${q.surahs[p.surah - 1].name} Sûresi, '
+              '${p.from == p.to ? '${p.from}. ayet' : '${p.from}-${p.to}. ayetler'}',
+      ];
+}
+
+class StoryData {
+  final Map<String, String> categories;
+  final List<QuranStory> stories;
+
+  const StoryData(this.categories, this.stories);
+
+  static Future<StoryData>? _loading;
+
+  static Future<StoryData> load() => _loading ??= () async {
+        final j = jsonDecode(await rootBundle.loadString('assets/data/kissalar.json')) as Map<String, dynamic>;
+        final list = j['kissalar'] as List;
+        return StoryData(
+          (j['kategoriler'] as Map<String, dynamic>).map((k, v) => MapEntry(k, v as String)),
+          [
+            for (var i = 0; i < list.length; i++)
+              QuranStory(
+                i,
+                (list[i] as Map)['baslik'] as String,
+                list[i]['kategori'] as String,
+                [
+                  for (final b in list[i]['bolumler'] as List)
+                    StoryPassage(((b as List)[0] as num).toInt(), (b[1] as num).toInt(), (b[2] as num).toInt()),
+                ],
+              ),
+          ],
+        );
+      }();
+}
+
+// ---------------------------------------------------------------------------
 // Okuma tercihleri: favoriler, kaldığın yer, yazı boyutu
 // ---------------------------------------------------------------------------
 

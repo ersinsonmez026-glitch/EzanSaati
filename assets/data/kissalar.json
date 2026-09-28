@@ -1,0 +1,15 @@
+{
+  "_kaynak": "Kur'an-ı Kerim'deki kıssalar. Metinler assets/data/kuran.json'dan değiştirilmeden alınır (Arapça: Tanzil Projesi, meal: Ruvvâd Tercüme Merkezi, QuranEnc.com). Burada yalnızca sure ve ayet aralıkları tutulur. Ayet aralıkları din görevlisi kontrolüne sunulacak (KONTROL_LISTESI.md).",
+  "kategoriler": { "peygamber": "Peygamberler", "diger": "Diğer Kıssalar" },
+  "kissalar": [
+    { "baslik": "Hz. Âdem ve Yaratılış", "kategori": "peygamber", "bolumler": [[2, 30, 39], [7, 11, 25]] },
+    { "baslik": "Hz. Nûh ve Gemi", "kategori": "peygamber", "bolumler": [[11, 25, 49]] },
+    { "baslik": "Hz. İbrâhîm", "kategori": "peygamber", "bolumler": [[6, 74, 83], [21, 51, 73]] },
+    { "baslik": "Hz. Yûsuf", "kategori": "peygamber", "bolumler": [[12, 4, 101]] },
+    { "baslik": "Hz. Mûsâ", "kategori": "peygamber", "bolumler": [[28, 3, 43]] },
+    { "baslik": "Hz. Yûnus", "kategori": "peygamber", "bolumler": [[37, 139, 148], [21, 87, 88]] },
+    { "baslik": "Hz. Eyyûb'un Sabrı", "kategori": "peygamber", "bolumler": [[38, 41, 44], [21, 83, 84]] },
+    { "baslik": "Ashâb-ı Kehf", "kategori": "diger", "bolumler": [[18, 9, 26]] },
+    { "baslik": "Fil Vakası", "kategori": "diger", "bolumler": [[105, 1, 5]] }
+  ]
+}

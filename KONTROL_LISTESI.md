@@ -68,6 +68,13 @@ kaynak (HadeethEnc.com) ve sürüm belirtilerek kullanılmalı. Uygulama metinle
 ## 8. Dini Hikâyeler sayfası
 - [ ] Seçilecek hikâye videolarının içerik olarak doğruluğu ve uygunluğu
 
+## 8a. Dini Hikâyeler (Kur'an kıssaları)
+Metinler Kur'an verisinden birebir alınır; kontrol edilecek olan yalnızca seçilen ayet aralıklarıdır
+(assets/data/kissalar.json).
+- [ ] Hz. Âdem: Bakara 30-39, A'râf 11-25 · Hz. Nûh: Hûd 25-49 · Hz. İbrâhîm: En'âm 74-83, Enbiyâ 51-73
+- [ ] Hz. Yûsuf: Yûsuf 4-101 · Hz. Mûsâ: Kasas 3-43 · Hz. Yûnus: Sâffât 139-148, Enbiyâ 87-88
+- [ ] Hz. Eyyûb: Sâd 41-44, Enbiyâ 83-84 · Ashâb-ı Kehf: Kehf 9-26 · Fil Vakası: Fîl 1-5
+
 ## 9. Diğer
 - [ ] Sureler sayfası "Günün Ayeti" listesi (ayet seçimi uygun mu)
 - [ ] Hicri Takvim: dinî gün tarihleri (Diyanet takvimiyle son kontrol)

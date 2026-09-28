@@ -20,6 +20,7 @@ import 'prayers_screen.dart';
 import 'qibla_screen.dart';
 import 'ramadan_screen.dart';
 import 'settings_screen.dart';
+import 'stories_screen.dart';
 import 'surahs_screen.dart';
 
 /// Ana ekrandaki bir tuş: görseli, adı ve açacağı sayfa.
@@ -54,7 +55,7 @@ class _HomeScreenState extends State<HomeScreen> {
     _MenuItem('ramazan', 'Ramazan', Icons.nightlight_round, () => const RamadanScreen()),
     _MenuItem('cami_bulucu', 'Cami Bulucu', Icons.place, null), // Harita uygulamasını açar
     _MenuItem('ilahiler', 'İlahiler', Icons.music_note, null),
-    _MenuItem('dini_hikayeler', 'Dini Hikâyeler', Icons.menu_book_outlined, null),
+    _MenuItem('dini_hikayeler', 'Dini Hikâyeler', Icons.menu_book_outlined, () => const StoriesScreen()),
     _MenuItem('ayarlar', 'Ayarlar', Icons.settings, () => const SettingsScreen()),
   ];
 

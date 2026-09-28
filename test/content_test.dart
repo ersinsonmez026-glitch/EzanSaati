@@ -5,6 +5,7 @@ import 'package:ezan_saati/screens/learn_namaz_screen.dart';
 import 'package:ezan_saati/screens/messages_screen.dart';
 import 'package:ezan_saati/screens/prayers_screen.dart';
 import 'package:ezan_saati/screens/ramadan_screen.dart';
+import 'package:ezan_saati/screens/stories_screen.dart';
 import 'package:ezan_saati/screens/surahs_screen.dart';
 import 'package:ezan_saati/services/content_store.dart';
 import 'package:flutter/material.dart';
@@ -93,6 +94,24 @@ void main() {
       expect(r.prayers.length, 2);
     });
 
+    test('Dini Hikâyeler: yalnızca geçerli Kur\'an ayet aralıkları', () async {
+      final st = await StoryData.load();
+      final q = await QuranData.load();
+      expect(st.stories.length, 9);
+      for (final s in st.stories) {
+        expect(st.categories.containsKey(s.category), isTrue, reason: s.title);
+        expect(s.passages, isNotEmpty, reason: s.title);
+        for (final p in s.passages) {
+          expect(p.surah, inInclusiveRange(1, 114), reason: s.title);
+          expect(p.from, greaterThanOrEqualTo(1), reason: s.title);
+          expect(p.to, lessThanOrEqualTo(q.surahs[p.surah - 1].ayahCount), reason: s.title);
+          expect(p.from, lessThanOrEqualTo(p.to), reason: s.title);
+        }
+      }
+      final yusuf = st.stories.firstWhere((s) => s.title == 'Hz. Yûsuf');
+      expect(yusuf.sourceLines(q), ['Yûsuf Sûresi, 4-101. ayetler']);
+    });
+
     test('Rekât sayıları anlatımla uyumlu', () {
       for (final n in namazlar) {
         for (final p in n.parts) {
@@ -115,6 +134,7 @@ void main() {
             DuaData.namaz(),
             MessageData.all(),
             RamazanData.load(),
+            StoryData.load(),
             ReadingPrefs.get(),
           ]));
       await t.pumpWidget(MaterialApp(home: page));
@@ -176,6 +196,21 @@ void main() {
       await t.tap(find.text('Niyet ve Dua'));
       await t.pump();
       expect(find.text('İFTAR DUASI'), findsOneWidget);
+    });
+
+    testWidgets('Dini Hikâyeler: liste, kategori ve kaynak', (t) async {
+      await pump(t, const StoriesScreen());
+      expect(find.text('Hz. Nûh ve Gemi'), findsOneWidget);
+      await t.tap(find.text('Diğer Kıssalar'));
+      await t.pumpAndSettle();
+      expect(find.text('Ashâb-ı Kehf'), findsOneWidget);
+      expect(find.text('Hz. Nûh ve Gemi'), findsNothing);
+      await t.tap(find.text('Fil Vakası'));
+      await t.pump();
+      await t.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 50)));
+      await t.pumpAndSettle();
+      await t.scrollUntilVisible(find.text('KAYNAK'), 400, scrollable: find.byType(Scrollable).first);
+      expect(find.text("Kur'an-ı Kerim, Fîl Sûresi, 1-5. ayetler"), findsOneWidget);
     });
   });
 }

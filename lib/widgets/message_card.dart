@@ -219,9 +219,6 @@ class MessageCard extends StatelessWidget {
                 Text('Ezan Saati',
                     style: TextStyle(
                         fontFamily: 'serif', fontSize: 42, fontWeight: FontWeight.w700, color: Color(0xFFF3D27A))),
-                Text("Google Play'de ücretsiz",
-                    style: TextStyle(
-                        fontFamily: 'serif', fontSize: 24, fontWeight: FontWeight.w500, color: Color(0xFFC9D8CF))),
               ],
             ),
           ],

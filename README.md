@@ -31,7 +31,8 @@ flutter run
 | Ezan sesi / bildirim | ⏳ sırada |
 | Dini Mesajlar (30 mesaj, günün mesajı, arama, kategori, favori, görsel paylaşma) | ✅ |
 | Ramazan (geri sayım, şehre göre imsakiye, niyet ve dualar, 2027 önemli günler) | ✅ |
-| Hadisler (kaynak doğrulaması bekliyor), Dua Çemberi, İlahiler, Dini Hikâyeler | ⏳ |
+| Dini Hikâyeler (Kur'an'daki 9 kıssa, Ruvvâd meali, kaynak gösterimi) | ✅ |
+| Hadisler (kaynak doğrulaması bekliyor), Dua Çemberi, İlahiler (eser listesi bekliyor) | ⏳ |
 
 ## Klasörler
 
