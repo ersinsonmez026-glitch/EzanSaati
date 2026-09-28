@@ -58,7 +58,7 @@ jobs:
           npm install --no-audit --no-fund
           npm test
 
-      - name: Firebase'e yayınla
+      - name: Firebase'e yayınla (kurallar + phoneHash dizini)
         env:
           SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
         run: |
@@ -68,6 +68,6 @@ jobs:
           fi
           printf '%s' "$SERVICE_ACCOUNT" > "$RUNNER_TEMP/sa.json"
           export GOOGLE_APPLICATION_CREDENTIALS="$RUNNER_TEMP/sa.json"
-          ./test_rules/node_modules/.bin/firebase deploy --only firestore:rules,firestore:indexes \
-            --project ezansaati-premium-2026 --non-interactive
+          # firebase deploy yerine doğrudan Rules/Firestore Admin API (Service Usage izni gerekmez)
+          (cd test_rules && npm run deploy)
           rm -f "$RUNNER_TEMP/sa.json"
