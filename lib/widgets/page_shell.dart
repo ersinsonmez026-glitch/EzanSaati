@@ -136,7 +136,7 @@ class _HeaderDelegate extends SliverPersistentHeaderDelegate {
                           alignment: Alignment.topCenter,
                           child: Image.asset(
                             _isDaytime() ? 'assets/images/logo_krem.png' : 'assets/images/logo_yesil.png',
-                            height: 50, // küçük: arkadaki cami kubbesi görünsün
+                            height: 42, // küçük ve soluk: manzarayı örtmesin
                             fit: BoxFit.contain,
                           ),
                         ),
