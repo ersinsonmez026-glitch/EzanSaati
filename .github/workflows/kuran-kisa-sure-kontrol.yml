@@ -19,8 +19,8 @@ jobs:
           meta = json.loads(urllib.request.urlopen(urllib.request.Request('https://api.alquran.cloud/v1/meta', headers=UA), timeout=60).read())['data']['surahs']['references']
           def dur(n):
               d = urllib.request.urlopen(urllib.request.Request(f'https://cdn.islamic.network/quran/audio/128/ar.alafasy/{n}.mp3', headers=UA), timeout=60).read()
-              p = subprocess.run(['ffprobe', '-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0', '-i', 'pipe:0'], input=d, capture_output=True, text=False)
-              return len(d), float(p.stdout.decode().strip() or 0)
+              p = subprocess.run(['ffmpeg', '-v', 'error', '-i', 'pipe:0', '-ac', '1', '-ar', '8000', '-f', 's16le', 'pipe:1'], input=d, capture_output=True)
+              return len(d), len(p.stdout) / 2 / 8000
           print('besmele #1:', dur(1))
           g = 0; start = {}
           for s in meta: start[s['number']] = g + 1; g += s['numberOfAyahs']
