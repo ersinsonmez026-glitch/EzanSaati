@@ -29,6 +29,7 @@ flutter:
     - assets/images/
     - assets/images/tiles/
     - assets/images/namaz/
+    - assets/images/mesaj/
     - assets/data/
     - assets/fonts/OFL.txt
 

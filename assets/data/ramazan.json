@@ -1,0 +1,38 @@
+{
+  "_kaynak": "Tarihler: Diyanet İşleri Başkanlığı 2027 dini günler takvimi (onizleme/11-ramazan.html). Metinler: onaylı Ramazan önizlemesi. KONTROL_LISTESI.md 6. madde: din görevlisi kontrolü bekliyor. Gün sayısı 29: 8 Şubat - 8 Mart (arefe); önizlemedeki 30, bayramın ilk günü 9 Mart ile çelişiyordu.",
+  "yil": 2027,
+  "baslangic": "2027-02-08",
+  "gunSayisi": 29,
+  "kadirGecesi": "2027-03-05",
+  "bayram": { "ilk": "2027-03-09", "etiket": "9-11 Mart 2027" },
+  "onemliGunler": [
+    ["Üç Aylar başlangıcı · Regaib Kandili", "10 Aralık 2026 Perşembe"],
+    ["Miraç Kandili", "4 Ocak 2027 Pazartesi"],
+    ["Berat Kandili", "22 Ocak 2027 Cuma"],
+    ["Ramazan'ın ilk günü", "8 Şubat 2027 Pazartesi"],
+    ["Kadir Gecesi", "5 Mart 2027 Cuma"],
+    ["Ramazan Bayramı arifesi", "8 Mart 2027 Pazartesi"],
+    ["Ramazan Bayramı", "9-11 Mart 2027"]
+  ],
+  "niyet": {
+    "baslik": "ORUÇ NİYETİ",
+    "metin": "Niyet ettim Allah rızası için bugünkü Ramazan orucunu tutmaya.",
+    "not": "Niyet kalben yapılır; dil ile söylemek güzeldir. Sahura kalkmak da niyet yerine geçer."
+  },
+  "dualar": [
+    {
+      "baslik": "İFTAR DUASI",
+      "ar": "اَللّٰهُمَّ لَكَ صُمْتُ وَبِكَ اٰمَنْتُ وَعَلَيْكَ تَوَكَّلْتُ وَعَلٰى رِزْقِكَ اَفْطَرْتُ",
+      "ok": "Allâhümme leke sumtü ve bike âmentü ve aleyke tevekkeltü ve alâ rızkıke eftartü.",
+      "an": "Allah'ım! Senin rızan için oruç tuttum, sana inandım, sana güvendim ve senin verdiğin rızıkla orucumu açtım.",
+      "kaynak": ""
+    },
+    {
+      "baslik": "KADİR GECESİ DUASI",
+      "ar": "اَللّٰهُمَّ اِنَّكَ عَفُوٌّ تُحِبُّ الْعَفْوَ فَاعْفُ عَنِّي",
+      "ok": "Allâhümme inneke afüvvün tühibbü'l-afve fa'fu annî.",
+      "an": "Allah'ım! Sen affedicisin, affetmeyi seversin; beni de affet.",
+      "kaynak": "Tirmizî, Deavât"
+    }
+  ]
+}

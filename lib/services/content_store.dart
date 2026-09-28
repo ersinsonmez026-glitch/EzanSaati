@@ -146,6 +146,162 @@ class DuaData {
 }
 
 // ---------------------------------------------------------------------------
+// Dini Mesajlar: assets/data/mesajlar.json (30 hazır mesaj, değiştirilmeden)
+// Ayetli mesajlarda meal Ruvvâd Tercüme Merkezi (QuranEnc.com) mealidir.
+// ---------------------------------------------------------------------------
+
+class ReligiousMessage {
+  final int index; // dosyadaki sırası (favori anahtarı)
+  final String category; // cuma, kandil, ramazan, bayram, sabah, dua
+  final String background; // photo, arch, night, paper, split
+  final String? image; // photo/split için kategori görseli
+  final String? palette; // arch/night/paper/split için renk
+  final String title;
+  final String? body; // ayetsiz mesajın metni
+  final String? verse; // ayet meali
+  final String? verseRef; // "Cuma Sûresi, 9"
+
+  const ReligiousMessage({
+    required this.index,
+    required this.category,
+    required this.background,
+    required this.title,
+    this.image,
+    this.palette,
+    this.body,
+    this.verse,
+    this.verseRef,
+  });
+
+  bool get hasVerse => verse != null;
+
+  factory ReligiousMessage.fromJson(int index, Map<String, dynamic> j) {
+    final a = j['a'] as Map<String, dynamic>?;
+    return ReligiousMessage(
+      index: index,
+      category: j['c'] as String,
+      background: j['bg'] as String,
+      image: j['img'] as String?,
+      palette: j['p'] as String?,
+      title: j['t'] as String,
+      body: j['b'] as String?,
+      verse: a?['x'] as String?,
+      verseRef: a?['r'] as String?,
+    );
+  }
+
+  /// Kopyalama metni (önizlemedeki biçim).
+  String get shareText =>
+      '$title\n${hasVerse ? '“$verse” ($verseRef)' : (body ?? '')}\n\n— Ezan Saati uygulamasından gönderildi';
+}
+
+const kMessageCategories = {
+  'cuma': 'Cuma',
+  'kandil': 'Kandil',
+  'ramazan': 'Ramazan',
+  'bayram': 'Bayram',
+  'sabah': 'Hayırlı Sabahlar',
+  'dua': 'Dua',
+};
+
+const kMessageFavKey = 'mesaj_fav';
+
+class MessageData {
+  static Future<List<ReligiousMessage>>? _all;
+
+  static Future<List<ReligiousMessage>> all() => _all ??= () async {
+        final raw = await rootBundle.loadString('assets/data/mesajlar.json');
+        final list = jsonDecode(raw) as List<dynamic>;
+        return [for (var i = 0; i < list.length; i++) ReligiousMessage.fromJson(i, list[i] as Map<String, dynamic>)];
+      }();
+}
+
+// ---------------------------------------------------------------------------
+// Ramazan: assets/data/ramazan.json (Diyanet 2027 takvimi, onaylı önizleme metinleri)
+// ---------------------------------------------------------------------------
+
+class RamazanPrayer {
+  final String title;
+  final String arabic;
+  final String reading;
+  final String meaning;
+  final String source; // yoksa boş
+
+  const RamazanPrayer(this.title, this.arabic, this.reading, this.meaning, this.source);
+}
+
+class RamazanData {
+  final int year;
+  final DateTime start; // Ramazan'ın ilk günü
+  final int days;
+  final DateTime kadir; // Kadir Gecesi (bu günü sonraki güne bağlayan gece)
+  final DateTime bayram; // bayramın ilk günü
+  final String bayramLabel;
+  final List<(String, String)> importantDays;
+  final String niyetTitle;
+  final String niyet;
+  final String niyetNote;
+  final List<RamazanPrayer> prayers;
+
+  const RamazanData({
+    required this.year,
+    required this.start,
+    required this.days,
+    required this.kadir,
+    required this.bayram,
+    required this.bayramLabel,
+    required this.importantDays,
+    required this.niyetTitle,
+    required this.niyet,
+    required this.niyetNote,
+    required this.prayers,
+  });
+
+  static Future<RamazanData>? _loading;
+
+  static Future<RamazanData> load() => _loading ??= () async {
+        final j = jsonDecode(await rootBundle.loadString('assets/data/ramazan.json')) as Map<String, dynamic>;
+        DateTime day(String s) {
+          final d = DateTime.parse(s);
+          return DateTime(d.year, d.month, d.day);
+        }
+
+        final n = j['niyet'] as Map<String, dynamic>;
+        final b = j['bayram'] as Map<String, dynamic>;
+        return RamazanData(
+          year: (j['yil'] as num).toInt(),
+          start: day(j['baslangic'] as String),
+          days: (j['gunSayisi'] as num).toInt(),
+          kadir: day(j['kadirGecesi'] as String),
+          bayram: day(b['ilk'] as String),
+          bayramLabel: b['etiket'] as String,
+          importantDays: [
+            for (final e in j['onemliGunler'] as List) ((e as List)[0] as String, e[1] as String),
+          ],
+          niyetTitle: n['baslik'] as String,
+          niyet: n['metin'] as String,
+          niyetNote: n['not'] as String,
+          prayers: [
+            for (final d in j['dualar'] as List)
+              RamazanPrayer(
+                (d as Map)['baslik'] as String,
+                d['ar'] as String,
+                d['ok'] as String,
+                d['an'] as String,
+                (d['kaynak'] as String?) ?? '',
+              ),
+          ],
+        );
+      }();
+
+  /// Ramazan'ın kaçıncı günü (1..days); öncesinde 0 ve altı, sonrasında days'ten büyük.
+  int dayNumber(DateTime now) =>
+      (DateTime(now.year, now.month, now.day).difference(start).inHours / 24).round() + 1;
+
+  DateTime dateOf(int dayNo) => DateTime(start.year, start.month, start.day + dayNo - 1);
+}
+
+// ---------------------------------------------------------------------------
 // Okuma tercihleri: favoriler, kaldığın yer, yazı boyutu
 // ---------------------------------------------------------------------------
 

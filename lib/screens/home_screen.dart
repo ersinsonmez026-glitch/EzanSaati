@@ -14,9 +14,11 @@ import 'city_picker_screen.dart';
 import 'coming_soon_screen.dart';
 import 'dhikr_screen.dart';
 import 'learn_namaz_screen.dart';
+import 'messages_screen.dart';
 import 'prayer_times_screen.dart';
 import 'prayers_screen.dart';
 import 'qibla_screen.dart';
+import 'ramadan_screen.dart';
 import 'settings_screen.dart';
 import 'surahs_screen.dart';
 
@@ -47,9 +49,9 @@ class _HomeScreenState extends State<HomeScreen> {
     _MenuItem('zikir_sayaci', 'Zikir Sayacı', Icons.touch_app, () => const DhikrScreen()),
     _MenuItem('kible_bulucu', 'Kıble Bulucu', Icons.explore, () => const QiblaScreen()),
     _MenuItem('hadisler', 'Hadisler', Icons.auto_stories, null),
-    _MenuItem('dini_mesajlar', 'Dini Mesajlar', Icons.mail_outline, null),
+    _MenuItem('dini_mesajlar', 'Dini Mesajlar', Icons.mail_outline, () => const MessagesScreen()),
     _MenuItem('dua_cemberi', 'Dua Çemberi', Icons.groups, null),
-    _MenuItem('ramazan', 'Ramazan', Icons.nightlight_round, null),
+    _MenuItem('ramazan', 'Ramazan', Icons.nightlight_round, () => const RamadanScreen()),
     _MenuItem('cami_bulucu', 'Cami Bulucu', Icons.place, null), // Harita uygulamasını açar
     _MenuItem('ilahiler', 'İlahiler', Icons.music_note, null),
     _MenuItem('dini_hikayeler', 'Dini Hikâyeler', Icons.menu_book_outlined, null),

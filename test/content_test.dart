@@ -2,7 +2,9 @@ import 'dart:io';
 
 import 'package:ezan_saati/data/namaz_ogren.dart';
 import 'package:ezan_saati/screens/learn_namaz_screen.dart';
+import 'package:ezan_saati/screens/messages_screen.dart';
 import 'package:ezan_saati/screens/prayers_screen.dart';
+import 'package:ezan_saati/screens/ramadan_screen.dart';
 import 'package:ezan_saati/screens/surahs_screen.dart';
 import 'package:ezan_saati/services/content_store.dart';
 import 'package:flutter/material.dart';
@@ -55,6 +57,42 @@ void main() {
       }
     });
 
+    test('Dini Mesajlar: 30 mesaj, ayetler Ruvvâd mealiyle birebir', () async {
+      final msgs = await MessageData.all();
+      final q = await QuranData.load();
+      expect(msgs.length, 30);
+      for (final c in kMessageCategories.keys) {
+        expect(msgs.where((m) => m.category == c).length, 5, reason: c);
+      }
+      String norm(String s) => s.replaceAll(RegExp(r'\[\d+\]'), '').trim();
+      var verses = 0;
+      for (final m in msgs.where((m) => m.hasVerse)) {
+        final match = RegExp(r'^(.+) Sûresi, (\d+)$').firstMatch(m.verseRef!)!;
+        final surah = q.surahs.firstWhere((s) => s.name == match.group(1), orElse: () => throw 'Sure yok: ${m.verseRef}');
+        final ayah = q.verses[surah.no - 1][int.parse(match.group(2)!) - 1];
+        expect(norm(m.verse!), norm(ayah.meal), reason: m.verseRef);
+        verses++;
+      }
+      expect(verses, 13);
+      for (final m in msgs.where((m) => m.image != null)) {
+        expect(File('assets/images/mesaj/${m.image}.jpg').existsSync(), isTrue, reason: m.image);
+      }
+    });
+
+    test('Ramazan: 2027 takvimi tutarlı', () async {
+      final r = await RamazanData.load();
+      expect(r.year, 2027);
+      expect(r.start, DateTime(2027, 2, 8));
+      expect(r.dayNumber(DateTime(2027, 2, 8, 12)), 1);
+      // Son oruç günü bayramdan (9 Mart) bir önceki gün, yani arefe (8 Mart) olmalı.
+      expect(r.dateOf(r.days), DateTime(2027, 3, 8));
+      expect(r.days, 29);
+      expect(r.kadir, DateTime(2027, 3, 5));
+      expect(r.bayram, DateTime(2027, 3, 9));
+      expect(r.importantDays.length, 7);
+      expect(r.prayers.length, 2);
+    });
+
     test('Rekât sayıları anlatımla uyumlu', () {
       for (final n in namazlar) {
         for (final p in n.parts) {
@@ -71,7 +109,14 @@ void main() {
       t.view.devicePixelRatio = 1;
       addTearDown(t.view.reset);
       // Veriler gerçek dosyadan okunur; sayfa açılmadan önce yüklensin.
-      await t.runAsync(() => Future.wait([QuranData.load(), DuaData.all(), DuaData.namaz(), ReadingPrefs.get()]));
+      await t.runAsync(() => Future.wait([
+            QuranData.load(),
+            DuaData.all(),
+            DuaData.namaz(),
+            MessageData.all(),
+            RamazanData.load(),
+            ReadingPrefs.get(),
+          ]));
       await t.pumpWidget(MaterialApp(home: page));
       // Yüklenmiş verinin sayfaya ulaşması gerçek olay döngüsünde tamamlanır.
       await t.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 50)));
@@ -111,6 +156,26 @@ void main() {
       await t.tap(find.text('Abdest'));
       await t.pumpAndSettle();
       expect(find.text('Abdestin Farzları (4)'), findsOneWidget);
+    });
+
+    testWidgets('Dini Mesajlar: kategori ve favori', (t) async {
+      await pump(t, const MessagesScreen());
+      expect(find.text('Günün Mesajı'), findsOneWidget);
+      await t.tap(find.text('Kandil'));
+      await t.pumpAndSettle();
+      await t.scrollUntilVisible(find.text('5 mesaj'), 200, scrollable: find.byType(Scrollable).first);
+      expect(find.text('5 mesaj'), findsOneWidget);
+    });
+
+    testWidgets('Ramazan: panel ve sekmeler', (t) async {
+      await pump(t, const RamadanScreen());
+      expect(find.text('İmsakiye'), findsWidgets);
+      await t.tap(find.text('Önemli Günler'));
+      await t.pump();
+      expect(find.text('Berat Kandili'), findsOneWidget);
+      await t.tap(find.text('Niyet ve Dua'));
+      await t.pump();
+      expect(find.text('İFTAR DUASI'), findsOneWidget);
     });
   });
 }

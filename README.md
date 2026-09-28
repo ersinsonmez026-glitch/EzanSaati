@@ -29,7 +29,9 @@ flutter run
 | Dualar (106 dua, günün duası, arama, favoriler) | ✅ |
 | Namaz Öğren (rekât rekât anlatım, duruş görselleri, abdest/gusül/teyemmüm) | ✅ |
 | Ezan sesi / bildirim | ⏳ sırada |
-| Hadisler, Dini Mesajlar, Dua Çemberi, Ramazan | ⏳ |
+| Dini Mesajlar (30 mesaj, günün mesajı, arama, kategori, favori, görsel paylaşma) | ✅ |
+| Ramazan (geri sayım, şehre göre imsakiye, niyet ve dualar, 2027 önemli günler) | ✅ |
+| Hadisler (kaynak doğrulaması bekliyor), Dua Çemberi, İlahiler, Dini Hikâyeler | ⏳ |
 
 ## Klasörler
 
