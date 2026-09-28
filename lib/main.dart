@@ -1,9 +1,12 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import 'screens/home_screen.dart';
 import 'services/app_prefs.dart';
+import 'services/ezan_notifications.dart';
 import 'services/location_store.dart';
 import 'theme.dart';
 
@@ -23,6 +26,11 @@ Future<void> main() async {
   // Kayıtlı şehir/konum varsa açılışta yükle.
   await LocationStore.instance.load();
   await AppPrefs.instance.load();
+
+  // Ezan bildirimleri: her açılışta ve konum değişince önümüzdeki günler için yeniden kurulur.
+  await EzanNotifications.instance.load();
+  unawaited(EzanNotifications.instance.reschedule());
+  LocationStore.instance.addListener(() => unawaited(EzanNotifications.instance.reschedule()));
 
   runApp(const EzanSaatiApp());
 }

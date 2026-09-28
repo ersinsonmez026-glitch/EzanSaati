@@ -2,12 +2,14 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../services/ezan_notifications.dart';
 import '../services/location_store.dart';
 import '../services/prayer_calc.dart';
 import '../services/takvim.dart';
 import '../widgets/page_shell.dart';
 import '../widgets/reading_ui.dart';
 import 'city_picker_screen.dart';
+import 'notifications_screen.dart';
 import '../widgets/gold_icon.dart';
 
 enum _View { main, imsakiye, hicri, miladi }
@@ -209,8 +211,14 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
       Row(
         children: [
           Expanded(
-            child: _link(Icons.notifications_active, 'Bildirimler', 'Ezan ayarları',
-                () => showNote(context, 'Ezan bildirimleri bir sonraki adımda eklenecek.')),
+            child: _link(
+              Icons.notifications_active,
+              'Bildirimler',
+              EzanNotifications.instance.settings.enabled
+                  ? '${EzanNotifications.instance.settings.activeCount} vakit açık'
+                  : 'Ezan ayarları',
+              () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const NotificationsScreen())),
+            ),
           ),
           const SizedBox(width: 8),
           Expanded(child: _link(Icons.nightlight_round, 'Hicri Takvim', 'Dini günler', () => _go(_View.hicri))),

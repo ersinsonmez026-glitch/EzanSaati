@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Açılış ekranı zemini (uygulamanın koyu yeşili) -->
+    <color name="splash_bg">#FF002215</color>
+</resources>

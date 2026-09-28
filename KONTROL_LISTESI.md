@@ -46,7 +46,8 @@ hazır ve doğrulanmış kaynaklardan birebir alındığı için listede yok. A�
 
 ## 4. Hadisler sayfası
 Metinler HadeethEnc.com'dan (Hadis Tercümeleri Ansiklopedisi) alınacak. Kullanım şartı: metin değiştirilmeden,
-kaynak (HadeethEnc.com) ve sürüm belirtilerek kullanılmalı. Uygulama metinleri doğrudan HadeethEnc'ten çekecek.
+kaynak (HadeethEnc.com) ve sürüm belirtilerek kullanılmalı. Uygulama metinleri doğrudan HadeethEnc'ten çeker
+(ilk açılışta internet gerekir, sonra telefonda saklanır ve haftada bir yenilenir).
 - [ ] Seçilen hadislerin uygunluğu (HadeethEnc no: 5803, 66511, 4709, 4555, 5437, 8289, 5435, 5348, 3852,
       66255, 5516, 5478, 3074, 5493, 3779) ve eklenecek diğerleri
 - [ ] HadeethEnc Türkçe çevirilerindeki yazım hataları (ör. "dışgörünüşünüze", "hamtederek") HadeethEnc'e

@@ -10,22 +10,3 @@ class AppColors {
   static const Color goldLight = Color(0xFFF5DE96);
   static const Color mint = Color(0xFF00FFB2);
 }
-
-/// Koyu yeşil sayfaların ortak üst çubuğu.
-PreferredSizeWidget goldAppBar(String title, {List<Widget>? actions}) {
-  return AppBar(
-    backgroundColor: Colors.transparent,
-    elevation: 0,
-    foregroundColor: AppColors.gold,
-    centerTitle: true,
-    title: Text(
-      title,
-      style: const TextStyle(
-        color: AppColors.gold,
-        fontFamily: 'serif',
-        fontWeight: FontWeight.w700,
-      ),
-    ),
-    actions: actions,
-  );
-}

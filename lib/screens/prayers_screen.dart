@@ -135,7 +135,6 @@ class _PrayersScreenState extends State<PrayersScreen> {
         Text('(${d.source})', style: const TextStyle(fontSize: 12, color: RC.verseInk2)),
       ],
       actions: [
-        ActionItem(Icons.volume_up, 'Dinle', () => showNote(context, 'Sesli okuma sonraki güncellemede eklenecek')),
         ActionItem(Icons.copy_outlined, 'Kopyala', () => copyToClipboard(context, d.shareText)),
         ActionItem(Icons.ios_share, 'Paylaş', () => shareText(context, d.shareText)),
         ActionItem(Icons.menu_book_outlined, 'Aç', () => _open(i)),

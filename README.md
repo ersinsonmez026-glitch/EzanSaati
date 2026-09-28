@@ -22,20 +22,20 @@ flutter run
 | Namaz Vakitleri (Diyanet yöntemi, internetsiz; şimdiki vakit ve kalan süre, gün gün vakitler, 7 günlük İmsakiye, Hicrî ve Miladi takvim) | ✅ |
 | Şehir seçimi (81 il) + GPS ile konum | ✅ |
 | Kıble (telefon pusulası, dönen kadran ve Kâbe ibresi, yön uyarısı; Android) | ✅ |
-| Cami Bulucu (harita uygulamasını açar) | ✅ |
+| Cami Bulucu (yakındaki camiler uygulama içinde: uzaklık, yön, yol tarifi; OpenStreetMap, anahtarsız ve ücretsiz) | ✅ |
 | Zikir Sayacı (6 zikir + kendi zikrin, tesbih taneleri, hedef 33/99/100/∞, geri al, titreşim, namaz sonrası tesbihat; cihazda saklanır) | ✅ |
-| Ayarlar | ✅ (temel) |
+| Ayarlar (konum, ana ekran tuş görünümü, bildirimler, hesaplama yöntemi) + Hakkında (gizlilik ve kaynaklar) | ✅ |
 | Sureler (114 sure, Arapça + meal, günün ayeti, favoriler, kaldığın yer) | ✅ |
 | Sesli sûre okuma (114 sûre, Mişari Râşid el-Afâsî; ayet ayet çalma, okunan ayet vurgulanır, sûre bitince sonrakine geçer; internetten akış, uygulamaya gömülü değil) | ✅ |
 | Dualar (106 dua, günün duası, arama, favoriler) | ✅ |
 | Namaz Öğren (rekât rekât anlatım, duruş görselleri, abdest/gusül/teyemmüm) | ✅ |
-| Ezan sesi / bildirim | ⏳ sırada |
+| Ezan bildirimleri (vakit vakit aç/kapa, sesli/sessiz, titreşim, vakit öncesi hatırlatma, kandil ve bayram hatırlatması; internetsiz, 10 gün ileriye kurulur) | ✅ |
 | Dini Mesajlar (30 mesaj, günün mesajı, arama, kategori, favori, görsel paylaşma) | ✅ |
 | Ramazan (geri sayım, şehre göre imsakiye, niyet ve dualar, 2027 önemli günler) | ✅ |
 | Dua Çemberi – 1. aşama (çember kurma, rehberden kişi seçme, paylaştırma, WhatsApp daveti; veriler telefonda) | ✅ |
 | Dua Çemberi – 2. aşama (Firebase: uygulama içi davet/kabul/ret, ortak ilerleme ve tamamlanma) | ✅ (konsol ayarı gerekli, aşağıda) |
 | Dua Çemberi – Online Dua genel toplamı, uygulama kapalıyken bildirim | ⏳ |
-| Hadisler (kaynak doğrulaması bekliyor) | ⏳ |
+| Hadisler (15 hadis, günün hadisi, arama, favoriler, Arapça ve açıklama; HadeethEnc.com'dan metin değiştirilmeden çekilir, telefonda saklanır) | ✅ |
 
 ## Klasörler
 

@@ -105,7 +105,6 @@ class _PrayerReadScreenState extends State<PrayerReadScreen> {
           radius: BorderRadius.circular(14),
           border: Border.all(color: RC.gold(0.6), width: 1.5),
           items: [
-            ActionItem(Icons.volume_up, 'Dinle', () => showNote(context, 'Sesli okuma sonraki güncellemede eklenecek')),
             ActionItem(Icons.copy_outlined, 'Kopyala', () => copyToClipboard(context, d.shareText)),
             ActionItem(Icons.ios_share, 'Paylaş', () => shareText(context, d.shareText)),
             ActionItem(

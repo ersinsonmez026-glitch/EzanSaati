@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import '../services/app_prefs.dart';
 import '../services/location_store.dart';
@@ -11,11 +10,12 @@ import '../theme.dart';
 import '../widgets/countdown_banner.dart';
 import '../widgets/menu_tile.dart';
 import 'city_picker_screen.dart';
-import 'coming_soon_screen.dart';
 import 'dhikr_screen.dart';
 import 'dua_circle_screen.dart';
+import 'hadiths_screen.dart';
 import 'learn_namaz_screen.dart';
 import 'messages_screen.dart';
+import 'mosque_finder_screen.dart';
 import 'prayer_times_screen.dart';
 import 'prayers_screen.dart';
 import 'qibla_screen.dart';
@@ -29,7 +29,7 @@ class _MenuItem {
   final String image;
   final String title;
   final IconData icon;
-  final Widget Function()? page;
+  final Widget Function() page;
 
   const _MenuItem(this.image, this.title, this.icon, this.page);
 }
@@ -49,18 +49,15 @@ class _HomeScreenState extends State<HomeScreen> {
     _MenuItem('dualar', 'Dualar', Icons.volunteer_activism, () => const PrayersScreen()),
     _MenuItem('zikir_sayaci', 'Zikir Sayacı', Icons.touch_app, () => const DhikrScreen()),
     _MenuItem('kible_bulucu', 'Kıble Bulucu', Icons.explore, () => const QiblaScreen()),
-    const _MenuItem('cami_bulucu', 'Cami Bulucu', Icons.place, null), // Harita uygulamasını açar
+    _MenuItem('cami_bulucu', 'Cami Bulucu', Icons.place, () => const MosqueFinderScreen()),
     _MenuItem('dua_cemberi', 'Dua Çemberi', Icons.groups, () => const DuaCircleScreen()),
-    const _MenuItem('hadisler', 'Hadisler', Icons.auto_stories, null),
+    _MenuItem('hadisler', 'Hadisler', Icons.auto_stories, () => const HadithsScreen()),
     _MenuItem('ramazan', 'Ramazan', Icons.nightlight_round, () => const RamadanScreen()),
     _MenuItem('namaz_ogren', 'Namaz Öğren', Icons.mosque, () => const LearnNamazScreen()),
     _MenuItem('dini_mesajlar', 'Dini Mesajlar', Icons.mail_outline, () => const MessagesScreen()),
     _MenuItem('ayarlar', 'Ayarlar', Icons.settings, () => const SettingsScreen()),
   ];
   static const _rows = 4;
-
-  // Görseli henüz hazırlanmamış tuşlar
-  static const _noPhoto = <String>{};
 
   Timer? _ticker;
   PrayerStatus? _status;
@@ -107,37 +104,8 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Future<void> _openMosqueFinder() async {
-    final messenger = ScaffoldMessenger.of(context);
-    final loc = _location.current;
-    final uris = <Uri>[
-      Uri.parse('geo:${loc?.lat ?? 0},${loc?.lng ?? 0}?q=cami'),
-      Uri.parse('https://www.google.com/maps/search/cami/'
-          '${loc == null ? '' : '@${loc.lat},${loc.lng},14z'}'),
-    ];
-    for (final uri in uris) {
-      try {
-        if (await launchUrl(uri, mode: LaunchMode.externalApplication)) return;
-      } catch (_) {
-        // Sıradakini dene
-      }
-    }
-    messenger.showSnackBar(
-      const SnackBar(content: Text('Harita uygulaması açılamadı.')),
-    );
-  }
-
   void _onTap(_MenuItem item) {
-    if (item.image == 'cami_bulucu') {
-      _openMosqueFinder();
-      return;
-    }
-    final page = item.page?.call() ??
-        ComingSoonScreen(
-          title: item.title,
-          image: _noPhoto.contains(item.image) ? null : 'assets/images/tiles/${item.image}.jpg',
-        );
-    Navigator.of(context).push(MaterialPageRoute(builder: (_) => page));
+    Navigator.of(context).push(MaterialPageRoute(builder: (_) => item.page()));
   }
 
   @override
@@ -197,7 +165,6 @@ class _HomeScreenState extends State<HomeScreen> {
                         title: item.title,
                         icon: item.icon,
                         style: AppPrefs.instance.tileStyle,
-                        hasPhoto: !_noPhoto.contains(item.image),
                         onTap: () => _onTap(item),
                       );
                     },
