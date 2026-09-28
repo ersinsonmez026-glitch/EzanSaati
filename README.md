@@ -34,7 +34,8 @@ flutter run
 | Dini Hikâyeler (Kur'an'daki 9 kıssa, Ruvvâd meali, kaynak gösterimi) | ✅ |
 | Bebek İsimleri (Kur'an'da geçen 32 isim ayetleriyle, 18 İslami isim; arama ve favori) | ✅ |
 | Dua Çemberi – 1. aşama (çember kurma, rehberden kişi seçme, paylaştırma, WhatsApp daveti; veriler telefonda) | ✅ |
-| Dua Çemberi – 2. aşama (uygulama içi davet/kabul, canlı ilerleme, Online Dua toplamı; sunucu gerekiyor) | ⏳ |
+| Dua Çemberi – 2. aşama (Firebase: uygulama içi davet/kabul/ret, ortak ilerleme ve tamamlanma) | ✅ (konsol ayarı gerekli, aşağıda) |
+| Dua Çemberi – Online Dua genel toplamı, uygulama kapalıyken bildirim | ⏳ |
 | Hadisler (kaynak doğrulaması bekliyor), İlahiler (eser listesi bekliyor) | ⏳ |
 
 ## Klasörler
@@ -47,3 +48,26 @@ flutter run
 - `assets/fonts/` – Arapça yazı tipleri (Amiri, Amiri Quran; SIL OFL)
 - `assets/images/` – tuş ve arka plan görselleri
 - `android/app/src/main/kotlin/.../MainActivity.kt` – Android pusula sensörü
+
+## Dua Çemberi — Firebase (ücretsiz Spark planı)
+
+Paket adı: `com.ezansaati.app`. Yapılandırma: `android/app/google-services.json`,
+`lib/firebase_options.dart`. Yalnızca **Anonim Giriş** ve **Cloud Firestore** kullanılır
+(Analytics, Messaging, Functions, Storage eklenmedi).
+
+Firebase konsolunda bir kez yapılacaklar:
+
+1. **Authentication → Sign-in method → Anonymous**: etkinleştir.
+2. **Firestore Database → Create database** (production mode, ör. `eur3` / `europe-west`).
+3. **Firestore → Rules**: `firestore.rules` dosyasının içeriğini yapıştırıp yayınla
+   (ya da `firebase deploy --only firestore`).
+4. **Firestore → Indexes → Single field → Add exemption**: koleksiyon grubu `members`,
+   alan `phoneHash`, *Collection group* kapsamında artan (Ascending) dizin
+   (`firebase deploy --only firestore` bunu `firestore.indexes.json`'dan kurar).
+
+Gizlilik: telefon numaraları sunucuya yazılmaz; davet eşleştirmesi için numaradan üretilen
+tek yönlü özet (SHA-256) saklanır ve davet kabul edilince silinir. Davet kodu yalnız WhatsApp
+mesajında paylaşılır.
+
+Testler: `flutter test` (eşitleme akışı `test/circle_sync_test.dart`), güvenlik kuralları
+emülatörde: `cd test_rules && npm install && npm test` (Java gerekir).

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../services/circle_sync.dart';
 import '../services/dua_circle_store.dart';
 import '../widgets/page_shell.dart';
 import '../widgets/reading_ui.dart';
@@ -19,23 +20,41 @@ class DuaCircleScreen extends StatefulWidget {
 class _DuaCircleScreenState extends State<DuaCircleScreen> {
   final _pal = PagePalette.current();
   final _store = DuaCircleStore.instance;
+  final _sync = CircleSync.instance;
+  final _nameCtl = TextEditingController();
+  final _phoneCtl = TextEditingController();
+  final _codeCtl = TextEditingController();
   String _menu = 'mine';
   String? _selected;
+  bool _busy = false;
 
   @override
   void initState() {
     super.initState();
     _store.addListener(_changed);
+    _sync.addListener(_changed);
     _store.load().then((_) {
       if (!mounted) return;
       final note = _store.takeCleanupNote();
       if (note.isNotEmpty) showNote(context, note);
+      _connect();
     });
+  }
+
+  Future<void> _connect() async {
+    await _sync.start();
+    if (!mounted) return;
+    _nameCtl.text = _sync.profileName;
+    _phoneCtl.text = _sync.profilePhone;
   }
 
   @override
   void dispose() {
     _store.removeListener(_changed);
+    _sync.removeListener(_changed);
+    _nameCtl.dispose();
+    _phoneCtl.dispose();
+    _codeCtl.dispose();
     super.dispose();
   }
 
@@ -46,7 +65,8 @@ class _DuaCircleScreenState extends State<DuaCircleScreen> {
   List<DuaCircle> _list(String menu) {
     final all = _store.circles;
     return switch (menu) {
-      'mine' => all,
+      'mine' => all.where((c) => c.mine).toList(),
+      'joined' => all.where((c) => !c.mine).toList(),
       'act' => all.where((c) => !c.isComplete).toList(),
       'fin' => all.where((c) => c.isComplete).toList(),
       _ => const <DuaCircle>[],
@@ -120,7 +140,7 @@ class _DuaCircleScreenState extends State<DuaCircleScreen> {
               SourceNote(
                 pal: _pal,
                 text: 'Dua Çemberi: bir görevi (salavat, Yasin, hatim…) sevdiklerinizle bölüşün. '
-                    'Bu sürümde çemberler yalnızca bu telefonda tutulur.',
+                    '${_sync.ready ? 'Çemberler katılımcılarla eşitlenir; telefon numaraları sunucuya yazılmaz.' : 'İnternet bağlantısı olmadan kurulan çemberler yalnızca bu telefonda tutulur.'}',
               ),
             ],
     );
@@ -131,16 +151,18 @@ class _DuaCircleScreenState extends State<DuaCircleScreen> {
   Widget _rail() {
     final all = _store.circles;
     final act = all.where((c) => !c.isComplete).length;
+    final mine = all.where((c) => c.mine).length;
+    final inv = _sync.invites.length;
     final items = [
-      ('mine', Icons.link, 'Çemberlerim', '${all.length} çember'),
-      ('joined', Icons.group, 'Katıldıklarım', '0 çember'),
+      ('mine', Icons.link, 'Çemberlerim', '$mine çember'),
+      ('joined', Icons.group, 'Katıldıklarım', '${all.length - mine} çember'),
       ('new', Icons.add_circle, 'Yeni Çember', 'Oluştur'),
       ('sug', Icons.menu_book, 'Önerilenler', 'Hazır görevler'),
       ('act', Icons.schedule, 'Devam Eden', '$act çember'),
       ('fin', Icons.verified, 'Tamamlanan', '${all.length - act} çember'),
-      ('inv', Icons.mail, 'Davetler', 'Yok'),
+      ('inv', Icons.mail, 'Davetler', inv > 0 ? '$inv bekliyor' : 'Yok'),
       ('online', Icons.groups, 'Online Dua', 'Toplam'),
-      ('set', Icons.settings, 'Ayarlar', 'Kurallar'),
+      ('set', Icons.settings, 'Ayarlar', 'Profil, kurallar'),
     ];
     return Column(
       children: [
@@ -183,19 +205,17 @@ class _DuaCircleScreenState extends State<DuaCircleScreen> {
       case 'sug':
         return _suggestions();
       case 'joined':
+        if (cur != null) return _circlePane(cur);
         return _info(
             'Katıldıklarım',
-            'Başkalarının kurduğu ve sizin kabul ettiğiniz çemberler burada görünecek. '
-                'Uygulama içi davet, sunucu bağlantısı kurulduğunda açılacak.');
+            'Başkalarının kurduğu ve sizin kabul ettiğiniz çemberler burada görünür. '
+                'Size gelen davetleri Davetler bölümünden kabul edebilirsiniz.');
       case 'inv':
-        return _info(
-            'Davetler',
-            'Size gelen davetler burada görünecek; 24 saat içinde kabul ya da reddedebileceksiniz. '
-                'Bu özellik sunucu bağlantısı kurulduğunda açılacak.');
+        return _invites();
       case 'online':
         return _online();
       default:
-        return _rules();
+        return _settings();
     }
   }
 
@@ -263,7 +283,7 @@ class _DuaCircleScreenState extends State<DuaCircleScreen> {
     final totals = <String, int>{};
     for (final c in _store.circles) {
       final key = c.type == 'ozel' ? c.name : kDuaTypesByKey[c.type]!.title;
-      totals[key] = (totals[key] ?? 0) + c.me.done;
+      totals[key] = (totals[key] ?? 0) + (c.meOrNull?.done ?? 0);
     }
     final rows = totals.entries.where((e) => e.value > 0).toList();
     return Column(
@@ -320,7 +340,7 @@ class _DuaCircleScreenState extends State<DuaCircleScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _heading('Ayarlar', sub: 'Çember kuralları'),
+        _heading('Çember kuralları'),
         Padding(
           padding: const EdgeInsets.fromLTRB(12, 0, 12, 6),
           child: Column(
@@ -347,9 +367,203 @@ class _DuaCircleScreenState extends State<DuaCircleScreen> {
         ),
         const Padding(
           padding: EdgeInsets.fromLTRB(12, 0, 12, 14),
-          child: Text('Davet ve ilerleme bildirimleri sunucu bağlantısıyla birlikte gelecek.',
-              textAlign: TextAlign.center, style: TextStyle(color: RC.creamSoft, fontSize: 11.5, height: 1.4)),
+          child: Text(
+              'Uygulama kapalıyken bildirim gönderilmez; yeni davetler ve ilerlemeler uygulama açıldığında görünür.',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: RC.creamSoft, fontSize: 11.5, height: 1.4)),
         ),
+      ],
+    );
+  }
+
+  // ---------------- Davetler ve ayarlar ----------------
+
+  String get _syncText => switch (_sync.state) {
+        SyncState.ready => 'Bağlı: çemberler katılımcılarla eşitleniyor.',
+        SyncState.connecting => 'Bağlanıyor…',
+        SyncState.error => 'Bağlanılamadı. İnternet bağlantınızı kontrol edin.',
+        SyncState.off => 'Ortak çember bu cihazda kullanılamıyor; çemberler telefonda tutulur.',
+      };
+
+  Widget _paneText(String t, {double size = 12, Color color = RC.creamSoft}) => Padding(
+        padding: const EdgeInsets.fromLTRB(12, 0, 12, 10),
+        child: Text(t, textAlign: TextAlign.center, style: TextStyle(color: color, fontSize: size, height: 1.45)),
+      );
+
+  Widget _darkField(TextEditingController c, String label,
+      {TextInputType? keyboard, String? hint, Key? key, TextCapitalization caps = TextCapitalization.none}) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(10, 0, 10, 8),
+      child: TextField(
+        key: key,
+        controller: c,
+        keyboardType: keyboard,
+        textCapitalization: caps,
+        cursorColor: RC.goldText,
+        style: const TextStyle(color: RC.cream, fontSize: 14),
+        decoration: InputDecoration(
+          isDense: true,
+          labelText: label,
+          hintText: hint,
+          labelStyle: const TextStyle(color: RC.goldIcon, fontSize: 12.5),
+          hintStyle: const TextStyle(color: RC.creamSoft, fontSize: 13),
+          filled: true,
+          fillColor: const Color(0x33000000),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: BorderSide(color: RC.gold(0.5)),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: const BorderSide(color: RC.goldText, width: 1.4),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _run(Future<void> Function() job, {String? ok}) async {
+    if (_busy) return;
+    setState(() => _busy = true);
+    try {
+      await job();
+      if (ok != null && mounted) showNote(context, ok);
+    } catch (e) {
+      if (mounted) showNote(context, 'İşlem yapılamadı. İnternet bağlantınızı kontrol edin.');
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  Widget _invites() {
+    if (!_sync.ready) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _heading('Davetler'),
+          if (_sync.state != SyncState.off)
+            _paneText('Davetleri almak için internet bağlantısı gerekiyor.', size: 12.5),
+          _paneText(_syncText),
+          if (_sync.state == SyncState.error)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(12, 0, 12, 14),
+              child: _GoldButton(label: 'Yeniden dene', onTap: _connect),
+            ),
+        ],
+      );
+    }
+    final list = _sync.invites;
+    final now = DateTime.now();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _heading('Davetler', sub: 'Size gelen davetler'),
+        if (list.isEmpty) _paneText('Şu an bekleyen davetiniz yok.', size: 12.5),
+        for (final i in list)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(10, 0, 10, 8),
+            child: Container(
+              padding: const EdgeInsets.fromLTRB(10, 9, 10, 9),
+              decoration: BoxDecoration(
+                gradient: RC.darkPanel,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: RC.gold(0.75)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(i.circleName,
+                      style: const TextStyle(color: RC.goldText, fontSize: 13.5, fontWeight: FontWeight.w700)),
+                  const SizedBox(height: 2),
+                  Text('${i.ownerName} davet etti · Size düşen: ${trNum(i.share)} ${i.unit}',
+                      style: const TextStyle(color: Color(0xFFC9D8CF), fontSize: 11.5, height: 1.35)),
+                  Text(
+                      'Son gün ${trDate(i.end)} · yanıt için ${i.expiresAt.difference(now).inHours.clamp(0, kInviteHours)} sa',
+                      style: const TextStyle(color: RC.creamSoft, fontSize: 11)),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _ActButton(
+                          icon: Icons.close,
+                          label: 'Reddet',
+                          onTap: _busy ? null : () => _run(() => _sync.decline(i), ok: 'Davet reddedildi'),
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: _ActButton(
+                          icon: Icons.check,
+                          label: 'Kabul et',
+                          onTap: _busy
+                              ? null
+                              : () => _run(() async {
+                                    await _sync.accept(i);
+                                    if (mounted) setState(() => _menu = 'joined');
+                                  }, ok: 'Daveti kabul ettiniz. Allah kabul etsin.'),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        const SizedBox(height: 4),
+        _darkField(_codeCtl, 'Davet kodu', hint: 'ABCDE-FGHJK', key: const Key('inviteCode')),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(10, 0, 10, 10),
+          child: _GoldButton(
+            label: 'Kodu gir',
+            onTap: () => _run(() async {
+              final err = await _sync.redeemCode(_codeCtl.text);
+              if (!mounted) return;
+              if (err != null) {
+                showNote(context, err);
+              } else {
+                _codeCtl.clear();
+              }
+            }),
+          ),
+        ),
+        _paneText(
+            _sync.profilePhone.isEmpty
+                ? 'Numaranızı Ayarlar bölümüne kaydederseniz size gelen davetler burada kendiliğinden görünür.'
+                : 'Numaranıza gelen davetler burada kendiliğinden görünür.',
+            size: 11.5),
+      ],
+    );
+  }
+
+  Widget _settings() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _heading('Ayarlar', sub: 'Profil'),
+        _paneText(_syncText, size: 11.5, color: _sync.ready ? const Color(0xFF7FE0B0) : RC.creamSoft),
+        if (_sync.ready) ...[
+          _darkField(_nameCtl, 'Adınız', key: const Key('profileName'), caps: TextCapitalization.words),
+          _darkField(_phoneCtl, 'Telefon numaranız',
+              key: const Key('profilePhone'), keyboard: TextInputType.phone, hint: '05xx xxx xx xx'),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(10, 0, 10, 8),
+            child: _GoldButton(
+              label: 'Kaydet',
+              onTap: () => _run(() => _sync.saveProfile(_nameCtl.text, _phoneCtl.text), ok: 'Kaydedildi'),
+            ),
+          ),
+          _paneText(
+              'Adınız davet ettiğiniz kişilere görünür. Numaranız sunucuya yazılmaz ve kimseye gösterilmez; '
+              'yalnızca size gelen davetleri bulmak için numaradan üretilen tek yönlü bir özet saklanır.',
+              size: 11),
+        ] else if (_sync.state == SyncState.error)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(12, 0, 12, 10),
+            child: _GoldButton(label: 'Yeniden dene', onTap: _connect),
+          ),
+        Container(height: 1, margin: const EdgeInsets.symmetric(horizontal: 12), color: RC.gold(0.3)),
+        _rules(),
       ],
     );
   }
@@ -357,7 +571,7 @@ class _DuaCircleScreenState extends State<DuaCircleScreen> {
   // ---------------- Çember kartı ----------------
 
   Widget _circlePane(DuaCircle c) {
-    final me = c.me;
+    final me = c.meOrNull;
     final active = c.active..sort((a, b) => _pct(b).compareTo(_pct(a)));
     final pending = c.pending;
     final now = DateTime.now();
@@ -372,7 +586,12 @@ class _DuaCircleScreenState extends State<DuaCircleScreen> {
               const SizedBox(height: 2),
               _GoldTitle(c.name, size: 22),
               const SizedBox(height: 3),
-              const Text('Sizin çemberiniz', style: TextStyle(color: Color(0xFFE7DDC4), fontSize: 12.5)),
+              Text(
+                  c.mine
+                      ? (!c.remote && _sync.ready ? 'Sizin çemberiniz · yalnız bu telefonda' : 'Sizin çemberiniz')
+                      : '${c.ownerName} oluşturdu',
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(color: Color(0xFFE7DDC4), fontSize: 12.5)),
               if (c.intent.isNotEmpty) ...[
                 const SizedBox(height: 3),
                 Text('“${c.intent}”',
@@ -394,8 +613,8 @@ class _DuaCircleScreenState extends State<DuaCircleScreen> {
           ),
         ),
         _stats(c),
-        _myTask(c, me),
-        if (c.notice.isNotEmpty) _notice(c),
+        if (me != null) _myTask(c, me),
+        if (c.mine && c.notice.isNotEmpty) _notice(c),
         _Parchment(
           children: [
             Padding(
@@ -426,31 +645,32 @@ class _DuaCircleScreenState extends State<DuaCircleScreen> {
             ],
           ],
         ),
-        Padding(
-          padding: const EdgeInsets.all(8),
-          child: Row(
-            children: [
-              Expanded(
-                child: _ActButton(
-                  icon: Icons.person_add_alt_1,
-                  label: 'Kişi Ekle',
-                  onTap: c.isComplete ? null : () => _edit(c, addPerson: true),
+        if (c.mine)
+          Padding(
+            padding: const EdgeInsets.all(8),
+            child: Row(
+              children: [
+                Expanded(
+                  child: _ActButton(
+                    icon: Icons.person_add_alt_1,
+                    label: 'Kişi Ekle',
+                    onTap: c.isComplete ? null : () => _edit(c, addPerson: true),
+                  ),
                 ),
-              ),
-              const SizedBox(width: 5),
-              Expanded(
-                child: _ActButton(
-                  icon: Icons.chat,
-                  iconColor: const Color(0xFF35D07F),
-                  label: 'WhatsApp Davet',
-                  onTap: () => _invite(c),
+                const SizedBox(width: 5),
+                Expanded(
+                  child: _ActButton(
+                    icon: Icons.chat,
+                    iconColor: const Color(0xFF35D07F),
+                    label: 'WhatsApp Davet',
+                    onTap: () => _invite(c),
+                  ),
                 ),
-              ),
-              const SizedBox(width: 5),
-              Expanded(child: _ActButton(icon: Icons.settings, label: 'Düzenle', onTap: () => _edit(c))),
-            ],
+                const SizedBox(width: 5),
+                Expanded(child: _ActButton(icon: Icons.settings, label: 'Düzenle', onTap: () => _edit(c))),
+              ],
+            ),
           ),
-        ),
       ],
     );
   }
@@ -594,10 +814,11 @@ class _DuaCircleScreenState extends State<DuaCircleScreen> {
     } else {
       badge = ok ? '✓ Tamam' : '%$pct';
     }
+    final canTap = c.mine && !m.isMe;
     return Semantics(
-      button: !m.isMe,
+      button: canTap,
       child: InkWell(
-        onTap: m.isMe ? null : () => _memberSheet(c, m),
+        onTap: canTap ? () => _memberSheet(c, m) : null,
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
           decoration: const BoxDecoration(border: Border(top: BorderSide(color: Color(0x40966E1E)))),
@@ -722,8 +943,11 @@ class _DuaCircleScreenState extends State<DuaCircleScreen> {
               ),
               if (m.isPending)
                 item(Icons.how_to_reg, 'Kabul etti olarak işaretle', () => _store.accept(c, m),
-                    sub: 'Daveti size WhatsApp\'tan kabul ettiyse'),
-              if (!m.isPending)
+                    sub: c.remote
+                        ? 'Uygulaması yoksa; ilerlemesini siz girersiniz'
+                        : 'Daveti size WhatsApp\'tan kabul ettiyse'),
+              // Uygulamadan katılan kişi ilerlemesini kendisi günceller.
+              if (!m.isPending && m.uid == null)
                 item(Icons.edit_note, 'Okuduğu sayıyı gir', () => _askDone(c, m), sub: 'Size bildirdiği okuma sayısı'),
               item(Icons.chat, 'WhatsApp ile yaz', wa.isEmpty ? null : () => _openWhatsApp(wa, inviteMessage(c, m)),
                   sub: wa.isEmpty ? 'Telefon numarası yok' : null),
@@ -777,7 +1001,7 @@ class _DuaCircleScreenState extends State<DuaCircleScreen> {
             child: GestureDetector(
               onTap: () => setState(() {
                 _selected = c.id;
-                _menu = c.isComplete ? 'fin' : 'mine';
+                _menu = c.isComplete ? 'fin' : (c.mine ? 'mine' : 'joined');
               }),
               child: Container(
                 width: 172,

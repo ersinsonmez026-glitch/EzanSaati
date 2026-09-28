@@ -1,0 +1,14 @@
+{
+  "name": "ezansaati-firestore-rules-test",
+  "private": true,
+  "type": "module",
+  "description": "Dua Çemberi Firestore güvenlik kuralları testi (Firestore emülatörü)",
+  "scripts": {
+    "test": "firebase emulators:exec --only firestore --project ezansaati-premium-2026 --config ../firebase.json \"node firestore_rules.test.mjs ../firestore.rules\""
+  },
+  "devDependencies": {
+    "@firebase/rules-unit-testing": "^5.0.2",
+    "firebase": "^12.19.0",
+    "firebase-tools": "^15.31.0"
+  }
+}

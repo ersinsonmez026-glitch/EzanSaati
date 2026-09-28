@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "607513055482",
+    "project_id": "ezansaati-premium-2026",
+    "storage_bucket": "ezansaati-premium-2026.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:607513055482:android:a6eaf55029c990c5c0b943",
+        "android_client_info": {
+          "package_name": "com.ezansaati.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCeqcX8e0lTqpkg6fFxXwk0682eYACAmEc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

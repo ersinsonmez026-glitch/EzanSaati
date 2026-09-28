@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../services/circle_sync.dart';
 import '../services/dua_circle_store.dart';
 import '../widgets/page_shell.dart';
 import '../widgets/reading_ui.dart';
@@ -189,12 +190,23 @@ class _DuaCircleFormScreenState extends State<DuaCircleFormScreen> {
     return null;
   }
 
-  void _save() {
+  bool _saving = false;
+
+  Future<void> _save() async {
     FocusScope.of(context).unfocus();
+    if (_saving) return;
     final err = _validate();
     if (err != null) {
       showNote(context, err);
       return;
+    }
+    // Ortak çemberde davet edilenler kurucunun adını görür.
+    final sync = CircleSync.instance;
+    if (!_editing && sync.ready && sync.profileName.isEmpty) {
+      final name = await showDialog<String>(context: context, builder: (_) => const _NameDialog());
+      if (name == null || name.trim().isEmpty || !mounted) return;
+      await sync.saveProfile(name, sync.profilePhone);
+      if (!mounted) return;
     }
     final now = DateTime.now();
     for (final r in _rows) {
@@ -223,8 +235,16 @@ class _DuaCircleFormScreenState extends State<DuaCircleFormScreen> {
         members: members,
       );
     }
-    DuaCircleStore.instance.upsert(c);
-    Navigator.of(context).pop(c);
+    setState(() => _saving = true);
+    try {
+      final saved = await DuaCircleStore.instance.save(c, isNew: old == null);
+      if (mounted) Navigator.of(context).pop(saved);
+    } catch (e) {
+      if (mounted) {
+        setState(() => _saving = false);
+        showNote(context, 'Kaydedilemedi. İnternet bağlantınızı kontrol edin.');
+      }
+    }
   }
 
   Future<void> _delete() async {
@@ -232,7 +252,9 @@ class _DuaCircleFormScreenState extends State<DuaCircleFormScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Çember silinsin mi?'),
-        content: Text('"${widget.circle!.name}" ve tüm ilerlemesi bu telefondan silinecek.'),
+        content: Text(widget.circle!.remote
+            ? '"${widget.circle!.name}" ve tüm ilerlemesi bütün katılımcılar için silinecek.'
+            : '"${widget.circle!.name}" ve tüm ilerlemesi bu telefondan silinecek.'),
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Vazgeç')),
           TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Sil')),
@@ -240,8 +262,12 @@ class _DuaCircleFormScreenState extends State<DuaCircleFormScreen> {
       ),
     );
     if (ok != true || !mounted) return;
-    DuaCircleStore.instance.delete(widget.circle!.id);
-    Navigator.of(context).pop();
+    try {
+      await DuaCircleStore.instance.delete(widget.circle!);
+      if (mounted) Navigator.of(context).pop();
+    } catch (e) {
+      if (mounted) showNote(context, 'Silinemedi. İnternet bağlantınızı kontrol edin.');
+    }
   }
 
   Future<void> _chooseEnd() async {
@@ -662,6 +688,48 @@ class _PersonDialogState extends State<_PersonDialog> {
           onPressed: () => Navigator.pop(context, (_name.text.trim(), _phone.text.trim())),
           child: const Text('Ekle'),
         ),
+      ],
+    );
+  }
+}
+
+/// Ortak çember kurulurken kurucunun adı (davet edilenler görür).
+class _NameDialog extends StatefulWidget {
+  const _NameDialog();
+
+  @override
+  State<_NameDialog> createState() => _NameDialogState();
+}
+
+class _NameDialogState extends State<_NameDialog> {
+  final _ctl = TextEditingController();
+
+  @override
+  void dispose() {
+    _ctl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Adınız'),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text('Davet ettiğiniz kişiler daveti sizin adınızla görür.'),
+          TextField(
+            controller: _ctl,
+            autofocus: true,
+            textCapitalization: TextCapitalization.words,
+            decoration: const InputDecoration(labelText: 'Ad Soyad'),
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(onPressed: () => Navigator.pop(context), child: const Text('Vazgeç')),
+        TextButton(onPressed: () => Navigator.pop(context, _ctl.text.trim()), child: const Text('Devam')),
       ],
     );
   }

@@ -16,11 +16,17 @@ dependencies:
   shared_preferences: ^2.3.0   # Seçilen şehri hatırlama
   url_launcher: ^6.3.0         # Cami Bulucu için harita uygulamasını açma
   share_plus: ^13.3.0          # Ayet ve duaları telefonun paylaş menüsüyle paylaşma
+  # Dua Çemberi ortak kullanım (Firebase ücretsiz Spark planı: anonim giriş + Firestore)
+  firebase_core: ^4.15.0
+  firebase_auth: ^6.7.0
+  cloud_firestore: ^6.10.0
+  crypto: ^3.0.6               # Telefon numarasını sunucuya açık yazmadan eşleştirmek için özet
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^3.0.0
+  fake_cloud_firestore: ^4.3.0 # Dua Çemberi eşitleme testleri (sunucusuz)
 
 flutter:
   uses-material-design: true

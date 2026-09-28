@@ -2,6 +2,8 @@
     <!-- Namaz vakitleri ve Kıble için konum -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <!-- Dua Çemberi: Firebase (Firestore) bağlantısı -->
+    <uses-permission android:name="android.permission.INTERNET" />
 
     <application
         android:label="Ezan Saati"

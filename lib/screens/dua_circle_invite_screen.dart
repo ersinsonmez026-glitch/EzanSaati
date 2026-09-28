@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../services/circle_sync.dart';
 import '../services/dua_circle_store.dart';
 import '../widgets/page_shell.dart';
 import '../widgets/reading_ui.dart';
@@ -92,6 +93,7 @@ class _DuaCircleInviteScreenState extends State<DuaCircleInviteScreen> {
         const SizedBox(height: 8),
         Text(
           'WhatsApp mesajı hazır açılır; göndermek için WhatsApp\'ta gönder tuşuna basın. '
+          '${widget.circle.remote ? 'Uygulamayı kullanan ve numarasını kaydetmiş kişiler daveti uygulamada da görür; diğerleri mesajdaki kodla katılır. ' : ''}'
           'Davet $kInviteHours saat geçerlidir; yanıt gelmezse pay size döner.',
           textAlign: TextAlign.center,
           style: TextStyle(color: _pal.ink2, fontSize: 12, height: 1.45),
@@ -115,6 +117,9 @@ class _DuaCircleInviteScreenState extends State<DuaCircleInviteScreen> {
                 Text(m.name, style: TextStyle(color: _pal.ink, fontSize: 14.5, fontWeight: FontWeight.w700)),
                 Text('Görevi: ${trNum(m.share)} ${widget.circle.unit}',
                     style: TextStyle(color: _pal.ink2, fontSize: 12)),
+                if (widget.circle.remote && m.key.isNotEmpty)
+                  Text('Davet kodu: ${formatCode(m.key)}',
+                      style: TextStyle(color: _pal.gold, fontSize: 12.5, fontWeight: FontWeight.w700)),
               ],
             ),
           ),

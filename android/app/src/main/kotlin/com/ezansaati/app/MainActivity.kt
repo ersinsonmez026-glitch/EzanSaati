@@ -1,4 +1,4 @@
-package com.example.ezan_saati
+package com.ezansaati.app
 
 import android.app.Activity
 import android.content.Context

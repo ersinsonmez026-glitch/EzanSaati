@@ -1,0 +1,167 @@
+rules_version = '2';
+
+// Ezan Saati — Dua Çemberi güvenlik kuralları (Firebase Spark planı, anonim giriş).
+//
+// users/{uid}                  : yalnız kişinin kendisi okur/yazar (ad, numara özeti)
+// circles/{cid}                : yalnız üyeler okur; yalnız kurucu değiştirir;
+//                                davetli yalnızca kendini üye listesine ekleyebilir
+// circles/{cid}/members/{mid}  : üyeler okur; kurucu yönetir; kişi yalnız kendi
+//                                okuma sayısını günceller; davetli kendi davetini
+//                                kabul/ret eder (24 saat içinde)
+// invites/{kod}                : kodu bilen okur (listelenemez); kurucu oluşturur/siler
+//
+// Telefon numarası hiçbir belgede açık yazılmaz; yalnızca tek yönlü özet (phoneHash).
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function circle(cid) {
+      return get(/databases/$(database)/documents/circles/$(cid));
+    }
+
+    function circleAfter(cid) {
+      return getAfter(/databases/$(database)/documents/circles/$(cid));
+    }
+
+    function isCircleOwner(cid) {
+      return circle(cid).data.ownerUid == request.auth.uid;
+    }
+
+    function isCircleMember(cid) {
+      return request.auth.uid in circle(cid).data.memberUids;
+    }
+
+    function changed() {
+      return request.resource.data.diff(resource.data).affectedKeys();
+    }
+
+    // ---------------- Kullanıcı ----------------
+    match /users/{uid} {
+      allow read, delete: if signedIn() && request.auth.uid == uid;
+      allow create, update: if signedIn() && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(['name', 'phoneHash', 'updatedAt'])
+        && request.resource.data.name is string
+        && request.resource.data.name.size() <= 60
+        && (request.resource.data.phoneHash == null
+            || (request.resource.data.phoneHash is string && request.resource.data.phoneHash.size() == 64));
+    }
+
+    // ---------------- Çember ----------------
+    function validCircle(d) {
+      return d.keys().hasOnly(['ownerUid', 'ownerName', 'type', 'name', 'intent', 'total', 'created',
+                               'endDate', 'deadline', 'memberUids', 'lastJoin', 'notice', 'updatedAt'])
+        && d.ownerUid is string
+        && d.ownerName is string && d.ownerName.size() <= 60
+        && d.type in ['salavat', 'yasin', 'hatim', 'ihlas', 'istigfar', 'ozel']
+        && d.name is string && d.name.size() > 0 && d.name.size() <= 60
+        && d.intent is string && d.intent.size() <= 100
+        && d.total is int && d.total > 0 && d.total <= 10000000
+        && d.created is timestamp
+        && d.deadline is timestamp
+        // Son gün en fazla 30 gün sonrası (bitiş gününün ertesi başlangıcı 31 gün sınırı)
+        && d.deadline <= d.created + duration.value(32, 'd')
+        && d.memberUids is list && d.memberUids.size() <= 100
+        && d.notice is string && d.notice.size() <= 400;
+    }
+
+    // Davetli, kabul ettiği davet belgesiyle birlikte kendini üye listesine ekler.
+    function joining(cid) {
+      let code = request.resource.data.lastJoin;
+      let m = getAfter(/databases/$(database)/documents/circles/$(cid)/members/$(code));
+      return changed().hasOnly(['memberUids', 'lastJoin'])
+        && request.resource.data.memberUids.toSet()
+             == resource.data.memberUids.toSet().union([request.auth.uid].toSet())
+        && m.data.uid == request.auth.uid
+        && m.data.status == 'accepted';
+    }
+
+    match /circles/{cid} {
+      allow read: if signedIn() && request.auth.uid in resource.data.memberUids;
+      allow create: if signedIn()
+        && request.resource.data.ownerUid == request.auth.uid
+        && request.resource.data.memberUids == [request.auth.uid]
+        && validCircle(request.resource.data);
+      allow update: if signedIn() && (
+        (resource.data.ownerUid == request.auth.uid
+          && request.resource.data.ownerUid == resource.data.ownerUid
+          && request.resource.data.created == resource.data.created
+          && validCircle(request.resource.data))
+        || joining(cid));
+      allow delete: if signedIn() && resource.data.ownerUid == request.auth.uid;
+
+      // ---------------- Çember üyeleri ----------------
+      match /members/{mid} {
+        // Davetli, davet kodunu bilerek (belge kimliği) bekleyen davetini okuyabilir.
+        allow get: if signedIn() && (isCircleMember(cid) || resource.data.status == 'pending');
+        allow list: if signedIn() && isCircleMember(cid);
+
+        // Kurucu: çemberle aynı anda (toplu yazma) ya da sonradan kişi ekler/düzenler/siler.
+        allow create: if signedIn() && circleAfter(cid).data.ownerUid == request.auth.uid
+          && validMember(request.resource.data);
+        allow delete: if signedIn() && isCircleOwner(cid);
+        allow update: if signedIn() && (
+          (isCircleOwner(cid) && validMember(request.resource.data))
+          || ownProgress()
+          || acceptInvite()
+          || declineInvite());
+      }
+    }
+
+    function validMember(d) {
+      return d.name is string && d.name.size() <= 60
+        && d.share is int && d.share >= 0
+        && d.done is int && d.done >= 0 && d.done <= d.share
+        && d.status in ['owner', 'pending', 'accepted', 'declined']
+        && (d.phoneHash == null || (d.phoneHash is string && d.phoneHash.size() == 64));
+    }
+
+    // Katılan kişi yalnızca kendi okuma sayısını, payını aşmadan ve son gün geçmeden günceller.
+    function ownProgress() {
+      return resource.data.uid == request.auth.uid
+        && resource.data.status in ['owner', 'accepted']
+        && changed().hasOnly(['done', 'updatedAt'])
+        && request.resource.data.done is int
+        && request.resource.data.done >= 0
+        && request.resource.data.done <= resource.data.share
+        && request.time < resource.data.deadline;
+    }
+
+    // Davet kodunu bilen kişi 24 saat içinde daveti kabul eder; numara özeti silinir.
+    function acceptInvite() {
+      return resource.data.status == 'pending'
+        && resource.data.uid == null
+        && request.time < resource.data.expiresAt
+        && changed().hasOnly(['status', 'uid', 'phoneHash', 'respondedAt'])
+        && request.resource.data.status == 'accepted'
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.phoneHash == null;
+    }
+
+    function declineInvite() {
+      return resource.data.status == 'pending'
+        && resource.data.uid == null
+        && changed().hasOnly(['status', 'respondedAt'])
+        && request.resource.data.status == 'declined';
+    }
+
+    // Kişiye gelen davetler: kendi kaydettiği numara özetiyle eşleşenler.
+    match /{path=**}/members/{mid} {
+      allow list: if signedIn()
+        && resource.data.phoneHash is string
+        && resource.data.phoneHash
+             == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.phoneHash;
+    }
+
+    // ---------------- Davet kodları ----------------
+    match /invites/{code} {
+      allow get: if signedIn();
+      allow create: if signedIn()
+        && request.resource.data.keys().hasOnly(['circleId', 'createdAt'])
+        && circleAfter(request.resource.data.circleId).data.ownerUid == request.auth.uid;
+      allow delete: if signedIn() && isCircleOwner(resource.data.circleId);
+    }
+  }
+}
