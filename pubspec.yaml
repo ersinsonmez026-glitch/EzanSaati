@@ -21,6 +21,7 @@ dependencies:
   firebase_auth: ^6.7.0
   cloud_firestore: ^6.10.0
   crypto: ^3.0.6               # Telefon numarasını sunucuya açık yazmadan eşleştirmek için özet
+  just_audio: ^0.10.6          # İlahiler: uygulama içindeki ses kayıtlarını çalma
 
 dev_dependencies:
   flutter_test:
@@ -37,6 +38,7 @@ flutter:
     - assets/images/namaz/
     - assets/images/mesaj/
     - assets/data/
+    - assets/audio/ilahiler/
     - assets/fonts/OFL.txt
 
   # Arapça metinler için (SIL Open Font License, bkz. assets/fonts/OFL.txt)
