@@ -6,6 +6,7 @@ import '../services/location_store.dart';
 import '../services/prayer_calc.dart';
 import '../widgets/page_shell.dart';
 import '../widgets/reading_ui.dart';
+import '../widgets/gold_icon.dart';
 
 /// Namaz Öğren: solda sabit namaz/konu listesi, sağda rekât rekât anlatım.
 /// Tasarım: onizleme/05-namaz-ogren.html
@@ -554,7 +555,7 @@ class _AccordionState extends State<_Accordion> {
                     AnimatedRotation(
                       turns: _open ? 0.25 : 0,
                       duration: const Duration(milliseconds: 200),
-                      child: Icon(Icons.chevron_right, color: pal.gold, size: 22),
+                      child: GoldIcon(Icons.chevron_right, size: 22, light: !pal.night),
                     ),
                   ],
                 ),

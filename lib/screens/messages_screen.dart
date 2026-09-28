@@ -5,6 +5,7 @@ import '../widgets/message_card.dart';
 import '../widgets/page_shell.dart';
 import '../widgets/reading_ui.dart';
 import 'message_share_screen.dart';
+import '../widgets/gold_icon.dart';
 
 /// Dini Mesajlar: günün mesajı, arama, kategori ve favoriler, kart ızgarası.
 /// Tasarım: onizleme/09-dini-mesajlar.html · Veri: assets/data/mesajlar.json (30 mesaj)
@@ -260,8 +261,9 @@ class _MessagesScreenState extends State<MessagesScreen> {
                           width: 30,
                           height: 30,
                           decoration: const BoxDecoration(shape: BoxShape.circle, color: Color(0x73000000)),
-                          child: Icon(fav ? Icons.favorite : Icons.favorite_border,
-                              size: 17, color: fav ? const Color(0xFFE74C3C) : Colors.white),
+                          child: fav
+                              ? const GoldIcon(Icons.favorite, size: 17)
+                              : const Icon(Icons.favorite_border, size: 17, color: Colors.white),
                         ),
                       ),
                     ),

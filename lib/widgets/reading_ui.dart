@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:share_plus/share_plus.dart';
 
 import 'page_shell.dart';
+import 'gold_icon.dart';
 
 /// Sureler, Dualar ve Namaz Öğren sayfalarının renkleri (TASARIM_KURALLARI.md v2).
 /// Gündüz krem kâğıt, akşamdan imsaka kadar koyu yeşil görünüm kullanılır.
@@ -457,7 +458,7 @@ class SearchBox extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Icon(Icons.search, size: 20, color: pal.gold),
+          GoldIcon(Icons.search, size: 20, light: !pal.night),
           const SizedBox(width: 8),
           Expanded(
             child: TextField(
@@ -544,11 +545,9 @@ class HeartButton extends StatelessWidget {
         child: SizedBox(
           width: 30,
           height: 36,
-          child: Icon(
-            on ? Icons.favorite : Icons.favorite_border,
-            size: 21,
-            color: on ? const Color(0xFFC0392B) : pal.ink2,
-          ),
+          child: on
+              ? GoldIcon(Icons.favorite, size: 21, light: !pal.night)
+              : Icon(Icons.favorite_border, size: 21, color: pal.ink2),
         ),
       ),
     );
@@ -601,7 +600,7 @@ class ActionStrip extends StatelessWidget {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(items[i].icon, size: 20, color: RC.goldIcon),
+                        GoldIcon(items[i].icon, size: 20),
                         const SizedBox(height: 3),
                         FittedBox(
                           fit: BoxFit.scaleDown,

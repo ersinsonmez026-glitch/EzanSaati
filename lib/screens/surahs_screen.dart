@@ -4,6 +4,7 @@ import '../services/content_store.dart';
 import '../widgets/page_shell.dart';
 import '../widgets/reading_ui.dart';
 import 'surah_read_screen.dart';
+import '../widgets/gold_icon.dart';
 
 /// Sureler: arama, Mekkî/Medenî/Favori filtresi, günün ayeti, sık okunanlar ve 114 sure.
 /// Tasarım: onizleme/03-sureler.html
@@ -161,7 +162,7 @@ class _SurahsScreenState extends State<SurahsScreen> {
                   gradient: RC.darkPanel,
                   border: Border.all(color: RC.gold(0.6)),
                 ),
-                child: const Icon(Icons.bookmark_border, size: 19, color: RC.goldText),
+                child: const GoldIcon(Icons.bookmark_border, size: 19),
               ),
               const SizedBox(width: 10),
               Expanded(

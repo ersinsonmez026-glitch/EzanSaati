@@ -8,6 +8,7 @@ import '../services/takvim.dart';
 import '../widgets/page_shell.dart';
 import '../widgets/reading_ui.dart';
 import 'city_picker_screen.dart';
+import '../widgets/gold_icon.dart';
 
 enum _View { main, imsakiye, hicri, miladi }
 
@@ -126,7 +127,7 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
         padding: const EdgeInsets.all(20),
         child: Column(
           children: [
-            Icon(Icons.location_off, color: _pal.gold, size: 44),
+            GoldIcon(Icons.location_off, size: 44, light: !_pal.night),
             const SizedBox(height: 10),
             Text(
               'Vakitleri gösterebilmek için önce şehrinizi seçin.',
@@ -251,7 +252,7 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.place, size: 12, color: RC.goldBorder),
+              const GoldIcon(Icons.place, size: 12),
               const SizedBox(width: 3),
               Flexible(
                 child: Text('${loc.name} ›',
@@ -353,12 +354,12 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
   }
 
   static const _icons = [
-    Icons.nights_stay_outlined, // İmsak
-    Icons.wb_twilight, // Güneş
-    Icons.wb_sunny_outlined, // Öğle
-    Icons.light_mode_outlined, // İkindi
-    Icons.brightness_4_outlined, // Akşam
-    Icons.bedtime_outlined, // Yatsı
+    Icons.wb_twilight, // İmsak: ufuktan doğan ışık
+    Icons.wb_sunny, // Güneş
+    Icons.mosque, // Öğle
+    Icons.wb_cloudy, // İkindi
+    Icons.wb_twilight, // Akşam: batan güneş
+    Icons.nightlight_round, // Yatsı: hilal
   ];
 
   Widget _row(int i, PrayerSlot slot, DateTime now, int ci, bool beforeImsak, PrayerStatus st) {
@@ -410,7 +411,9 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
                         colors: [Color(0xFF0B3F2B), Color(0xFF062A1C)]),
                 border: Border(right: BorderSide(color: RC.gold(0.5))),
               ),
-              child: Icon(_icons[i], size: 24, color: cur ? const Color(0xFF1D1406) : const Color(0xFFE9C96A)),
+              child: cur
+                  ? Icon(_icons[i], size: 24, color: const Color(0xFF1D1406))
+                  : GoldIcon(_icons[i], size: 24),
             ),
             const SizedBox(width: 10),
             Expanded(
@@ -492,7 +495,7 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
                   color: const Color(0x33000000),
                   border: Border.all(color: RC.goldBorder, width: 1.5),
                 ),
-                child: Icon(icon, size: 21, color: RC.goldText),
+                child: GoldIcon(icon, size: 21),
               ),
               const SizedBox(height: 6),
               FittedBox(
@@ -583,7 +586,7 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
                   Row(
                     children: [
                       if (label != null) ...[
-                        const Icon(Icons.brightness_2, size: 13, color: RC.goldBorder),
+                        const GoldIcon(Icons.brightness_2, size: 13),
                         const SizedBox(width: 5),
                         Expanded(
                           child: Text(label,
@@ -904,7 +907,7 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
               width: 36,
               height: 36,
               decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: RC.goldBorder, width: 1.5)),
-              child: Icon(icon, size: 18, color: RC.goldText),
+              child: GoldIcon(icon, size: 18),
             ),
           ),
         );
@@ -1085,7 +1088,7 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
             ),
             child: Row(
               children: [
-                Icon(icon, size: 22, color: RC.goldIcon),
+                GoldIcon(icon, size: 22),
                 const SizedBox(width: 10),
                 Expanded(
                   child:
@@ -1118,7 +1121,7 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
             width: 34,
             height: 34,
             decoration: BoxDecoration(color: _pal.pill, borderRadius: BorderRadius.circular(10)),
-            child: Icon(icon, size: 19, color: _pal.gold),
+            child: GoldIcon(icon, size: 19, light: !_pal.night),
           ),
           const SizedBox(width: 10),
           Expanded(

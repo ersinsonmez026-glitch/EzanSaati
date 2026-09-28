@@ -6,6 +6,7 @@ import 'package:just_audio/just_audio.dart';
 
 import '../services/quran_audio.dart';
 import 'reading_ui.dart';
+import 'gold_icon.dart';
 
 /// Sûre okuma sayfasının altındaki sesli okuma çubuğu. Sûre ayet ayet çalınır (her ayet
 /// ayrı dosya), böylece okunan ayet kesin bilinir ve sayfaya bildirilir. Ses internetten akar;
@@ -252,7 +253,7 @@ class _SurahAudioBarState extends State<SurahAudioBar> {
           children: [
             Row(
               children: [
-                const Icon(Icons.graphic_eq, size: 18, color: RC.goldIcon),
+                const GoldIcon(Icons.graphic_eq, size: 18),
                 const SizedBox(width: 6),
                 Expanded(
                   child: Text(
@@ -280,7 +281,7 @@ class _SurahAudioBarState extends State<SurahAudioBar> {
               Expanded(
                 child: Row(
                   children: [
-                    const Icon(Icons.wifi_off, size: 18, color: RC.goldIcon),
+                    const GoldIcon(Icons.wifi_off, size: 18),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(_error!, style: const TextStyle(color: RC.cream, fontSize: 12.5, height: 1.35)),
@@ -405,7 +406,7 @@ class _SurahAudioBarState extends State<SurahAudioBar> {
                 borderRadius: BorderRadius.circular(10),
                 border: Border.all(color: RC.gold(0.7)),
               ),
-              child: Icon(icon, size: 19, color: const Color(0xFFE9C96A)),
+              child: GoldIcon(icon, size: 19),
             ),
           ),
         ),

@@ -4,6 +4,7 @@ import '../services/app_prefs.dart';
 import '../services/location_store.dart';
 import '../theme.dart';
 import 'city_picker_screen.dart';
+import '../widgets/gold_icon.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -64,7 +65,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         children: [
           _section('KONUM'),
           ListTile(
-            leading: const Icon(Icons.location_city, color: AppColors.gold),
+            leading: const GoldIcon(Icons.location_city),
             title: const Text('Şehir', style: titleStyle),
             subtitle: Text(
               loc == null ? 'Seçilmedi' : '${loc.name}${loc.fromGps ? ' (GPS)' : ''}',
@@ -82,14 +83,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     height: 24,
                     child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.gold),
                   )
-                : const Icon(Icons.my_location, color: AppColors.gold),
+                : const GoldIcon(Icons.my_location),
             title: const Text('Konumumu güncelle', style: titleStyle),
             subtitle: const Text('GPS ile bulunduğunuz yeri yeniden bulur', style: subStyle),
             onTap: _busy ? null : _useGps,
           ),
           _section('GÖRÜNÜM'),
           ListTile(
-            leading: const Icon(Icons.grid_view, color: AppColors.gold),
+            leading: const GoldIcon(Icons.grid_view),
             title: const Text('Ana ekran tuşları', style: titleStyle),
             subtitle: Padding(
               padding: const EdgeInsets.only(top: 8),
@@ -108,19 +109,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           _section('HESAPLAMA'),
           const ListTile(
-            leading: Icon(Icons.calculate, color: AppColors.gold),
+            leading: GoldIcon(Icons.calculate),
             title: Text('Hesaplama yöntemi', style: titleStyle),
             subtitle: Text('Diyanet İşleri Başkanlığı (Türkiye)', style: subStyle),
           ),
           _section('BİLDİRİMLER'),
           const ListTile(
-            leading: Icon(Icons.notifications_active, color: AppColors.gold),
+            leading: GoldIcon(Icons.notifications_active),
             title: Text('Ezan bildirimleri', style: titleStyle),
             subtitle: Text('Bir sonraki güncellemede eklenecek', style: subStyle),
           ),
           _section('HAKKINDA'),
           const ListTile(
-            leading: Icon(Icons.info_outline, color: AppColors.gold),
+            leading: GoldIcon(Icons.info_outline),
             title: Text('Ezan Saati', style: titleStyle),
             subtitle: Text('Sürüm 1.0.0', style: subStyle),
           ),

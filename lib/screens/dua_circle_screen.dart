@@ -7,6 +7,7 @@ import '../widgets/page_shell.dart';
 import '../widgets/reading_ui.dart';
 import 'dua_circle_form_screen.dart';
 import 'dua_circle_invite_screen.dart';
+import '../widgets/gold_icon.dart';
 
 /// Dua Çemberi ana sayfası (onizleme/10-dua-zinciri.html): solda menü, sağda
 /// seçili çemberin kartı, altta diğer çemberler.
@@ -354,7 +355,7 @@ class _DuaCircleScreenState extends State<DuaCircleScreen> {
                     children: [
                       const Padding(
                         padding: EdgeInsets.only(top: 5, right: 6),
-                        child: Icon(Icons.circle, size: 5, color: RC.goldIcon),
+                        child: GoldIcon(Icons.circle, size: 5),
                       ),
                       Expanded(
                         child: Text(r, style: const TextStyle(color: RC.cream, fontSize: 12, height: 1.45)),
@@ -683,7 +684,7 @@ class _DuaCircleScreenState extends State<DuaCircleScreen> {
             padding: const EdgeInsets.symmetric(vertical: 7, horizontal: 1),
             child: Column(
               children: [
-                Icon(icon, size: 19, color: RC.goldIcon),
+                GoldIcon(icon, size: 19),
                 const SizedBox(height: 2),
                 FittedBox(
                   fit: BoxFit.scaleDown,
@@ -742,7 +743,7 @@ class _DuaCircleScreenState extends State<DuaCircleScreen> {
                   border: Border.all(color: RC.gold(0.75)),
                 ),
                 child: add < 0
-                    ? const Icon(Icons.check, size: 16, color: RC.goldText)
+                    ? const GoldIcon(Icons.check, size: 16)
                     : Text(label,
                         style: const TextStyle(color: RC.goldText, fontSize: 12, fontWeight: FontWeight.w700)),
               ),
@@ -785,7 +786,7 @@ class _DuaCircleScreenState extends State<DuaCircleScreen> {
         children: [
           const Padding(
             padding: EdgeInsets.only(top: 1, right: 6),
-            child: Icon(Icons.info_outline, size: 15, color: RC.goldText),
+            child: GoldIcon(Icons.info_outline, size: 15),
           ),
           Expanded(child: Text(c.notice, style: const TextStyle(color: RC.cream, fontSize: 11, height: 1.4))),
           Semantics(
@@ -915,7 +916,7 @@ class _DuaCircleScreenState extends State<DuaCircleScreen> {
       builder: (ctx) {
         Widget item(IconData icon, String text, VoidCallback? onTap, {String? sub}) => ListTile(
               enabled: onTap != null,
-              leading: Icon(icon, color: _pal.gold),
+              leading: GoldIcon(icon, light: !_pal.night),
               title: Text(text, style: TextStyle(color: _pal.ink, fontWeight: FontWeight.w600)),
               subtitle: sub == null ? null : Text(sub, style: TextStyle(color: _pal.ink2, fontSize: 12)),
               onTap: onTap == null
@@ -1025,7 +1026,7 @@ class _DuaCircleScreenState extends State<DuaCircleScreen> {
                             borderRadius: BorderRadius.circular(10),
                             border: Border.all(color: RC.gold(0.55)),
                           ),
-                          child: Icon(_typeIcon(c.type), size: 19, color: RC.goldIcon),
+                          child: GoldIcon(_typeIcon(c.type), size: 19),
                         ),
                         const SizedBox(width: 8),
                         Expanded(
@@ -1423,7 +1424,7 @@ class _DarkItem extends StatelessWidget {
           ),
           child: Row(
             children: [
-              Icon(icon, size: 18, color: RC.goldIcon),
+              GoldIcon(icon, size: 18),
               const SizedBox(width: 8),
               Expanded(
                 child: Column(

@@ -22,6 +22,7 @@ import 'qibla_screen.dart';
 import 'ramadan_screen.dart';
 import 'settings_screen.dart';
 import 'surahs_screen.dart';
+import '../widgets/gold_icon.dart';
 
 /// Ana ekrandaki bir tuş: görseli, adı ve açacağı sayfa.
 class _MenuItem {
@@ -251,7 +252,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(Icons.location_on, color: AppColors.goldLight, size: 15 * k, shadows: shadow),
+                            GoldIcon(Icons.location_on, size: 15 * k),
                             const SizedBox(width: 2),
                             Flexible(
                               child: FittedBox(
@@ -438,7 +439,7 @@ class _LocationSheetState extends State<_LocationSheet> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.mosque, color: AppColors.gold, size: 48),
+          const GoldIcon(Icons.mosque, size: 48),
           const SizedBox(height: 12),
           const Text(
             'Hoş Geldiniz',

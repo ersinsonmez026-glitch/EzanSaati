@@ -6,6 +6,7 @@ import '../services/dua_circle_store.dart';
 import '../widgets/page_shell.dart';
 import '../widgets/reading_ui.dart';
 import 'dua_circle_screen.dart' show typeIcon;
+import '../widgets/gold_icon.dart';
 
 /// Yeni çember oluşturma ya da mevcut çemberi düzenleme.
 /// Sonuç olarak kaydedilen çember döner.
@@ -545,7 +546,7 @@ class _DuaCircleFormScreenState extends State<DuaCircleFormScreen> {
                 child: Text('${trDate(_end)} ${_end.year} · ${_weekdays[_end.weekday - 1]}',
                     style: TextStyle(color: _pal.ink, fontSize: 15, fontWeight: FontWeight.w500)),
               ),
-              Icon(Icons.calendar_month, size: 20, color: _pal.gold),
+              GoldIcon(Icons.calendar_month, size: 20, light: !_pal.night),
             ],
           ),
         ),
@@ -628,7 +629,7 @@ class _DuaCircleFormScreenState extends State<DuaCircleFormScreen> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(icon, size: 17, color: _pal.gold),
+              GoldIcon(icon, size: 17, light: !_pal.night),
               const SizedBox(width: 6),
               Flexible(
                 child: Text(label,

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../data/cities.dart';
 import '../services/location_store.dart';
 import '../theme.dart';
+import '../widgets/gold_icon.dart';
 
 /// 81 il arasından arama yaparak şehir seçme ekranı.
 class CityPickerScreen extends StatefulWidget {
@@ -63,7 +64,7 @@ class _CityPickerScreenState extends State<CityPickerScreen> {
               decoration: InputDecoration(
                 hintText: 'Şehir ara...',
                 hintStyle: const TextStyle(color: Colors.white54),
-                prefixIcon: const Icon(Icons.search, color: AppColors.gold),
+                prefixIcon: const GoldIcon(Icons.search),
                 filled: true,
                 fillColor: AppColors.green,
                 border: OutlineInputBorder(
@@ -118,7 +119,7 @@ class _CityPickerScreenState extends State<CityPickerScreen> {
                       fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
                     ),
                   ),
-                  trailing: selected ? const Icon(Icons.check, color: AppColors.gold) : null,
+                  trailing: selected ? const GoldIcon(Icons.check) : null,
                   onTap: () async {
                     final navigator = Navigator.of(context);
                     await LocationStore.instance.setCity(c);

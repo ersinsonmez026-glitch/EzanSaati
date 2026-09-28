@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import '../services/dhikr_store.dart';
 import '../widgets/page_shell.dart';
 import '../widgets/reading_ui.dart';
+import '../widgets/gold_icon.dart';
 
 /// Zikir Sayacı (onizleme/06-zikir-sayaci.html): solda zikir listesi, sağda tesbih taneli
 /// sayaç kartı. Karta dokunmak sayar; hedef, geri alma, titreşim ve namaz sonrası tesbihat.
@@ -464,7 +465,7 @@ class _DhikrScreenState extends State<DhikrScreen> with SingleTickerProviderStat
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.refresh, size: 17, color: _pal.gold),
+              GoldIcon(Icons.refresh, size: 17, light: !_pal.night),
               FittedBox(
                 fit: BoxFit.scaleDown,
                 child: Text('Sıfırla',

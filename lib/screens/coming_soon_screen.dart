@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../theme.dart';
 import '../widgets/page_shell.dart';
+import '../widgets/gold_icon.dart';
 
 /// Henüz hazırlanmamış bölümler için geçici sayfa.
 class ComingSoonScreen extends StatelessWidget {
@@ -25,7 +26,7 @@ class ComingSoonScreen extends StatelessWidget {
                   child: Image.asset(image!),
                 ),
               const SizedBox(height: 24),
-              const Icon(Icons.hourglass_top, color: AppColors.gold, size: 36),
+              const GoldIcon(Icons.hourglass_top, size: 36),
               const SizedBox(height: 12),
               Text(
                 '$title bölümü hazırlanıyor',

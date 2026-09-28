@@ -9,6 +9,7 @@ import '../services/prayer_calc.dart';
 import '../widgets/page_shell.dart';
 import '../widgets/reading_ui.dart';
 import 'city_picker_screen.dart';
+import '../widgets/gold_icon.dart';
 
 /// Ramazan: geri sayım, şehre göre imsakiye, oruç niyeti ve dualar, önemli günler.
 /// Tasarım: onizleme/11-ramazan.html · Veri: assets/data/ramazan.json
@@ -276,7 +277,7 @@ class _RamadanScreenState extends State<RamadanScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 10),
       child: Column(
         children: [
-          Icon(icon, size: 22, color: const Color(0xFFE9C96A)),
+          GoldIcon(icon, size: 22),
           const SizedBox(height: 2),
           Text(label, style: const TextStyle(color: RC.creamSoft, fontSize: 11)),
           Text(value,

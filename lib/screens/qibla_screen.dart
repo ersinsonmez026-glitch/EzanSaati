@@ -10,6 +10,7 @@ import '../services/prayer_calc.dart';
 import '../widgets/page_shell.dart';
 import '../widgets/reading_ui.dart';
 import 'city_picker_screen.dart';
+import '../widgets/gold_icon.dart';
 
 /// Telefonun pusulasıyla çalışan Kıble bulucu (onizleme/07-kible.html).
 /// Kadran telefonla birlikte döner; ibrenin ucundaki Kâbe üstteki altın işareti
@@ -114,7 +115,7 @@ class _QiblaScreenState extends State<QiblaScreen> {
         padding: const EdgeInsets.all(20),
         child: Column(
           children: [
-            Icon(Icons.location_off, color: _pal.gold, size: 44),
+            GoldIcon(Icons.location_off, size: 44, light: !_pal.night),
             const SizedBox(height: 10),
             Text(
               'Kıble yönünü hesaplamak için önce şehrinizi seçin.',
@@ -181,7 +182,7 @@ class _QiblaScreenState extends State<QiblaScreen> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     if (aligned) ...[
-                      const Icon(Icons.check_circle_rounded, size: 16, color: RC.goldText),
+                      const GoldIcon(Icons.check_circle_rounded, size: 16),
                       const SizedBox(width: 6),
                     ],
                     Text(status,

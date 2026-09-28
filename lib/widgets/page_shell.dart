@@ -4,6 +4,7 @@ import '../screens/settings_screen.dart';
 import '../services/location_store.dart';
 import '../services/prayer_calc.dart';
 import '../theme.dart';
+import 'gold_icon.dart';
 
 /// Ana ekran dışındaki bütün sayfaların ortak şablonu.
 ///
@@ -174,8 +175,7 @@ class _HeaderDelegate extends SliverPersistentHeaderDelegate {
                     child: canPop
                         ? IconButton(
                             tooltip: 'Geri',
-                            icon: const Icon(Icons.arrow_back_ios_new,
-                                size: 20, color: AppColors.goldLight, shadows: shadow),
+                            icon: const GoldIcon(Icons.arrow_back_ios_new, size: 20),
                             onPressed: () => Navigator.of(context).maybePop(),
                           )
                         : null,
@@ -200,7 +200,7 @@ class _HeaderDelegate extends SliverPersistentHeaderDelegate {
                     child: showSettings
                         ? IconButton(
                             tooltip: 'Ayarlar',
-                            icon: const Icon(Icons.settings, size: 22, color: AppColors.gold, shadows: shadow),
+                            icon: const GoldIcon(Icons.settings, size: 22),
                             onPressed: () => Navigator.of(context).push(
                               MaterialPageRoute(builder: (_) => const SettingsScreen()),
                             ),
