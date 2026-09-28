@@ -29,7 +29,6 @@ jobs:
               g=lambda k: re.sub('<[^>]+>','',html.unescape(m.get(k,{}).get('value','')))[:160]
               print('=====',f); print('lisans:',g('LicenseShortName'),'| yazar:',g('Artist'),'| kaynak:',g('Credit'),'| tarih:',g('DateTimeOriginal'))
               print('açıklama:',g('ImageDescription'))
-              urllib.request.urlretrieve(urllib.request.Request(ii['url'],headers=UA).full_url, 'in')
               req=urllib.request.Request(ii['url'],headers=UA); open('in','wb').write(urllib.request.urlopen(req).read())
               subprocess.run(['ffmpeg','-v','error','-y','-i','in','-vn','-ac','1','-ar','16000','a.wav'])
               out=subprocess.run(['ffmpeg','-i','a.wav','-af','volumedetect,silencedetect=n=-35dB:d=1.5','-f','null','-'],capture_output=True,text=True).stderr
@@ -47,8 +46,9 @@ jobs:
           def get(u):
               return urllib.request.urlopen(urllib.request.Request(u,headers=UA),timeout=30).read().decode('utf-8','ignore')
           seen={}
-          for q in ['Diyanet namaz nasıl kılınır','Diyanet İşleri Başkanlığı namaz kılınışı','Diyanet sabah namazı nasıl kılınır',
-                    'Diyanet abdest nasıl alınır','Diyanet TV namaz nasıl kılınır uygulamalı','diyanet çocuklar için namaz','Diyanet namaz öğreniyorum']:
+          for q in ['DiyanetTV ikindi namazı nasıl kılınır','DiyanetTV yatsı namazı nasıl kılınır','DiyanetTV vitir namazı nasıl kılınır',
+                    'DiyanetTV cuma namazı nasıl kılınır','DiyanetTV bayram namazı nasıl kılınır','DiyanetTV teyemmüm nasıl alınır',
+                    'DiyanetTV namaz nasıl kılınır uygulamalı anlatım','Diyanet Çocuk teyemmüm']:
               h=get('https://www.youtube.com/results?search_query='+urllib.parse.quote(q))
               m=re.search(r'var ytInitialData = (\{.*?\});</script>',h)
               if not m: print('veri yok',q); continue
@@ -64,7 +64,7 @@ jobs:
                   ch=''.join(r.get('text','') for r in v.get('ownerText',{}).get('runs',[]))
                   ln=v.get('lengthText',{}).get('simpleText',''); views=v.get('viewCountText',{}).get('simpleText','')
                   pub=v.get('publishedTimeText',{}).get('simpleText','')
-                  if vid and vid not in seen and 'iyanet' in ch:
+                  if vid and vid not in seen and 'iyanet' in ch and ('amaz' in t or 'bdest' in t or 'eyemm' in t):
                       seen[vid]=1; print(f'{vid} | {ch} | {ln} | {views} | {pub} | {t}')
           print('--- oembed (gömülebilir mi)')
           for vid in list(seen)[:60]:
