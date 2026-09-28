@@ -32,6 +32,9 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
   DateTime _hAnchor = hijriMonthStart(DateTime.now()); // hicrî takvimde gösterilen ayın ilk günü
   DateTime _mAnchor = DateTime(DateTime.now().year, DateTime.now().month); // miladi takvimde gösterilen ay
 
+  /// İmsakiyede gösterilen gün sayısı: bugün + sonraki 6 gün.
+  static const imsakiyeDays = 7;
+
   // İmsakiye her saniye yeniden hesaplanmasın.
   String? _tableKey;
   List<DayPrayerTimes> _table = const [];
@@ -613,7 +616,7 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
       _tableKey = key;
       _table = [
         // Saat değişimi olan günlerde kaymasın diye takvim günüyle ilerle.
-        for (var i = 0; i < 30; i++) PrayerCalc.forDay(loc, DateTime(start.year, start.month, start.day + i)),
+        for (var i = 0; i < imsakiyeDays; i++) PrayerCalc.forDay(loc, DateTime(start.year, start.month, start.day + i)),
       ];
     }
     return _table;
@@ -629,7 +632,7 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
       _hero(
         image: 'assets/images/vakit_kapak.jpg',
         imageAlign: const Alignment(-0.6, 0.2),
-        label: 'Önümüzdeki 30 gün',
+        label: 'Bugün ve sonraki 6 gün',
         trailing: _cityChip(loc),
         children: [
           const Text('İmsakiye',
@@ -787,7 +790,7 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
 
   IconData _eventIcon(String k) => switch (k) {
         'moon' => Icons.nightlight_round,
-        'lamp' => Icons.emoji_objects_outlined,
+        'lamp' => Icons.light_outlined,
         'star' => Icons.star_outline,
         _ => Icons.mosque_outlined,
       };
@@ -864,7 +867,7 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
       _group(Icons.calendar_month, title, [
         for (final e in list)
           _event(
-            icon: e.religious ? Icons.emoji_objects_outlined : Icons.event,
+            icon: e.religious ? Icons.light_outlined : Icons.event,
             title: e.name.replaceAll(' (yarım gün)', ''),
             sub: '${e.date.day} ${_months[e.date.month - 1]}, ${weekdayTr(e.date)}',
             tag: e.holiday ? 'Resmî tatil' : (e.half ? 'Yarım gün' : 'Dinî gün'),

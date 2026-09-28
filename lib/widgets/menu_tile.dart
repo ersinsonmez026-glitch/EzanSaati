@@ -103,19 +103,3 @@ class MenuTile extends StatelessWidget {
     );
   }
 }
-
-/// Yeni özellik için ayrılmış boş yer.
-class EmptyTile extends StatelessWidget {
-  const EmptyTile({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(14),
-        color: const Color(0x2EFFF8E6),
-        border: Border.all(color: const Color(0x738A6414), width: 1.5),
-      ),
-    );
-  }
-}

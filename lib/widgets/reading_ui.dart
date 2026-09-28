@@ -315,6 +315,17 @@ class OrnamentStar extends StatelessWidget {
   }
 }
 
+/// Satır içi küçük altın yıldız (✦ yerine; her telefonda aynı görünür).
+class GoldStar extends StatelessWidget {
+  final double size;
+  final Color color;
+
+  const GoldStar({super.key, this.size = 10, this.color = RC.goldBorder});
+
+  @override
+  Widget build(BuildContext context) => CustomPaint(size: Size.square(size), painter: _StarPainter(color));
+}
+
 /// Dört köşeli küçük yıldız (✦). Yazı tipinde bu işaret olmayabileceği için çizilir.
 class _StarPainter extends CustomPainter {
   final Color color;

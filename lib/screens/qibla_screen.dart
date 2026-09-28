@@ -148,7 +148,7 @@ class _QiblaScreenState extends State<QiblaScreen> {
     } else if (heading == null) {
       status = 'Telefonu düz tutun';
     } else if (aligned) {
-      status = '✓ Kıble yönündesiniz';
+      status = 'Kıble yönündesiniz';
     } else {
       status = '${diff! > 0 ? 'Sağa' : 'Sola'} dönün · ${diff.abs().round()}°';
     }
@@ -180,6 +180,10 @@ class _QiblaScreenState extends State<QiblaScreen> {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
+                    if (aligned) ...[
+                      const Icon(Icons.check_circle_rounded, size: 16, color: RC.goldText),
+                      const SizedBox(width: 6),
+                    ],
                     Text(status,
                         style: TextStyle(
                           color: aligned ? RC.goldText : _pal.ink,

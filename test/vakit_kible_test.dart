@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:ezan_saati/screens/prayer_times_screen.dart';
 import 'package:ezan_saati/screens/qibla_screen.dart';
 import 'package:ezan_saati/services/location_store.dart';
+import 'package:ezan_saati/services/prayer_calc.dart';
 import 'package:ezan_saati/services/takvim.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -64,6 +65,13 @@ void main() {
     await t.tap(find.text('İmsakiye'));
     await t.pump();
     expect(find.text('Tarih'), findsOneWidget);
+    // Bugün + sonraki 6 gün = 7 gün; 8. gün yok
+    final today = DateTime.now();
+    for (var i = 0; i < 8; i++) {
+      final d = DateTime(today.year, today.month, today.day + i);
+      expect(find.text(formatShortDateTr(d)), i < 7 ? findsOneWidget : findsNothing, reason: 'gün $i');
+    }
+    expect(find.text('Bugün ve sonraki 6 gün'), findsOneWidget);
 
     // Geri tuşu önce Namaz Vakitleri'ne döner
     await t.binding.handlePopRoute();
@@ -110,12 +118,12 @@ void main() {
     ctl.add([152.0, 3]);
     await t.pump();
     await t.pump();
-    expect(find.text('✓ Kıble yönündesiniz'), findsNothing); // yumuşatma: hemen oturmaz
+    expect(find.text('Kıble yönündesiniz'), findsNothing); // yumuşatma: hemen oturmaz
     for (var i = 0; i < 30; i++) {
       ctl.add([152.0, 3]);
       await t.pump();
     }
-    expect(find.text('✓ Kıble yönündesiniz'), findsOneWidget);
+    expect(find.text('Kıble yönündesiniz'), findsOneWidget);
 
     ctl.add([152.0, 0]); // düşük hassasiyet
     await t.pump();

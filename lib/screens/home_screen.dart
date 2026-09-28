@@ -10,12 +10,10 @@ import '../services/prayer_calc.dart';
 import '../theme.dart';
 import '../widgets/countdown_banner.dart';
 import '../widgets/menu_tile.dart';
-import 'baby_names_screen.dart';
 import 'city_picker_screen.dart';
 import 'coming_soon_screen.dart';
 import 'dhikr_screen.dart';
 import 'dua_circle_screen.dart';
-import 'ilahiler_screen.dart';
 import 'learn_namaz_screen.dart';
 import 'messages_screen.dart';
 import 'prayer_times_screen.dart';
@@ -23,7 +21,6 @@ import 'prayers_screen.dart';
 import 'qibla_screen.dart';
 import 'ramadan_screen.dart';
 import 'settings_screen.dart';
-import 'stories_screen.dart';
 import 'surahs_screen.dart';
 
 /// Ana ekrandaki bir tuş: görseli, adı ve açacağı sayfa.
@@ -44,27 +41,22 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  // Tuşların sırası burada. Yer değiştirmek için satırların sırasını değiştir.
+  // 12 tuş, 3 sütun × 4 sıra. Sıra sabittir (kullanıcı onayı), değiştirme.
   static final List<_MenuItem> _items = [
     _MenuItem('namaz_vakitleri', 'Namaz Vakitleri', Icons.schedule, () => const PrayerTimesScreen()),
     _MenuItem('sureler', 'Sureler', Icons.menu_book, () => const SurahsScreen()),
     _MenuItem('dualar', 'Dualar', Icons.volunteer_activism, () => const PrayersScreen()),
-    _MenuItem('namaz_ogren', 'Namaz Öğren', Icons.mosque, () => const LearnNamazScreen()),
     _MenuItem('zikir_sayaci', 'Zikir Sayacı', Icons.touch_app, () => const DhikrScreen()),
     _MenuItem('kible_bulucu', 'Kıble Bulucu', Icons.explore, () => const QiblaScreen()),
-    _MenuItem('hadisler', 'Hadisler', Icons.auto_stories, null),
-    _MenuItem('dini_mesajlar', 'Dini Mesajlar', Icons.mail_outline, () => const MessagesScreen()),
+    const _MenuItem('cami_bulucu', 'Cami Bulucu', Icons.place, null), // Harita uygulamasını açar
     _MenuItem('dua_cemberi', 'Dua Çemberi', Icons.groups, () => const DuaCircleScreen()),
+    const _MenuItem('hadisler', 'Hadisler', Icons.auto_stories, null),
     _MenuItem('ramazan', 'Ramazan', Icons.nightlight_round, () => const RamadanScreen()),
-    _MenuItem('cami_bulucu', 'Cami Bulucu', Icons.place, null), // Harita uygulamasını açar
-    _MenuItem('ilahiler', 'İlahiler', Icons.music_note, () => const IlahilerScreen()),
-    _MenuItem('dini_hikayeler', 'Dini Hikâyeler', Icons.menu_book_outlined, () => const StoriesScreen()),
+    _MenuItem('namaz_ogren', 'Namaz Öğren', Icons.mosque, () => const LearnNamazScreen()),
+    _MenuItem('dini_mesajlar', 'Dini Mesajlar', Icons.mail_outline, () => const MessagesScreen()),
     _MenuItem('ayarlar', 'Ayarlar', Icons.settings, () => const SettingsScreen()),
-    _MenuItem('bebek_isimleri', 'Bebek İsimleri', Icons.child_care, () => const BabyNamesScreen()),
   ];
-
-  // 3 sütunlu tuş alanındaki hücre sayısı (son sıra boş yerlerle tamamlanır)
-  static int get _cellCount => (_items.length + 2) ~/ 3 * 3;
+  static const _rows = 4;
 
   // Görseli henüz hazırlanmamış tuşlar
   static const _noPhoto = <String>{};
@@ -157,194 +149,211 @@ class _HomeScreenState extends State<HomeScreen> {
       backgroundColor: const Color(0xFFD8C59C), // koyu krem
       body: SafeArea(
         child: LayoutBuilder(builder: (context, box) {
-          // Tuş alanının yüksekliği: 5 sıra, 3 sütun
+          final w = box.maxWidth, h = box.maxHeight;
+          final k = (w / 390).clamp(0.8, 1.4); // yazı ve levha ölçeği (iPhone 390 genişlik esas)
           const gap = 6.0, pad = 6.0;
-          final tileW = (box.maxWidth - 2 * pad - 2 * gap) / 3;
-          final rows = _cellCount ~/ 3;
-          final gridH = rows * tileW / 1.3 + (rows - 1) * gap + 2 * pad;
-          // Üst görsel en az 300 olsun; ekran kısaysa sayfa kaydırılır
-          final heroH = math.max(300.0, box.maxHeight - gridH);
+          final tileW = (w - 2 * pad - 2 * gap) / 3;
+          double gridFor(double tileH) => _rows * tileH + (_rows - 1) * gap + 2 * pad;
+
+          // Tuş yüksekliği: tercih genişlik/1.2. Üst alan en az ekranın %40'ı (ve 270 px) kalsın;
+          // sığmazsa tuşlar basıklaşır. Uzun ekranda üst alan %56'yı geçmesin, tuşlar büyür.
+          final minHero = math.max(270.0, h * 0.40), maxHero = h * 0.56;
+          var tileH = tileW / 1.2;
+          if (h - gridFor(tileH) < minHero) {
+            tileH = math.max(tileW / 1.75, (h - minHero - (_rows - 1) * gap - 2 * pad) / _rows);
+          } else if (h - gridFor(tileH) > maxHero) {
+            tileH = math.min(tileW / 0.95, (h - maxHero - (_rows - 1) * gap - 2 * pad) / _rows);
+          }
+          final gridH = gridFor(tileH);
+          final heroH = math.max(minHero, h - gridH);
+          // Çok kısa ekranlarda (ör. yatay) sığmazsa kaydırılabilir; normalde kaydırma yok.
+          final scrolls = heroH + gridH > h + 0.5;
+
           return SingleChildScrollView(
-            physics: heroH + gridH > box.maxHeight + 1
-                ? const ClampingScrollPhysics()
-                : const NeverScrollableScrollPhysics(),
+            physics: scrolls ? const ClampingScrollPhysics() : const NeverScrollableScrollPhysics(),
             child: Column(
-          children: [
-            // ============================================================
-            // ÜST YARI - ANA GÖRSEL + GERİ SAYIM
-            // ============================================================
-            SizedBox(
-              height: heroH,
-              child: Stack(
-                children: [
-                  // Arka plan: cami her ekran boyunda ortada dursun
-                  Positioned.fill(
-                    child: LayoutBuilder(
-                      builder: (context, box) => Image.asset(
-                        'assets/images/home_hero.jpg',
-                        fit: BoxFit.cover,
-                        alignment: _heroAlignment(box.biggest),
-                      ),
+              children: [
+                SizedBox(height: heroH, child: _hero(now, loc, k, shadow)),
+                // ============================================================
+                // ALT KISIM - 12 TUŞ (3 × 4)
+                // ============================================================
+                SizedBox(
+                  height: gridH,
+                  child: GridView.builder(
+                    padding: const EdgeInsets.all(pad),
+                    physics: const NeverScrollableScrollPhysics(),
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 3,
+                      crossAxisSpacing: gap,
+                      mainAxisSpacing: gap,
+                      childAspectRatio: tileW / tileH,
                     ),
+                    itemCount: _items.length,
+                    itemBuilder: (context, index) {
+                      final item = _items[index];
+                      return MenuTile(
+                        image: item.image,
+                        title: item.title,
+                        icon: item.icon,
+                        style: AppPrefs.instance.tileStyle,
+                        hasPhoto: !_noPhoto.contains(item.image),
+                        onTap: () => _onTap(item),
+                      );
+                    },
                   ),
-
-                  // Üst sıra: sol levha · şehir / tarih / saat · sağ levha
-                  Positioned(
-                    top: 8,
-                    left: 8,
-                    right: 8,
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Tasarımdaki düzen: solda "Allah", sağda "Muhammed"
-                        const _Medallion('assets/images/levha_allah.png'),
-                        Expanded(
-                          child: InkWell(
-                            borderRadius: BorderRadius.circular(12),
-                            onTap: () => Navigator.of(context).push(
-                              MaterialPageRoute(builder: (_) => const CityPickerScreen()),
-                            ),
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 4),
-                              child: Column(
-                                children: [
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      const Icon(Icons.location_on,
-                                          color: Colors.white, size: 20, shadows: shadow),
-                                      const SizedBox(width: 2),
-                                      Flexible(
-                                        child: Text(
-                                          loc?.name ?? 'Konum Seç',
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                          style: const TextStyle(
-                                            color: Colors.white,
-                                            fontSize: 18,
-                                            fontWeight: FontWeight.w700,
-                                            shadows: shadow,
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 2),
-                                  Text(
-                                    '${formatDateTr(now)} · ${weekdayTr(now)}',
-                                    textAlign: TextAlign.center,
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 12.5,
-                                      fontWeight: FontWeight.w600,
-                                      shadows: shadow,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 2),
-                                  Text(
-                                    '${two(now.hour)}:${two(now.minute)}:${two(now.second)}',
-                                    style: const TextStyle(
-                                      color: AppColors.goldLight,
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w800,
-                                      letterSpacing: 1,
-                                      shadows: shadow,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                        const _Medallion('assets/images/levha_muhammed.png'),
-                      ],
-                    ),
-                  ),
-
-                  // Alt kısım: ayet + geri sayım şeridi
-                  Positioned(
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Ayet: satırlar yukarıdan aşağı genişler
-                        const Padding(
-                          padding: EdgeInsets.only(left: 14, bottom: 6),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                '“Şüphesiz\nnamaz, müminler\nüzerine vakitleri\nbelirlenmiş bir farzdır.”',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w600,
-                                  height: 1.3,
-                                  fontStyle: FontStyle.italic,
-                                  shadows: shadow,
-                                ),
-                              ),
-                              SizedBox(height: 2),
-                              Text(
-                                'Nisâ, 103',
-                                style: TextStyle(
-                                  color: AppColors.goldLight,
-                                  fontSize: 9.5,
-                                  fontWeight: FontWeight.w600,
-                                  shadows: shadow,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        GestureDetector(
-                          onTap: () => _onTap(_items.first),
-                          child: FractionallySizedBox(
-                            widthFactor: 0.86,
-                            child: CountdownBanner(status: _status),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            // ============================================================
-            // ALT KISIM - 12 TUŞ (kaydırmasız, kendi yüksekliği kadar)
-            // ============================================================
-            GridView.builder(
-                shrinkWrap: true,
-                padding: const EdgeInsets.all(6),
-                physics: const NeverScrollableScrollPhysics(),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 3,
-                  crossAxisSpacing: 6,
-                  mainAxisSpacing: 6,
-                  childAspectRatio: 1.3,
                 ),
-                itemCount: _cellCount, // sıra tamamlanmazsa kalan yerler boş
-                itemBuilder: (context, index) {
-                  if (index >= _items.length) return const EmptyTile();
-                  final item = _items[index];
-                  return MenuTile(
-                    image: item.image,
-                    title: item.title,
-                    icon: item.icon,
-                    style: AppPrefs.instance.tileStyle,
-                    hasPhoto: !_noPhoto.contains(item.image),
-                    onTap: () => _onTap(item),
-                  );
-                },
-              ),
-          ],
+              ],
             ),
           );
         }),
       ),
+    );
+  }
+
+  // ============================================================
+  // ÜST YARI - ANA GÖRSEL, LEVHALAR, KONUM/TARİH, AYET, GERİ SAYIM
+  // ============================================================
+  Widget _hero(DateTime now, AppLocation? loc, double k, List<Shadow> shadow) {
+    final medal = 100 * k;
+    return Stack(
+      children: [
+        // Arka plan: cami her ekran boyunda ortada dursun
+        Positioned.fill(
+          child: LayoutBuilder(
+            builder: (context, box) => Image.asset(
+              'assets/images/home_hero.jpg',
+              fit: BoxFit.cover,
+              alignment: _heroAlignment(box.biggest),
+            ),
+          ),
+        ),
+
+        // Üst sıra: sol levha · şehir / tarih / saat · sağ levha
+        Positioned(
+          top: 6,
+          left: 6,
+          right: 6,
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Tasarımdaki düzen: solda "Allah", sağda "Muhammed"
+              _Medallion('assets/images/levha_allah.png', size: medal),
+              Expanded(
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(12),
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const CityPickerScreen()),
+                  ),
+                  child: Padding(
+                    padding: EdgeInsets.fromLTRB(2, 6 * k, 2, 4),
+                    child: Column(
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.location_on, color: AppColors.goldLight, size: 19 * k, shadows: shadow),
+                            const SizedBox(width: 2),
+                            Flexible(
+                              child: FittedBox(
+                                fit: BoxFit.scaleDown,
+                                child: Text(
+                                  loc?.name ?? 'Konum Seç',
+                                  maxLines: 1,
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 19 * k,
+                                    fontWeight: FontWeight.w700,
+                                    shadows: shadow,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: 3 * k),
+                        FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text(
+                            '${formatDateTr(now)} · ${weekdayTr(now)}',
+                            maxLines: 1,
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 13 * k,
+                              fontWeight: FontWeight.w600,
+                              shadows: shadow,
+                            ),
+                          ),
+                        ),
+                        SizedBox(height: 2 * k),
+                        Text(
+                          '${two(now.hour)}:${two(now.minute)}:${two(now.second)}',
+                          style: TextStyle(
+                            color: AppColors.goldLight,
+                            fontSize: 18 * k,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: 1,
+                            fontFeatures: const [FontFeature.tabularFigures()],
+                            shadows: shadow,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              _Medallion('assets/images/levha_muhammed.png', size: medal),
+            ],
+          ),
+        ),
+
+        // Alt kısım: ayet + tam genişlikte geri sayım şeridi
+        Positioned(
+          left: 0,
+          right: 0,
+          bottom: 4,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Padding(
+                padding: EdgeInsets.only(left: 14, bottom: 6 * k),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '“Şüphesiz\nnamaz, müminler\nüzerine vakitleri\nbelirlenmiş bir farzdır.”',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 12.5 * k,
+                        fontWeight: FontWeight.w600,
+                        height: 1.3,
+                        fontStyle: FontStyle.italic,
+                        shadows: shadow,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      'Nisâ, 103',
+                      style: TextStyle(
+                        color: AppColors.goldLight,
+                        fontSize: 10.5 * k,
+                        fontWeight: FontWeight.w600,
+                        shadows: shadow,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 6),
+                child: GestureDetector(
+                  onTap: () => _onTap(_items.first),
+                  child: CountdownBanner(status: _status),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 
@@ -367,14 +376,15 @@ class _HomeScreenState extends State<HomeScreen> {
 /// Üst köşelerdeki hat levhası.
 class _Medallion extends StatelessWidget {
   final String asset;
+  final double size;
 
-  const _Medallion(this.asset);
+  const _Medallion(this.asset, {required this.size});
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: 78,
-      height: 78,
+      width: size,
+      height: size,
       child: DecoratedBox(
         decoration: const BoxDecoration(
           shape: BoxShape.circle,

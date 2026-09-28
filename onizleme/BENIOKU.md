@@ -16,9 +16,9 @@ Bunlar Flutter koduna aktarılacak sayfaların örnekleridir; uygulamanın kendi
 | 09-dini-mesajlar.html | Dini Mesajlar | Taslak (görseller ve mesajlar eklenecek) |
 | 10-dua-zinciri.html | Dua Zinciri + Online Dua | Taslak (sunucu gerekiyor) |
 | 11-ramazan.html | Ramazan (imsakiye, niyet ve dua, önemli günler) | Taslak |
-| 12-ilahiler.html | İlahiler (liste + oynatıcı) | Taslak (YouTube listesi gelecek) |
+| 12-ilahiler.html | İlahiler (liste + oynatıcı) | Uygulamadan kaldırıldı |
 | 13-cami-bulucu.html | Cami Bulucu (harita, yakındaki camiler, yol tarifi) | Taslak |
-| 14-dini-hikayeler.html | Dini Hikâyeler (liste + oynatıcı) | Taslak (YouTube listesi gelecek) |
+| 14-dini-hikayeler.html | Dini Hikâyeler (liste + oynatıcı) | Uygulamadan kaldırıldı |
 
 ## kaynak/
 Flutter'a aktarırken kullanılacak veriler ve görseller:

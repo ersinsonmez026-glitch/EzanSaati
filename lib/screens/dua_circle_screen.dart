@@ -765,7 +765,7 @@ class _DuaCircleScreenState extends State<DuaCircleScreen> {
                     style: TextStyle(color: RC.goldText, fontSize: 12.5, fontWeight: FontWeight.w700)),
                 Text('${trNum(me.done)} / ${trNum(me.share)}',
                     style: const TextStyle(color: RC.goldText, fontSize: 13, fontWeight: FontWeight.w700)),
-                Text(finished ? '${c.unit} · tamamlandı ✓' : c.unit,
+                Text(finished ? '${c.unit} · tamamlandı' : c.unit,
                     style: const TextStyle(color: Color(0xFFC9D8CF), fontSize: 11)),
               ],
             ),
@@ -812,7 +812,7 @@ class _DuaCircleScreenState extends State<DuaCircleScreen> {
       final left = m.inviteLeft(now);
       badge = left.inHours >= 1 ? '${left.inHours} sa' : '${left.inMinutes.clamp(1, 59)} dk';
     } else {
-      badge = ok ? '✓ Tamam' : '%$pct';
+      badge = ok ? 'Tamam' : '%$pct';
     }
     final canTap = c.mine && !m.isMe;
     return Semantics(

@@ -173,7 +173,8 @@ class _DhikrScreenState extends State<DhikrScreen> with SingleTickerProviderStat
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _listItem('✦ Tesbihat', on: ts, onTap: _toggleTesbihat, semantic: ts ? 'Tesbihatı bitir' : 'Tesbihat'),
+        _listItem('Tesbihat',
+            star: true, on: ts, onTap: _toggleTesbihat, semantic: ts ? 'Tesbihatı bitir' : 'Tesbihat'),
         for (final z in s.all)
           _listItem(
             z.label,
@@ -187,7 +188,12 @@ class _DhikrScreenState extends State<DhikrScreen> with SingleTickerProviderStat
   }
 
   Widget _listItem(String label,
-      {bool on = false, bool dashed = false, required VoidCallback onTap, VoidCallback? onRemove, String? semantic}) {
+      {bool on = false,
+      bool dashed = false,
+      bool star = false,
+      required VoidCallback onTap,
+      VoidCallback? onRemove,
+      String? semantic}) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 4),
       child: Semantics(
@@ -220,14 +226,25 @@ class _DhikrScreenState extends State<DhikrScreen> with SingleTickerProviderStat
               children: [
                 Align(
                   alignment: dashed ? Alignment.center : Alignment.centerLeft,
-                  child: _fitWord(
-                    label,
-                    TextStyle(
-                      color: on ? RC.bronzeText : (dashed ? const Color(0xFFE9C96A) : RC.cream),
-                      fontSize: 11.5,
-                      height: 1.2,
-                      fontWeight: FontWeight.w700,
-                    ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (star) ...[
+                        GoldStar(size: 10, color: on ? RC.bronzeText : RC.goldBorder),
+                        const SizedBox(width: 5),
+                      ],
+                      Flexible(
+                        child: _fitWord(
+                          label,
+                          TextStyle(
+                            color: on ? RC.bronzeText : (dashed ? const Color(0xFFE9C96A) : RC.cream),
+                            fontSize: 11.5,
+                            height: 1.2,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
                 if (onRemove != null)
@@ -242,7 +259,7 @@ class _DhikrScreenState extends State<DhikrScreen> with SingleTickerProviderStat
                         onTap: onRemove,
                         child: const Padding(
                           padding: EdgeInsets.all(4),
-                          child: Text('×', style: TextStyle(color: RC.cream, fontSize: 15, height: 1)),
+                          child: Icon(Icons.close_rounded, size: 13, color: RC.cream),
                         ),
                       ),
                     ),

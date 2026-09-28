@@ -104,7 +104,7 @@ void main() {
   testWidgets('karta dokununca sayar; liste, hedef ve araçlar görünür', (t) async {
     await open(t);
     expect(find.text('Zikir Sayacı'), findsWidgets);
-    for (final l in ['✦ Tesbihat', 'Sübhânallâh', 'Elhamdülillâh', 'Allâhü ekber', 'Salavât', '+ Ekle']) {
+    for (final l in ['Tesbihat', 'Sübhânallâh', 'Elhamdülillâh', 'Allâhü ekber', 'Salavât', '+ Ekle']) {
       expect(find.text(l), findsWidgets, reason: l);
     }
     expect(find.text('0/33'), findsOneWidget);
@@ -135,7 +135,7 @@ void main() {
 
   testWidgets('tesbihat modu ve tevhid ekranı', (t) async {
     await open(t);
-    await t.tap(find.text('✦ Tesbihat'));
+    await t.tap(find.text('Tesbihat'));
     await t.pump();
     expect(find.text('TESBİHAT · 1 / 4'), findsOneWidget);
     for (var step = 0; step < 3; step++) {

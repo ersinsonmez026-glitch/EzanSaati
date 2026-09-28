@@ -18,8 +18,8 @@ flutter run
 
 | Bölüm | Durum |
 |---|---|
-| Ana ekran, 12 tuş, canlı geri sayım | ✅ |
-| Namaz Vakitleri (Diyanet yöntemi, internetsiz; şimdiki vakit ve kalan süre, gün gün vakitler, 30 günlük İmsakiye, Hicrî ve Miladi takvim) | ✅ |
+| Ana ekran: 12 tuş (3 × 4, sıra sabit), canlı geri sayım, kaydırmasız | ✅ |
+| Namaz Vakitleri (Diyanet yöntemi, internetsiz; şimdiki vakit ve kalan süre, gün gün vakitler, 7 günlük İmsakiye, Hicrî ve Miladi takvim) | ✅ |
 | Şehir seçimi (81 il) + GPS ile konum | ✅ |
 | Kıble (telefon pusulası, dönen kadran ve Kâbe ibresi, yön uyarısı; Android) | ✅ |
 | Cami Bulucu (harita uygulamasını açar) | ✅ |
@@ -32,12 +32,10 @@ flutter run
 | Ezan sesi / bildirim | ⏳ sırada |
 | Dini Mesajlar (30 mesaj, günün mesajı, arama, kategori, favori, görsel paylaşma) | ✅ |
 | Ramazan (geri sayım, şehre göre imsakiye, niyet ve dualar, 2027 önemli günler) | ✅ |
-| Dini Hikâyeler (Kur'an'daki 9 kıssa, Ruvvâd meali, kaynak gösterimi) | ✅ |
-| Bebek İsimleri (Kur'an'da geçen 32 isim ayetleriyle, 18 İslami isim; arama ve favori) | ✅ |
 | Dua Çemberi – 1. aşama (çember kurma, rehberden kişi seçme, paylaştırma, WhatsApp daveti; veriler telefonda) | ✅ |
 | Dua Çemberi – 2. aşama (Firebase: uygulama içi davet/kabul/ret, ortak ilerleme ve tamamlanma) | ✅ (konsol ayarı gerekli, aşağıda) |
 | Dua Çemberi – Online Dua genel toplamı, uygulama kapalıyken bildirim | ⏳ |
-| Hadisler (kaynak doğrulaması bekliyor), İlahiler (eser listesi bekliyor) | ⏳ |
+| Hadisler (kaynak doğrulaması bekliyor) | ⏳ |
 
 ## Klasörler
 
