@@ -7,11 +7,13 @@ name: Firestore kurallarını yayınla
 on:
   workflow_dispatch:
   push:
-    branches: [main]
+    # Geçici: iş akışı main'e girene kadar bu dalda da çalışır (elle başlatma yalnız main'deki iş akışlarında olur).
+    branches: [main, claude/charming-davinci-6c5fkr]
     paths:
       - firestore.rules
       - firestore.indexes.json
       - firebase.json
+      - .github/workflows/firestore-rules.yml
 
 jobs:
   deploy:
@@ -27,6 +29,28 @@ jobs:
         with:
           distribution: temurin
           java-version: '21'
+
+      - name: Hizmet hesabını kontrol et
+        env:
+          SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: |
+          if [ -z "$SERVICE_ACCOUNT" ]; then
+            echo "::error::FIREBASE_SERVICE_ACCOUNT sırrı tanımlı değil ya da bu iş akışına verilmiyor."
+            exit 1
+          fi
+          # Anahtarın kendisi yazdırılmaz; yalnız türü, proje ve hesap e-postası.
+          printf '%s' "$SERVICE_ACCOUNT" | python3 -c "
+          import json, sys
+          try:
+              d = json.load(sys.stdin)
+          except Exception:
+              print('::error::Sır geçerli bir JSON değil (hizmet hesabı anahtar dosyasının tamamı olmalı).'); sys.exit(1)
+          print('tür:', d.get('type')); print('proje:', d.get('project_id')); print('hesap:', d.get('client_email'))
+          if d.get('type') != 'service_account' or 'private_key' not in d:
+              print('::error::Sır bir hizmet hesabı anahtarı değil.'); sys.exit(1)
+          if d.get('project_id') != 'ezansaati-premium-2026':
+              print('::error::Anahtar başka bir Firebase projesine ait.'); sys.exit(1)
+          "
 
       - name: Kuralları emülatörde test et
         working-directory: test_rules
