@@ -606,7 +606,7 @@ button:focus-visible,select:focus-visible{outline:2px solid #d4af37;outline-offs
   function rail(){var L=lists();var M=[
     ["mine",IC.link,"Zincirlerim",L.mine.length+" zincir"],["joined",IC.users,"Katıldıklarım",L.joined.length+" zincir"],["new",IC.plus,"Yeni Zincir","Oluştur"],["sug",IC.book,"Önerilenler","Hazır görevler"],
     ["act",IC.clock,"Devam Eden",L.act.length+" zincir"],["fin",IC.check,"Tamamlanan",L.fin.length+" zincir"],["inv",IC.mail,"Davetler",INV.length?INV.length+" bekliyor":"Yok"],["online",IC.users,"Online Dua","Canlı toplam"],["set",IC.gear,"Ayarlar","Bildirimler"]];
-    document.getElementById("rail").innerHTML=M.map(function(m,i){return'<button type="button" data-m="'+m[0]+'" class="'+(m[0]===menu?"on":"")+'"><span class="ri">'+m[1]+'</span><span class="no">'+(i+1)+'</span><span><b>'+m[2]+'</b><small>'+m[3]+'</small></span><span class="cv">›</span></button>'}).join("")}
+    document.getElementById("rail").innerHTML=M.map(function(m,i){return'<button type="button" data-m="'+m[0]+'" class="'+(m[0]===menu?"on":"")+'"><span class="ri">'+m[1]+'</span><span><b>'+m[2]+'</b><small>'+m[3]+'</small></span><span class="cv">›</span></button>'}).join("")}
   function chainPane(c){var t=T(c.type),d=done(c),p=pct(d,c.total),me=c.p.filter(function(x){return x.me})[0],A=acc(c).slice().sort(function(a,b){return pct(b.d,b.a)-pct(a.d,a.a)}),pend=c.p.filter(function(x){return x.pend}).length,own=c.owner===ME;
     var per=A.length?Math.round(c.total/c.p.length):0;
     return'<span class="co tl">'+CORNER+'</span><span class="co tr">'+CORNER+'</span>'+
