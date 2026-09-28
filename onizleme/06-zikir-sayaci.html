@@ -315,6 +315,24 @@ button:focus-visible,select:focus-visible{outline:2px solid #d4af37;outline-offs
 .addf input{height:36px;border-radius:9px;border:1px solid var(--line);background:var(--chip);color:var(--ink);font:500 14px "Noto Serif",serif;padding:0 9px;min-width:0}
 .addf select{height:36px;border-radius:9px;border:1px solid var(--line);background:var(--chip);color:var(--ink);font:600 13px "Noto Serif",serif}
 .addf button{appearance:none;height:36px;border-radius:9px;border:1px solid #8a6414;background:linear-gradient(180deg,#e6c35a,#c29a2c);color:#1d1406;font:700 13px "Noto Serif",serif;padding:0 12px;cursor:pointer}
+.zwrap{display:grid;grid-template-columns:108px minmax(0,1fr);gap:7px;align-items:start}
+.zr{min-width:0}
+.zl{display:grid!important;grid-template-columns:1fr!important;gap:4px!important;position:sticky;top:52px}
+.zl .zt{min-height:34px!important;padding:6px 7px!important;text-align:left!important;align-items:flex-start!important;border-radius:10px!important;border:1px solid rgba(212,175,55,.75)!important;background:linear-gradient(180deg,#062a1d 0%,#01170f 50%,#000c07 100%)!important;box-shadow:inset 0 1px 0 rgba(255,230,160,.12),0 2px 5px rgba(0,0,0,.5)!important;color:#f3ecd9!important}
+.zl .zt b{font-size:11.5px!important;line-height:1.2}
+.zl .zt small{display:none!important}
+.zl .zt.on{background:linear-gradient(180deg,#6e5114 0%,#4a3508 50%,#2a1c03 100%)!important;border:1.5px solid #f0c75e!important;box-shadow:0 0 12px rgba(240,199,94,.45)!important;color:#ffe08a!important}
+.zl .zt.add{border-style:dashed!important;color:#e9c96a!important;align-items:center!important;text-align:center!important}
+.zl .addf{grid-template-columns:1fr!important}
+.zr .cnt .top{padding:12px 46px 0!important}
+.zr .ib.rs{width:40px!important;height:46px!important;top:48px!important;right:6px!important;font-size:9.5px!important}
+.zr .ib.rs svg{width:17px!important;height:17px!important}
+.zr .cnt .ar{font-size:23px}
+.zr .cnt .num{font-size:60px}
+.zr .tools{grid-template-columns:34px minmax(0,1fr) 34px!important;gap:5px!important;padding:8px 8px 10px!important}
+.zr .ib{width:34px!important;height:32px!important}
+.zr .tg button{font-size:11px!important;height:28px!important;min-width:0!important}
+.tday{font-size:11.5px;color:var(--ink2);text-align:right;margin:6px 4px 0}
 </style>
 
 <style>/* EZAN-TASARIM-V2 */
@@ -348,6 +366,7 @@ button:focus-visible,select:focus-visible{outline:2px solid #d4af37;outline-offs
   </header>
 
   <main class="view" id="vHome">
+    <div class="zwrap"><nav class="zl" id="zl"></nav><div class="zr">
     <section class="cnt" id="cnt" role="button" tabindex="0" aria-label="Saymak için dokunun">
       <button type="button" class="ib rs" id="reset" aria-label="Sıfırla"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 12a8 8 0 1 1-2.3-5.7"/><path d="M20 4v5h-5"/></svg><span>Sıfırla</span></button>
       <div class="top">
@@ -373,8 +392,8 @@ button:focus-visible,select:focus-visible{outline:2px solid #d4af37;outline-offs
       </div>
     </section>
 
-    <div class="sec"><h2>Zikirler</h2><small id="today">Bugün 0</small></div>
-    <div class="zl" id="zl"></div>
+    <p class="tday" id="today">Bugün 0</p>
+    </div></div>
     <p class="src">Sayılar bu cihazda saklanır. Titreşim uygulamada çalışır; iPhone tarayıcısında hissedilmez.</p>
   </main>
 </div>
@@ -488,7 +507,7 @@ button:focus-visible,select:focus-visible{outline:2px solid #d4af37;outline-offs
     document.querySelectorAll("#tgt button").forEach(function(b){b.classList.toggle("on",+b.dataset.t===T);b.disabled=ts!==null});
     document.getElementById("vib").classList.toggle("on",!!S.vib);
     var tot=0;for(var k in S.dn)tot+=S.dn[k];
-    document.getElementById("today").textContent="Bugün toplam "+tot;
+    document.getElementById("today").textContent="Bugün toplam "+tot+" zikir";
     list()}
 
   function buzz(p){if(S.vib&&navigator.vibrate)try{navigator.vibrate(p)}catch(e){}}
