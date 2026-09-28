@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -8,6 +9,12 @@ import 'theme.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Arapça yazı tiplerinin (Amiri, Amiri Quran) lisansı
+  LicenseRegistry.addLicense(() async* {
+    final ofl = await rootBundle.loadString('assets/fonts/OFL.txt');
+    yield LicenseEntryWithLineBreaks(['Amiri', 'Amiri Quran'], ofl);
+  });
 
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,

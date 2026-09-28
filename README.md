@@ -25,7 +25,9 @@ flutter run
 | Cami Bulucu (harita uygulamasını açar) | ✅ |
 | Zikir Sayacı | ✅ (basit) |
 | Ayarlar | ✅ (temel) |
-| Sureler, Dualar, Namaz Öğren | 🟡 örnek içerik |
+| Sureler (114 sure, Arapça + meal, günün ayeti, favoriler, kaldığın yer) | ✅ |
+| Dualar (106 dua, günün duası, arama, favoriler) | ✅ |
+| Namaz Öğren (rekât rekât anlatım, duruş görselleri, abdest/gusül/teyemmüm) | ✅ |
 | Ezan sesi / bildirim | ⏳ sırada |
 | Hadisler, Dini Mesajlar, Dua Çemberi, Ramazan | ⏳ |
 
@@ -34,5 +36,8 @@ flutter run
 - `lib/screens/` – her sayfa ayrı dosya
 - `lib/services/` – vakit hesaplama, konum, pusula
 - `lib/data/cities.dart` – 81 ilin koordinatları
+- `lib/data/namaz_ogren.dart` – Namaz Öğren anlatımı
+- `assets/data/` – Kur'an metni ve meali, dualar, namaz duaları
+- `assets/fonts/` – Arapça yazı tipleri (Amiri, Amiri Quran; SIL OFL)
 - `assets/images/` – tuş ve arka plan görselleri
 - `android/app/src/main/kotlin/.../MainActivity.kt` – Android pusula sensörü

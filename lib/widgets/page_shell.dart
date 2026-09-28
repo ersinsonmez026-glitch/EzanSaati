@@ -17,6 +17,12 @@ class PageShell extends StatelessWidget {
   final EdgeInsets padding;
   final bool showSettings;
 
+  /// Sayfa zemini. Verilmezse koyu yeşil düz renk kullanılır.
+  final Decoration? background;
+
+  /// Sayfanın kaydırmasını dışarıdan izlemek/yönetmek için (ör. kaldığın ayete gitme).
+  final ScrollController? controller;
+
   const PageShell({
     super.key,
     required this.title,
@@ -24,6 +30,8 @@ class PageShell extends StatelessWidget {
     required this.children,
     this.padding = const EdgeInsets.fromLTRB(10, 10, 10, 24),
     this.showSettings = true,
+    this.background,
+    this.controller,
   });
 
   static const double fullHeight = 118; // açık başlık
@@ -32,30 +40,33 @@ class PageShell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final top = MediaQuery.paddingOf(context).top;
+    final scroll = CustomScrollView(
+      controller: controller,
+      slivers: [
+        SliverPersistentHeader(
+          pinned: true,
+          delegate: _HeaderDelegate(
+            title: title,
+            topInset: top,
+            showSettings: showSettings,
+          ),
+        ),
+        SliverPadding(
+          padding: padding,
+          sliver: SliverList(delegate: SliverChildListDelegate(children)),
+        ),
+      ],
+    );
     return Scaffold(
       backgroundColor: AppColors.darkGreen,
-      body: CustomScrollView(
-        slivers: [
-          SliverPersistentHeader(
-            pinned: true,
-            delegate: _HeaderDelegate(
-              title: title,
-              topInset: top,
-              showSettings: showSettings,
-            ),
-          ),
-          SliverPadding(
-            padding: padding,
-            sliver: SliverList(delegate: SliverChildListDelegate(children)),
-          ),
-        ],
-      ),
+      body: background == null ? scroll : DecoratedBox(decoration: background!, child: scroll),
     );
   }
 }
 
 /// Gündüz (imsak ile akşam arası) mı? Seçili konum yoksa 06:00-19:00 kabul edilir.
-bool _isDaytime() {
+/// Başlık manzarası ve krem/yeşil sayfa görünümü buna göre seçilir.
+bool isDaytime() {
   final now = DateTime.now();
   final loc = LocationStore.instance.current;
   if (loc == null) return now.hour >= 6 && now.hour < 19;
@@ -103,7 +114,7 @@ class _HeaderDelegate extends SliverPersistentHeaderDelegate {
               top: -shrinkOffset,
               height: maxExtent,
               child: Image.asset(
-                _isDaytime() ? 'assets/images/header_gunduz.jpg' : 'assets/images/header_gece.jpg',
+                isDaytime() ? 'assets/images/header_gunduz.jpg' : 'assets/images/header_gece.jpg',
                 fit: BoxFit.cover,
                 alignment: const Alignment(0.24, 0.16),
               ),

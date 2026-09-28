@@ -15,6 +15,7 @@ dependencies:
   geolocator: ^14.0.0          # GPS konumu
   shared_preferences: ^2.3.0   # Seçilen şehri hatırlama
   url_launcher: ^6.3.0         # Cami Bulucu için harita uygulamasını açma
+  share_plus: ^13.3.0          # Ayet ve duaları telefonun paylaş menüsüyle paylaşma
 
 dev_dependencies:
   flutter_test:
@@ -27,3 +28,15 @@ flutter:
   assets:
     - assets/images/
     - assets/images/tiles/
+    - assets/images/namaz/
+    - assets/data/
+    - assets/fonts/OFL.txt
+
+  # Arapça metinler için (SIL Open Font License, bkz. assets/fonts/OFL.txt)
+  fonts:
+    - family: AmiriQuran
+      fonts:
+        - asset: assets/fonts/AmiriQuran-Regular.ttf
+    - family: Amiri
+      fonts:
+        - asset: assets/fonts/Amiri-Regular.ttf

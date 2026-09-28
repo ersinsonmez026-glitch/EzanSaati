@@ -1,70 +1,12 @@
 import 'package:flutter/material.dart';
 
-import '../theme.dart';
-import '../widgets/cards.dart';
+import '../services/content_store.dart';
 import '../widgets/page_shell.dart';
+import '../widgets/reading_ui.dart';
+import 'prayer_read_screen.dart';
 
-/// Kur'an-ı Kerim'den bir dua.
-class _Dua {
-  final String title;
-  final String arabic;
-  final String reading; // okunuşu
-  final String meaning; // anlamı
-  final String source;
-
-  const _Dua(this.title, this.arabic, this.reading, this.meaning, this.source);
-}
-
-// Kur'an'daki dualar. Anlamlar Diyanet meali esas alınarak sadeleştirilmiştir.
-// Yayından önce metinlerin bir kez daha kontrol edilmesi önerilir.
-const List<_Dua> _duas = [
-  _Dua(
-    'Dünya ve Ahiret Duası',
-    'رَبَّنَا آتِنَا فِي الدُّنْيَا حَسَنَةً وَفِي الْآخِرَةِ حَسَنَةً وَقِنَا عَذَابَ النَّارِ',
-    "Rabbenâ âtinâ fi'd-dünyâ haseneten ve fi'l-âhireti haseneten ve kınâ azâbe'n-nâr.",
-    'Rabbimiz! Bize dünyada da iyilik ver, ahirette de iyilik ver ve bizi ateş azabından koru.',
-    'Bakara Suresi, 201. ayet',
-  ),
-  _Dua(
-    'İlim Duası',
-    'رَبِّ زِدْنِي عِلْمًا',
-    'Rabbi zidnî ilmâ.',
-    'Rabbim! İlmimi artır.',
-    'Tâhâ Suresi, 114. ayet',
-  ),
-  _Dua(
-    'Anne-Baba İçin Dua',
-    'رَبَّنَا اغْفِرْ لِي وَلِوَالِدَيَّ وَلِلْمُؤْمِنِينَ يَوْمَ يَقُومُ الْحِسَابُ',
-    "Rabbenağfir lî ve li-vâlideyye ve li'l-mü'minîne yevme yekûmü'l-hisâb.",
-    'Rabbimiz! Hesap gününde beni, anamı-babamı ve bütün müminleri bağışla.',
-    'İbrâhîm Suresi, 41. ayet',
-  ),
-  _Dua(
-    'Hidayette Sebat Duası',
-    'رَبَّنَا لَا تُزِغْ قُلُوبَنَا بَعْدَ إِذْ هَدَيْتَنَا وَهَبْ لَنَا مِنْ لَدُنْكَ رَحْمَةً إِنَّكَ أَنْتَ الْوَهَّابُ',
-    "Rabbenâ lâ tuziğ kulûbenâ ba'de iz hedeytenâ ve heb lenâ min ledünke rahmeh, inneke ente'l-vehhâb.",
-    'Rabbimiz! Bizi doğru yola ilettikten sonra kalplerimizi kaydırma. Bize katından rahmet bağışla. '
-        'Şüphesiz sen, lütfu en bol olansın.',
-    'Âl-i İmrân Suresi, 8. ayet',
-  ),
-  _Dua(
-    'Aile Duası',
-    'رَبَّنَا هَبْ لَنَا مِنْ أَزْوَاجِنَا وَذُرِّيَّاتِنَا قُرَّةَ أَعْيُنٍ وَاجْعَلْنَا لِلْمُتَّقِينَ إِمَامًا',
-    "Rabbenâ heb lenâ min ezvâcinâ ve zürriyyâtinâ kurrate a'yunin vec'alnâ li'l-müttakîne imâmâ.",
-    'Rabbimiz! Bize gözümüzü aydınlatacak eşler ve nesiller bağışla ve bizi takva sahiplerine önder kıl.',
-    'Furkân Suresi, 74. ayet',
-  ),
-  _Dua(
-    'Tövbe Duası',
-    'رَبَّنَا ظَلَمْنَا أَنْفُسَنَا وَإِنْ لَمْ تَغْفِرْ لَنَا وَتَرْحَمْنَا لَنَكُونَنَّ مِنَ الْخَاسِرِينَ',
-    "Rabbenâ zalemnâ enfüsenâ ve in lem tağfir lenâ ve terhamnâ lenekûnenne mine'l-hâsirîn.",
-    'Rabbimiz! Biz kendimize zulmettik. Eğer bizi bağışlamaz ve bize merhamet etmezsen '
-        'mutlaka ziyana uğrayanlardan oluruz.',
-    "A'râf Suresi, 23. ayet",
-  ),
-];
-
-/// Dualar sayfası (okuma sayfası: krem kâğıt).
+/// Dualar: günün duası, Namaz Duaları / Diğer Dualar sekmeleri, arama ve favoriler.
+/// Tasarım: onizleme/04-dualar.html · Veri: assets/data/dualar.json (106 dua)
 class PrayersScreen extends StatefulWidget {
   const PrayersScreen({super.key});
 
@@ -73,212 +15,294 @@ class PrayersScreen extends StatefulWidget {
 }
 
 class _PrayersScreenState extends State<PrayersScreen> {
-  late int _index;
+  final _pal = PagePalette.current();
+  List<Dua>? _duas;
+  ReadingPrefs? _prefs;
+  String _query = '';
+  String _group = 'namaz';
+  bool _onlyFav = false;
+
+  // Günün duası: "Diğer Dualar"daki kısa dualar arasından sırayla
+  List<int> _short = const [];
+  int _shortIdx = 0;
 
   @override
   void initState() {
     super.initState();
-    // Günün duası: her gün sıradaki dua
-    final now = DateTime.now();
-    final dayOfYear = now.difference(DateTime(now.year, 1, 1)).inDays;
-    _index = dayOfYear % _duas.length;
+    Future.wait([DuaData.all(), ReadingPrefs.get()]).then((r) {
+      if (!mounted) return;
+      final duas = r[0] as List<Dua>;
+      final short = [
+        for (var i = 0; i < duas.length; i++)
+          if (duas[i].group == 'diger' && duas[i].arabic.length < 140) i,
+      ];
+      setState(() {
+        _duas = duas;
+        _prefs = r[1] as ReadingPrefs;
+        _short = short;
+        _shortIdx = short.isEmpty ? 0 : dayOfYear(DateTime.now()) % short.length;
+      });
+    });
   }
 
-  void _step(int delta) {
-    setState(() => _index = (_index + delta) % _duas.length);
+  Set<String> get _favs => _prefs?.favorites(kDuaFavKey) ?? const {};
+
+  void _toggleFav(Dua d) {
+    final on = _prefs?.toggleFavorite(kDuaFavKey, d.title) ?? false;
+    setState(() {});
+    showNote(context, on ? 'Favorilere eklendi' : 'Favorilerden çıkarıldı');
+  }
+
+  Future<void> _open(int index) async {
+    await Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => PrayerReadScreen(duas: _duas!, index: index)),
+    );
+    if (mounted) setState(() {}); // favoriler değişmiş olabilir
   }
 
   @override
   Widget build(BuildContext context) {
-    final p = Parchment.of(context);
-    final dua = _duas[(_index + _duas.length) % _duas.length];
-    final isToday = _index ==
-        DateTime.now().difference(DateTime(DateTime.now().year, 1, 1)).inDays % _duas.length;
-
+    final duas = _duas;
     return PageShell(
       title: 'Dualar',
-      subtitle: 'Rabbimiz, dualarımızı kabul eyle...',
-      children: [
-        ParchmentCard(
-          child: Column(
-            children: [
-              Row(
-                children: [
-                  _arrow(Icons.chevron_left, () => _step(-1), p),
-                  Expanded(
-                    child: Column(
-                      children: [
-                        Text(
-                          isToday ? 'Günün Duası' : 'Kur\'an\'dan Dualar',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            color: p.ink,
-                            fontSize: 22,
-                            fontWeight: FontWeight.w700,
-                            fontFamily: 'serif',
-                          ),
-                        ),
-                        Text(
-                          dua.title,
-                          textAlign: TextAlign.center,
-                          style: TextStyle(color: p.inkSoft, fontSize: 14),
-                        ),
-                      ],
-                    ),
-                  ),
-                  _arrow(Icons.chevron_right, () => _step(1), p),
-                ],
+      background: _pal.background,
+      padding: const EdgeInsets.fromLTRB(12, 12, 12, 24),
+      children: duas == null
+          ? [
+              Padding(
+                padding: const EdgeInsets.only(top: 60),
+                child: Center(child: CircularProgressIndicator(color: _pal.gold)),
               ),
-              GoldDivider(color: p.line),
-              Directionality(
-                textDirection: TextDirection.rtl,
-                child: Text(
-                  dua.arabic,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: p.ink,
-                    fontSize: 26,
-                    height: 1.9,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                dua.reading,
-                textAlign: TextAlign.center,
-                style: TextStyle(color: p.inkSoft, fontSize: 15, fontStyle: FontStyle.italic, height: 1.45),
-              ),
-              GoldDivider(color: p.line),
-              Text(
-                '“${dua.meaning}”',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: p.ink,
-                  fontSize: 18,
-                  height: 1.45,
-                  fontWeight: FontWeight.w600,
-                  fontFamily: 'serif',
-                ),
-              ),
-              const SizedBox(height: 10),
-              Text(dua.source, style: TextStyle(color: p.inkSoft, fontSize: 13)),
-            ],
-          ),
+            ]
+          : _content(duas),
+    );
+  }
+
+  List<Widget> _content(List<Dua> duas) {
+    const gap = SizedBox(height: 10);
+    final searching = _query.trim().isNotEmpty;
+    return [
+      SearchBox(
+        pal: _pal,
+        hint: 'Dua ara (ör. yemek, yolculuk, anne)',
+        onChanged: (v) => setState(() => _query = v),
+      ),
+      if (_short.isNotEmpty) ...[gap, _dailyCard(duas)],
+      gap,
+      _tabs(duas),
+      gap,
+      SectionHead(
+        pal: _pal,
+        title: searching ? 'Arama sonuçları' : kDuaGroupNames[_group]!,
+        trailing: _favChip(),
+      ),
+      const SizedBox(height: 6),
+      _list(duas),
+      gap,
+      SourceNote(
+        pal: _pal,
+        text: "Kur'an'dan alınan duaların Arapçası ayetin kendisidir (Tanzil Projesi), anlamı ayetin "
+            "mealidir (Ruvvâd Tercüme Merkezi, QuranEnc.com). Hadis kaynakları kitap adıyla verilmiştir. "
+            'Okunuşlar Türkçe telaffuza göredir; yayından önce bir din görevlisine kontrol ettirilmelidir.',
+      ),
+    ];
+  }
+
+  Widget _dailyCard(List<Dua> duas) {
+    final i = _short[_shortIdx];
+    final d = duas[i];
+    return DailyCard(
+      pal: _pal,
+      title: 'Günün Duası',
+      subtitle: d.title,
+      favorite: _favs.contains(d.title),
+      onFavorite: () => _toggleFav(d),
+      onPrev: () => setState(() => _shortIdx = (_shortIdx + _short.length - 1) % _short.length),
+      onNext: () => setState(() => _shortIdx = (_shortIdx + 1) % _short.length),
+      body: [
+        const OrnamentStar(),
+        Text(
+          d.arabic,
+          textDirection: TextDirection.rtl,
+          style: const TextStyle(fontFamily: kQuranFont, fontSize: 24, height: 2.1),
         ),
-        const SizedBox(height: 22),
-        const Text(
-          'Kur\'an\'dan Dualar',
-          style: TextStyle(
-            color: AppColors.goldLight,
-            fontSize: 20,
-            fontWeight: FontWeight.w700,
-            fontFamily: 'serif',
-          ),
-        ),
-        const SizedBox(height: 10),
-        for (var i = 0; i < _duas.length; i++)
-          Padding(
-            padding: const EdgeInsets.only(bottom: 8),
-            child: _DuaTile(
-              number: i + 1,
-              dua: _duas[i],
-              selected: i == _index,
-              onTap: () => setState(() => _index = i),
-            ),
-          ),
-        const SizedBox(height: 8),
-        const Text(
-          'Günlük, namaz, yolculuk ve diğer dua kategorileri bir sonraki güncellemede eklenecek.',
-          textAlign: TextAlign.center,
-          style: TextStyle(color: Colors.white38, fontSize: 12, fontStyle: FontStyle.italic),
-        ),
+        Text(d.reading, style: const TextStyle(fontSize: 13.5, height: 1.55, color: RC.verseInk2)),
+        const SizedBox(height: 4),
+        const OrnamentStar(),
+        const SizedBox(height: 4),
+        Text('“${d.meaning}”', style: const TextStyle(fontSize: 15, height: 1.55, fontStyle: FontStyle.italic)),
+        const SizedBox(height: 6),
+        Text('(${d.source})', style: const TextStyle(fontSize: 12, color: RC.verseInk2)),
+      ],
+      actions: [
+        ActionItem(Icons.volume_up, 'Dinle', () => showNote(context, 'Sesli okuma sonraki güncellemede eklenecek')),
+        ActionItem(Icons.copy_outlined, 'Kopyala', () => copyToClipboard(context, d.shareText)),
+        ActionItem(Icons.ios_share, 'Paylaş', () => shareText(context, d.shareText)),
+        ActionItem(Icons.menu_book_outlined, 'Aç', () => _open(i)),
       ],
     );
   }
 
-  Widget _arrow(IconData icon, VoidCallback onTap, Parchment p) {
-    return Material(
-      color: Colors.transparent,
-      shape: CircleBorder(side: BorderSide(color: p.line)),
-      child: InkWell(
-        customBorder: const CircleBorder(),
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.all(4),
-          child: Icon(icon, color: p.inkSoft),
+  Widget _tabs(List<Dua> duas) {
+    final counts = {
+      'namaz': '${duas.where((d) => d.group == 'namaz').length} dua ve sure',
+      'diger': '${duas.where((d) => d.group == 'diger').length} dua',
+    };
+    return Container(
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: _pal.paper2,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: _pal.line),
+      ),
+      child: Row(
+        children: [
+          for (final g in const ['namaz', 'diger']) ...[
+            if (g == 'diger') const SizedBox(width: 6),
+            Expanded(
+              child: PillButton(
+                pal: _pal,
+                selected: _group == g,
+                height: 44,
+                radius: 12,
+                border: false,
+                background: Colors.transparent,
+                onTap: () => setState(() => _group = g),
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(kDuaGroupNames[g]!,
+                          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, height: 1.1)),
+                      Text(
+                        counts[g]!,
+                        style: TextStyle(
+                          fontSize: 10.5,
+                          fontWeight: FontWeight.w500,
+                          color: _group == g ? RC.bronzeText : _pal.ink2,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _favChip() {
+    return Semantics(
+      button: true,
+      toggled: _onlyFav,
+      child: GestureDetector(
+        onTap: () => setState(() => _onlyFav = !_onlyFav),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+          decoration: BoxDecoration(
+            color: _onlyFav ? const Color(0xFFC0392B) : _pal.chip,
+            borderRadius: BorderRadius.circular(999),
+            border: Border.all(color: _onlyFav ? const Color(0xFFC0392B) : _pal.line),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(_onlyFav ? Icons.favorite : Icons.favorite_border,
+                  size: 14, color: _onlyFav ? Colors.white : _pal.ink),
+              const SizedBox(width: 4),
+              Text('Favoriler',
+                  style: TextStyle(
+                      color: _onlyFav ? Colors.white : _pal.ink, fontSize: 12, fontWeight: FontWeight.w600)),
+            ],
+          ),
         ),
       ),
     );
   }
-}
 
-class _DuaTile extends StatelessWidget {
-  final int number;
-  final _Dua dua;
-  final bool selected;
-  final VoidCallback onTap;
+  Widget _list(List<Dua> duas) {
+    final q = trSearchKey(_query.trim());
+    final favs = _favs;
+    final children = <Widget>[];
+    var n = 0;
+    var lastSection = '';
+    for (var i = 0; i < duas.length; i++) {
+      final d = duas[i];
+      if (q.isNotEmpty) {
+        if (!trSearchKey('${d.title} ${d.meaning} ${d.reading}').contains(q)) continue;
+      } else {
+        if (d.group != _group) continue;
+        if (_onlyFav && !favs.contains(d.title)) continue;
+      }
+      n++;
+      if (q.isEmpty && _group == 'namaz' && d.section.isNotEmpty && d.section != lastSection) {
+        lastSection = d.section;
+        children.add(_sectionHeader(d.section, first: children.isEmpty));
+      } else if (children.isNotEmpty) {
+        children.add(Container(height: 1, color: _pal.line));
+      }
+      children.add(_row(i, n, d, favs.contains(d.title), showGroup: q.isNotEmpty));
+    }
+    return PaperBox(
+      pal: _pal,
+      child: children.isEmpty
+          ? Padding(
+              padding: const EdgeInsets.all(22),
+              child: Text(
+                _onlyFav && q.isEmpty
+                    ? 'Bu bölümde favori dua yok. Kalp simgesine dokunarak ekleyebilirsiniz.'
+                    : 'Aradığınız dua bulunamadı.',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: _pal.ink2, fontSize: 13.5),
+              ),
+            )
+          : Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: children),
+    );
+  }
 
-  const _DuaTile({
-    required this.number,
-    required this.dua,
-    required this.selected,
-    required this.onTap,
-  });
+  Widget _sectionHeader(String text, {required bool first}) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(12, 8, 12, 6),
+      decoration: BoxDecoration(
+        color: _pal.paper2,
+        border: first ? null : Border(top: BorderSide(color: _pal.line)),
+      ),
+      child: Text(
+        trUpper(text),
+        style: TextStyle(color: _pal.gold, fontSize: 12, fontWeight: FontWeight.w700, letterSpacing: 0.6),
+      ),
+    );
+  }
 
-  @override
-  Widget build(BuildContext context) {
-    final p = Parchment.of(context);
-    return Material(
-      color: selected ? AppColors.gold : p.paperLight,
-      borderRadius: BorderRadius.circular(14),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(14),
-        onTap: () {
-          onTap();
-          // Seçilen duayı görmek için en üste kaydır
-          Scrollable.maybeOf(context)?.position.animateTo(
-                0,
-                duration: const Duration(milliseconds: 500),
-                curve: Curves.easeInOut,
-              );
-        },
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-          child: Row(
-            children: [
-              Container(
-                width: 34,
-                height: 34,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: selected ? Colors.black : AppColors.gold.withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Text(
-                  '$number',
-                  style: TextStyle(
-                    color: selected ? AppColors.gold : const Color(0xFF8A6414),
-                    fontWeight: FontWeight.w800,
+  Widget _row(int index, int n, Dua d, bool fav, {required bool showGroup}) {
+    return InkWell(
+      onTap: () => _open(index),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(12, 8, 10, 8),
+        child: Row(
+          children: [
+            OctaBadge(number: n, color: _pal.gold, textColor: _pal.ink),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(d.title, style: TextStyle(color: _pal.ink, fontSize: 15, fontWeight: FontWeight.w700)),
+                  Text(
+                    showGroup ? '${kDuaGroupNames[d.group]} · ${d.reading}' : d.reading,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(color: _pal.ink2, fontSize: 11.5),
                   ),
-                ),
+                ],
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      dua.title,
-                      style: TextStyle(color: p.ink, fontWeight: FontWeight.w700, fontSize: 15),
-                    ),
-                    Text(dua.source, style: TextStyle(color: p.inkSoft, fontSize: 12.5)),
-                  ],
-                ),
-              ),
-              Icon(Icons.chevron_right, color: selected ? Colors.black : const Color(0xFF8A6414)),
-            ],
-          ),
+            ),
+            const SizedBox(width: 10),
+            HeartButton(pal: _pal, on: fav, label: d.title, onTap: () => _toggleFav(d)),
+          ],
         ),
       ),
     );
