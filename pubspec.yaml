@@ -22,6 +22,7 @@ dependencies:
   cloud_firestore: ^6.10.0
   crypto: ^3.0.6               # Telefon numarasını sunucuya açık yazmadan eşleştirmek için özet
   just_audio: ^0.10.6          # İlahiler: uygulama içindeki ses kayıtlarını çalma
+  hijri: ^3.0.1                # Hicrî takvim (Ümmü'l-Kurâ); Diyanet 2026-27 dinî günleriyle aynı
 
 dev_dependencies:
   flutter_test:
@@ -37,6 +38,8 @@ flutter:
     - assets/images/tiles/
     - assets/images/namaz/
     - assets/images/mesaj/
+    - assets/images/zikir/
+    - assets/images/kible/
     - assets/data/
     - assets/audio/ilahiler/
     - assets/fonts/OFL.txt

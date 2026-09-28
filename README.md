@@ -19,11 +19,11 @@ flutter run
 | Bölüm | Durum |
 |---|---|
 | Ana ekran, 12 tuş, canlı geri sayım | ✅ |
-| Namaz Vakitleri (Diyanet yöntemi, internetsiz, 30 günlük liste) | ✅ |
+| Namaz Vakitleri (Diyanet yöntemi, internetsiz; şimdiki vakit ve kalan süre, gün gün vakitler, 30 günlük İmsakiye, Hicrî ve Miladi takvim) | ✅ |
 | Şehir seçimi (81 il) + GPS ile konum | ✅ |
-| Kıble Bulucu (telefon pusulası, Android) | ✅ |
+| Kıble (telefon pusulası, dönen kadran ve Kâbe ibresi, yön uyarısı; Android) | ✅ |
 | Cami Bulucu (harita uygulamasını açar) | ✅ |
-| Zikir Sayacı | ✅ (basit) |
+| Zikir Sayacı (6 zikir + kendi zikrin, tesbih taneleri, hedef 33/99/100/∞, geri al, titreşim, namaz sonrası tesbihat; cihazda saklanır) | ✅ |
 | Ayarlar | ✅ (temel) |
 | Sureler (114 sure, Arapça + meal, günün ayeti, favoriler, kaldığın yer) | ✅ |
 | Sesli sûre okuma (114 sûre, Mişari Râşid el-Afâsî; ayet ayet çalma, okunan ayet vurgulanır, sûre bitince sonrakine geçer; internetten akış, uygulamaya gömülü değil) | ✅ |

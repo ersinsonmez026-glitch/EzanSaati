@@ -1,0 +1,290 @@
+{
+ "_kaynak": "onizleme/02-namaz-vakitleri.html (onaylı). Dinî günler: Diyanet İşleri Başkanlığı 2026-2027 dinî günler takvimi. Resmî tatiller: 2429 sayılı Ulusal Bayram ve Genel Tatiller Hakkında Kanun.",
+ "dini": [
+  {
+   "tarih": "2026-12-10",
+   "ad": "Üç Ayların Başlangıcı",
+   "hicri": "1 Recep 1448",
+   "simge": "moon"
+  },
+  {
+   "tarih": "2026-12-10",
+   "ad": "Regaib Kandili",
+   "hicri": "1 Recep 1448",
+   "simge": "lamp"
+  },
+  {
+   "tarih": "2027-01-04",
+   "ad": "Miraç Kandili",
+   "hicri": "26 Recep 1448",
+   "simge": "lamp"
+  },
+  {
+   "tarih": "2027-01-22",
+   "ad": "Berat Kandili",
+   "hicri": "14 Şaban 1448",
+   "simge": "lamp"
+  },
+  {
+   "tarih": "2027-02-08",
+   "ad": "Ramazan Başlangıcı",
+   "hicri": "1 Ramazan 1448",
+   "simge": "moon"
+  },
+  {
+   "tarih": "2027-03-05",
+   "ad": "Kadir Gecesi",
+   "hicri": "26 Ramazan 1448",
+   "simge": "star"
+  },
+  {
+   "tarih": "2027-03-08",
+   "ad": "Ramazan Bayramı Arefesi",
+   "hicri": "29 Ramazan 1448",
+   "simge": "mosque"
+  },
+  {
+   "tarih": "2027-03-09",
+   "ad": "Ramazan Bayramı (3 gün)",
+   "hicri": "1 Şevval 1448",
+   "simge": "mosque"
+  },
+  {
+   "tarih": "2027-05-15",
+   "ad": "Kurban Bayramı Arefesi",
+   "hicri": "9 Zilhicce 1448",
+   "simge": "mosque"
+  },
+  {
+   "tarih": "2027-05-16",
+   "ad": "Kurban Bayramı (4 gün)",
+   "hicri": "10 Zilhicce 1448",
+   "simge": "mosque"
+  },
+  {
+   "tarih": "2027-06-06",
+   "ad": "Hicrî Yılbaşı",
+   "hicri": "1 Muharrem 1449",
+   "simge": "moon"
+  },
+  {
+   "tarih": "2027-06-15",
+   "ad": "Aşure Günü",
+   "hicri": "10 Muharrem 1449",
+   "simge": "star"
+  },
+  {
+   "tarih": "2027-08-13",
+   "ad": "Mevlid Kandili",
+   "hicri": "11 Rebiülevvel 1449",
+   "simge": "lamp"
+  }
+ ],
+ "miladi": [
+  {
+   "tarih": "2026-01-01",
+   "ad": "Yılbaşı",
+   "tur": "r"
+  },
+  {
+   "tarih": "2026-03-19",
+   "ad": "Ramazan Bayramı Arifesi (yarım gün)",
+   "tur": "h"
+  },
+  {
+   "tarih": "2026-03-20",
+   "ad": "Ramazan Bayramı 1. gün",
+   "tur": "r"
+  },
+  {
+   "tarih": "2026-03-21",
+   "ad": "Ramazan Bayramı 2. gün",
+   "tur": "r"
+  },
+  {
+   "tarih": "2026-03-22",
+   "ad": "Ramazan Bayramı 3. gün",
+   "tur": "r"
+  },
+  {
+   "tarih": "2026-04-23",
+   "ad": "Ulusal Egemenlik ve Çocuk Bayramı",
+   "tur": "r"
+  },
+  {
+   "tarih": "2026-05-01",
+   "ad": "Emek ve Dayanışma Günü",
+   "tur": "r"
+  },
+  {
+   "tarih": "2026-05-19",
+   "ad": "Atatürk'ü Anma, Gençlik ve Spor Bayramı",
+   "tur": "r"
+  },
+  {
+   "tarih": "2026-05-26",
+   "ad": "Kurban Bayramı Arifesi (yarım gün)",
+   "tur": "h"
+  },
+  {
+   "tarih": "2026-05-27",
+   "ad": "Kurban Bayramı 1. gün",
+   "tur": "r"
+  },
+  {
+   "tarih": "2026-05-28",
+   "ad": "Kurban Bayramı 2. gün",
+   "tur": "r"
+  },
+  {
+   "tarih": "2026-05-29",
+   "ad": "Kurban Bayramı 3. gün",
+   "tur": "r"
+  },
+  {
+   "tarih": "2026-05-30",
+   "ad": "Kurban Bayramı 4. gün",
+   "tur": "r"
+  },
+  {
+   "tarih": "2026-07-15",
+   "ad": "Demokrasi ve Millî Birlik Günü",
+   "tur": "r"
+  },
+  {
+   "tarih": "2026-08-30",
+   "ad": "Zafer Bayramı",
+   "tur": "r"
+  },
+  {
+   "tarih": "2026-10-28",
+   "ad": "Cumhuriyet Bayramı Arifesi (yarım gün)",
+   "tur": "h"
+  },
+  {
+   "tarih": "2026-10-29",
+   "ad": "Cumhuriyet Bayramı",
+   "tur": "r"
+  },
+  {
+   "tarih": "2026-12-10",
+   "ad": "Üç Ayların Başlangıcı · Regaib Kandili",
+   "tur": "d"
+  },
+  {
+   "tarih": "2027-01-01",
+   "ad": "Yılbaşı",
+   "tur": "r"
+  },
+  {
+   "tarih": "2027-01-04",
+   "ad": "Miraç Kandili",
+   "tur": "d"
+  },
+  {
+   "tarih": "2027-01-22",
+   "ad": "Berat Kandili",
+   "tur": "d"
+  },
+  {
+   "tarih": "2027-02-08",
+   "ad": "Ramazan Başlangıcı",
+   "tur": "d"
+  },
+  {
+   "tarih": "2027-03-05",
+   "ad": "Kadir Gecesi",
+   "tur": "d"
+  },
+  {
+   "tarih": "2027-03-08",
+   "ad": "Ramazan Bayramı Arifesi (yarım gün)",
+   "tur": "h"
+  },
+  {
+   "tarih": "2027-03-09",
+   "ad": "Ramazan Bayramı 1. gün",
+   "tur": "r"
+  },
+  {
+   "tarih": "2027-03-10",
+   "ad": "Ramazan Bayramı 2. gün",
+   "tur": "r"
+  },
+  {
+   "tarih": "2027-03-11",
+   "ad": "Ramazan Bayramı 3. gün",
+   "tur": "r"
+  },
+  {
+   "tarih": "2027-04-23",
+   "ad": "Ulusal Egemenlik ve Çocuk Bayramı",
+   "tur": "r"
+  },
+  {
+   "tarih": "2027-05-01",
+   "ad": "Emek ve Dayanışma Günü",
+   "tur": "r"
+  },
+  {
+   "tarih": "2027-05-15",
+   "ad": "Kurban Bayramı Arifesi (yarım gün)",
+   "tur": "h"
+  },
+  {
+   "tarih": "2027-05-16",
+   "ad": "Kurban Bayramı 1. gün",
+   "tur": "r"
+  },
+  {
+   "tarih": "2027-05-17",
+   "ad": "Kurban Bayramı 2. gün",
+   "tur": "r"
+  },
+  {
+   "tarih": "2027-05-18",
+   "ad": "Kurban Bayramı 3. gün",
+   "tur": "r"
+  },
+  {
+   "tarih": "2027-05-19",
+   "ad": "Kurban Bayramı 4. gün · Gençlik ve Spor Bayramı",
+   "tur": "r"
+  },
+  {
+   "tarih": "2027-06-06",
+   "ad": "Hicrî Yılbaşı",
+   "tur": "d"
+  },
+  {
+   "tarih": "2027-06-15",
+   "ad": "Aşure Günü",
+   "tur": "d"
+  },
+  {
+   "tarih": "2027-07-15",
+   "ad": "Demokrasi ve Millî Birlik Günü",
+   "tur": "r"
+  },
+  {
+   "tarih": "2027-08-13",
+   "ad": "Mevlid Kandili",
+   "tur": "d"
+  },
+  {
+   "tarih": "2027-08-30",
+   "ad": "Zafer Bayramı",
+   "tur": "r"
+  },
+  {
+   "tarih": "2027-10-28",
+   "ad": "Cumhuriyet Bayramı Arifesi (yarım gün)",
+   "tur": "h"
+  },
+  {
+   "tarih": "2027-10-29",
+   "ad": "Cumhuriyet Bayramı",
+   "tur": "r"
+  }
+ ]
+}
