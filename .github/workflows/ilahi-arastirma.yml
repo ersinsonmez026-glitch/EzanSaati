@@ -1,6 +1,6 @@
 name: İlahi kaynak araştırması (geçici)
 
-# Geçici: Wikimedia Commons'taki ses dosyalarının lisans bilgisini listeler.
+# Geçici: açık arşivlerdeki ilahi kayıtlarının lisans bilgisini listeler.
 # Hiçbir dosya indirmez, depoya yazmaz. İş bitince silinecek.
 on:
   push:
@@ -11,61 +11,43 @@ jobs:
   search:
     runs-on: ubuntu-latest
     steps:
-      - name: Commons ses dosyaları ve lisansları
+      - name: Internet Archive, Freesound, Library of Congress
         shell: python
         run: |
-          import json, re, urllib.parse, urllib.request, urllib.error
-          API = 'https://commons.wikimedia.org/w/api.php'
-          UA = {'User-Agent': 'EzanSaatiLicenseCheck/1.1 (https://github.com/ersinsonmez026-glitch/EzanSaati; one-off license audit)'}
-          import time
-          def get(params):
-              params = {**params, 'format': 'json', 'maxlag': 5}
-              for attempt in range(8):
-                  time.sleep(2)
-                  try:
-                      req = urllib.request.Request(API + '?' + urllib.parse.urlencode(params), headers=UA)
-                      return json.load(urllib.request.urlopen(req, timeout=60))
-                  except urllib.error.HTTPError as e:
-                      if e.code != 429: raise
-                      time.sleep(15 * (attempt + 1))
-              raise RuntimeError('429 devam ediyor')
-          titles = set()
-          queries = ['ilahi', 'ilahisi', 'ilâhi', 'Yunus Emre', 'Sufi hymn', 'Turkish hymn', 'Turkish Sufi',
-                     'Mevlevi', 'ayin', 'Itri', 'Tekbir', 'salavat', 'salat', 'naat', 'naat-ı şerif', 'Mevlid',
-                     'mevlit', 'nasheed', 'nasyid', 'zikir', 'dhikr', 'tasavvuf', 'Hüdayi', 'Esma-ül Hüsna',
-                     'Asma ul Husna', 'qasida burda', 'Tala al Badru', 'Talaal Badru', 'Islamic chant',
-                     'Islamic song', 'Muslim hymn', 'Muhammad song', 'Ramazan', 'Ramadan song', 'Ney taksim',
-                     'ney', 'Kaside', 'durak', 'Bektashi nefes', 'nefes', 'Alevi deyiş']
-          for q in queries:
+          import json, re, time, urllib.parse, urllib.request
+          UA = {'User-Agent': 'EzanSaatiLicenseCheck/1.2 (https://github.com/ersinsonmez026-glitch/EzanSaati; one-off license audit)'}
+          def fetch(url):
+              time.sleep(2)
               try:
-                  r = get({'action': 'query', 'list': 'search', 'srnamespace': 6, 'srlimit': 50,
-                           'srsearch': f'{q} filetype:audio'})
-                  for x in r['query']['search']: titles.add(x['title'])
-              except Exception as e: print('ARAMA HATASI', q, e)
-          cats = ['Category:Ilahi', 'Category:Ilahis', 'Category:Sufi music', 'Category:Islamic music',
-                  'Category:Audio files of Islamic music', 'Category:Nasheeds', 'Category:Nasheed',
-                  'Category:Mevlevi music', 'Category:Ottoman music', 'Category:Turkish classical music',
-                  'Category:Audio files of music of Turkey', 'Category:Religious music of Turkey',
-                  'Category:Tala al Badru Alayna', 'Category:Ney', 'Category:Audio files of Sufi music',
-                  'Category:Sound recordings of Islamic music']
-          for c in cats:
-              try:
-                  r = get({'action': 'query', 'list': 'categorymembers', 'cmtitle': c, 'cmtype': 'file', 'cmlimit': 200})
-                  n = r.get('query', {}).get('categorymembers', [])
-                  print(f'KATEGORİ {c}: {len(n)}')
-                  for x in n: titles.add(x['title'])
-              except Exception as e: print('KATEGORİ HATASI', c, e)
-          titles = sorted(t for t in titles if re.search(r'\.(ogg|oga|opus|mp3|flac|wav|webm)$', t, re.I))
-          print('TOPLAM SES DOSYASI:', len(titles))
-          strip = lambda s: re.sub(r'\s+', ' ', re.sub(r'<[^>]+>', '', s or '')).strip()
-          for i in range(0, len(titles), 25):
-              r = get({'action': 'query', 'prop': 'imageinfo', 'titles': '|'.join(titles[i:i+25]),
-                       'iiprop': 'url|size|mime|extmetadata|user', 'iiextmetadatalanguage': 'en'})
-              for p in r['query']['pages'].values():
-                  ii = (p.get('imageinfo') or [{}])[0]; m = ii.get('extmetadata', {})
-                  v = lambda k: strip(m.get(k, {}).get('value', ''))
-                  print(json.dumps({'t': p['title'], 'lic': v('LicenseShortName'), 'lurl': v('LicenseUrl'),
-                        'art': v('Artist')[:120], 'cred': v('Credit')[:160], 'desc': v('ImageDescription')[:260],
-                        'cats': v('Categories')[:200], 'up': ii.get('user'), 'mime': ii.get('mime'),
-                        'kb': round((ii.get('size') or 0)/1024), 'dur': round(float(ii.get('duration') or 0)),
-                        'url': ii.get('url')}, ensure_ascii=False))
+                  return urllib.request.urlopen(urllib.request.Request(url, headers=UA), timeout=60).read().decode('utf-8', 'replace')
+              except Exception as e:
+                  print('HATA', url[:90], e); return ''
+          print('=== INTERNET ARCHIVE ===')
+          q = '(ilahi OR ilahiler OR ilahisi OR "Yunus Emre" OR tasavvuf OR "tasavvuf musikisi" OR mevlevi) AND mediatype:(audio)'
+          url = 'https://archive.org/advancedsearch.php?' + urllib.parse.urlencode(
+              {'q': q, 'fl[]': ['identifier', 'title', 'licenseurl', 'creator', 'uploader', 'rights'], 'rows': 300, 'output': 'json'}, doseq=True)
+          r = fetch(url)
+          docs = json.loads(r)['response']['docs'] if r else []
+          print('IA toplam:', len(docs))
+          for d in docs:
+              lic = d.get('licenseurl', '')
+              print(json.dumps({'id': d.get('identifier'), 'title': str(d.get('title'))[:90], 'lic': lic,
+                                'creator': str(d.get('creator', ''))[:60], 'rights': str(d.get('rights', ''))[:80]}, ensure_ascii=False))
+          print('=== FREESOUND ===')
+          for term in ['ilahi', 'sufi', 'islamic hymn', 'nasheed', 'zikr', 'dhikr', 'mevlevi', 'ney']:
+              h = fetch('https://freesound.org/search/?' + urllib.parse.urlencode({'q': term}))
+              ids = list(dict.fromkeys(re.findall(r'/people/[^/]+/sounds/(\d+)/', h)))[:30]
+              print(f'FS "{term}":', len(ids))
+              for sid in ids:
+                  p = fetch(f'https://freesound.org/s/{sid}/')
+                  title = (re.search(r'<title>(.*?)</title>', p, re.S) or [None, ''])[1].strip()[:90]
+                  lic = (re.search(r'creativecommons\.org/[a-z/.0-9]+', p) or [''])[0]
+                  print(json.dumps({'fs': sid, 'title': title, 'lic': lic}, ensure_ascii=False))
+          print('=== LIBRARY OF CONGRESS ===')
+          for term in ['ilahi', 'sufi music turkey', 'turkish religious music']:
+              r = fetch('https://www.loc.gov/audio/?' + urllib.parse.urlencode({'q': term, 'fo': 'json', 'c': 50}))
+              res = json.loads(r).get('results', []) if r else []
+              print(f'LOC "{term}":', len(res))
+              for x in res:
+                  print(json.dumps({'loc': x.get('id'), 'title': str(x.get('title'))[:90],
+                                    'rights': str(x.get('rights') or x.get('rights_advisory') or '')[:120]}, ensure_ascii=False))
