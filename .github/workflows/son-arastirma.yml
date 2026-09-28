@@ -1,0 +1,60 @@
+name: Hadis ve cami kaynağı kontrolü (geçici)
+
+# Geçici: HadeethEnc resmî API'sinden 15 hadisi okuyup depodaki taslakla karşılaştırır, kullanım
+# şartlarını ve OpenStreetMap (Overpass) cami sorgusunu dener. Yalnızca log'a yazar. İş bitince silinecek.
+on:
+  push:
+    branches: [claude/charming-davinci-6c5fkr]
+    paths: [.github/workflows/son-arastirma.yml]
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - shell: python
+        run: |
+          import json, re, time, html, urllib.request, urllib.parse, glob
+          UA = {'User-Agent': 'EzanSaati/1.0 (https://github.com/ersinsonmez026-glitch/EzanSaati)'}
+          def get(u, data=None):
+              time.sleep(1)
+              r = urllib.request.Request(u, data=data, headers=UA)
+              return urllib.request.urlopen(r, timeout=60).read().decode('utf-8', 'replace')
+          print('##### HadeethEnc API')
+          same = 0
+          for f in sorted(glob.glob('onizleme/kaynak/hadis/*.json')):
+              loc = json.load(open(f)); hid = loc['id']
+              try:
+                  api = json.loads(get(f'https://hadeethenc.com/api/v1/hadeeths/one/?language=tr&id={hid}'))
+              except Exception as e:
+                  print(hid, 'HATA', e); continue
+              diffs = [k for k in ('title', 'hadeeth', 'attribution', 'grade', 'hadeeth_ar', 'explanation') if (api.get(k) or '').strip() != (loc.get(k) or '').strip()]
+              extra = sorted(set(api) - set(loc))
+              print(hid, 'AYNI' if not diffs else 'FARKLI: ' + ','.join(diffs), '| API alanları:', ','.join(sorted(api)))
+              if not diffs: same += 1
+          print('aynı olan:', same)
+          for u in ['https://hadeethenc.com/api/v1/languages', 'https://hadeethenc.com/tr/home', 'https://hadeethenc.com/api/v1/categories/roots/?language=tr']:
+              try:
+                  t = get(u); print('#####', u, len(t)); print(re.sub(r'\s+', ' ', html.unescape(re.sub(r'<[^>]+>', ' ', t)))[:1500])
+              except Exception as e: print('#####', u, 'HATA', e)
+          for u in ['https://hadeethenc.com/en/home/terms', 'https://hadeethenc.com/tr/home/terms', 'https://hadeethenc.com/en/home/about', 'https://hadeethenc.com/tr/home/about', 'https://api.hadeethenc.com/', 'https://hadeethenc.com/api']:
+              try:
+                  t = get(u); tx = re.sub(r'\s+', ' ', html.unescape(re.sub(r'<script.*?</script>|<style.*?</style>|<[^>]+>', ' ', t, flags=re.S)))
+                  hits = [m.group(0) for m in re.finditer(r'[^.]{0,200}(licen|copyright|terms|permi|commercial|use|kullan|izin|telif|حقوق|مجاني|نسخ)[^.]{0,200}\.', tx, re.I)]
+                  print('#####', u, len(tx)); [print(' -', h.strip()[:400]) for h in hits[:15]]
+              except Exception as e: print('#####', u, 'HATA', e)
+          print('\n##### Overpass (İstanbul Sultanahmet, 1500 m)')
+          q = '[out:json][timeout:25];(node["amenity"="place_of_worship"]["religion"="muslim"](around:1500,41.0055,28.9768);way["amenity"="place_of_worship"]["religion"="muslim"](around:1500,41.0055,28.9768););out center 40;'
+          for ep in ['https://overpass-api.de/api/interpreter', 'https://overpass.kumi.systems/api/interpreter']:
+              try:
+                  t0 = time.time(); d = json.loads(get(ep, urllib.parse.urlencode({'data': q}).encode()))
+                  els = d['elements']; print(ep, len(els), 'sonuç', round(time.time()-t0, 1), 'sn')
+                  for e in els[:12]:
+                      c = e.get('center', e); print('  ', e['type'], e.get('tags', {}).get('name'), c.get('lat'), c.get('lon'))
+              except Exception as e: print(ep, 'HATA', e)
+          for u in ['https://wiki.openstreetmap.org/wiki/Overpass_API', 'https://dev.overpass-api.de/overpass-doc/en/preface/commons.html']:
+              try:
+                  t = get(u); tx = re.sub(r'\s+', ' ', html.unescape(re.sub(r'<script.*?</script>|<style.*?</style>|<[^>]+>', ' ', t, flags=re.S)))
+                  hits = [m.group(0) for m in re.finditer(r'[^.]{0,200}(usage policy|10,000|10 000|requests per day|fair use|commercial|heavy)[^.]{0,200}\.', tx, re.I)]
+                  print('#####', u); [print(' -', h.strip()[:400]) for h in hits[:10]]
+              except Exception as e: print('#####', u, 'HATA', e)
