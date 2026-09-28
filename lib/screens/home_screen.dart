@@ -214,7 +214,7 @@ class _HomeScreenState extends State<HomeScreen> {
   // ÜST YARI - ANA GÖRSEL, LEVHALAR, KONUM/TARİH, AYET, GERİ SAYIM
   // ============================================================
   Widget _hero(DateTime now, AppLocation? loc, double k, List<Shadow> shadow) {
-    final medal = 100 * k;
+    final medal = 95 * k;
     return Stack(
       children: [
         // Arka plan: cami her ekran boyunda ortada dursun
@@ -251,7 +251,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(Icons.location_on, color: AppColors.goldLight, size: 19 * k, shadows: shadow),
+                            Icon(Icons.location_on, color: AppColors.goldLight, size: 15 * k, shadows: shadow),
                             const SizedBox(width: 2),
                             Flexible(
                               child: FittedBox(
@@ -261,7 +261,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   maxLines: 1,
                                   style: TextStyle(
                                     color: Colors.white,
-                                    fontSize: 19 * k,
+                                    fontSize: 15 * k,
                                     fontWeight: FontWeight.w700,
                                     shadows: shadow,
                                   ),
@@ -278,7 +278,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             maxLines: 1,
                             style: TextStyle(
                               color: Colors.white,
-                              fontSize: 13 * k,
+                              fontSize: 11 * k,
                               fontWeight: FontWeight.w600,
                               shadows: shadow,
                             ),
@@ -289,7 +289,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           '${two(now.hour)}:${two(now.minute)}:${two(now.second)}',
                           style: TextStyle(
                             color: AppColors.goldLight,
-                            fontSize: 18 * k,
+                            fontSize: 14 * k,
                             fontWeight: FontWeight.w800,
                             letterSpacing: 1,
                             fontFeatures: const [FontFeature.tabularFigures()],
@@ -323,7 +323,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       '“Şüphesiz\nnamaz, müminler\nüzerine vakitleri\nbelirlenmiş bir farzdır.”',
                       style: TextStyle(
                         color: Colors.white,
-                        fontSize: 12.5 * k,
+                        fontSize: 11.5 * k,
                         fontWeight: FontWeight.w600,
                         height: 1.3,
                         fontStyle: FontStyle.italic,
@@ -335,7 +335,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       'Nisâ, 103',
                       style: TextStyle(
                         color: AppColors.goldLight,
-                        fontSize: 10.5 * k,
+                        fontSize: 9.5 * k,
                         fontWeight: FontWeight.w600,
                         shadows: shadow,
                       ),
