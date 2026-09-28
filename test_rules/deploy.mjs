@@ -43,9 +43,19 @@ if (live.rulesetName !== ruleset.name) process.exit(1);
 // 2) Davet araması için members.phoneHash dizini (koleksiyon ve koleksiyon grubu)
 const field = `https://firestore.googleapis.com/v1/projects/${project}/databases/(default)/collectionGroups/members/fields/phoneHash`;
 const idx = (queryScope) => ({ queryScope, fields: [{ fieldPath: 'phoneHash', order: 'ASCENDING' }] });
-const op = await call('PATCH', `${field}?updateMask=indexConfig`, {
-  indexConfig: { indexes: [idx('COLLECTION'), idx('COLLECTION_GROUP')] },
-});
+let op;
+try {
+  op = await call('PATCH', `${field}?updateMask=indexConfig`, {
+    indexConfig: { indexes: [idx('COLLECTION'), idx('COLLECTION_GROUP')] },
+  });
+} catch (e) {
+  if (e.code !== 403) throw e;
+  // Firebase Admin SDK hesabının dizin yetkisi yok: kurallar yayında, dizin elle eklenmeli.
+  console.log('::warning::phoneHash dizini bu hizmet hesabıyla oluşturulamadı (403). Firebase konsolu > '
+    + 'Firestore > Indexes > Single field > Add exemption: koleksiyon "members", alan "phoneHash", '
+    + 'Collection group kapsamı, Ascending. (Ya da hesaba "Cloud Datastore Index Admin" rolü verilebilir.)');
+  process.exit(0);
+}
 console.log('phoneHash dizini isteği gönderildi:', op.name || 'tamam');
 for (let i = 0; i < 30; i++) {
   const f = await call('GET', field);
