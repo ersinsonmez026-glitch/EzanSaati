@@ -26,7 +26,7 @@ flutter run
 | Zikir Sayacı | ✅ (basit) |
 | Ayarlar | ✅ (temel) |
 | Sureler (114 sure, Arapça + meal, günün ayeti, favoriler, kaldığın yer) | ✅ |
-| Sesli sûre okuma (114 sûre, Mişari Râşid el-Afâsî; internetten akış, uygulamaya gömülü değil) | ✅ |
+| Sesli sûre okuma (114 sûre, Mişari Râşid el-Afâsî; ayet ayet çalma, okunan ayet vurgulanır, sûre bitince sonrakine geçer; internetten akış, uygulamaya gömülü değil) | ✅ |
 | Dualar (106 dua, günün duası, arama, favoriler) | ✅ |
 | Namaz Öğren (rekât rekât anlatım, duruş görselleri, abdest/gusül/teyemmüm) | ✅ |
 | Ezan sesi / bildirim | ⏳ sırada |
@@ -78,6 +78,13 @@ emülatörde: `cd test_rules && npm install && npm test` (Java gerekir).
 Sûreler internetten akışla çalınır; APK'ya ses dosyası eklenmez (`lib/services/quran_audio.dart`).
 
 - Kârî: Mişari Râşid el-Afâsî (murattal), 128 kbps; 114 sûrenin tamamı erişilebilir (doğrulandı).
+- Ayet ayet çalma: sûre, aynı kaynağın ayet dosyalarından (`audio/128/ar.alafasy/{1–6236}.mp3`)
+  bir çalma listesi olarak çalınır. Her ayet ayrı dosya olduğundan okunan ayet kesin bilinir;
+  sayfada altın çerçeveyle vurgulanır ve ekranda tutulur (elle kaydırınca takip 4 sn durur).
+  Son ayetten sonra sonraki sûrenin 1. ayetine geçilir, Nâs'ta durur. Fâtiha ve Tevbe dışındaki
+  sûrelerde başa besmele kaydı (1.mp3) eklenir; ayet dosyalarında besmele yoktur (ölçüldü).
+  API ayet zaman kodu vermez; sûre dosyaları bazı kısa sûrelerde ayet dosyalarından farklı bir
+  kayıt olduğundan zamanlama tahmini yapılmaz.
 - Kaynak: Islamic Network / Al Quran Cloud ses CDN'i — https://alquran.cloud/cdn
 - Kullanım şartları (https://alquran.cloud/terms-and-conditions, 14 Haziran 2026): kârîler
   kayıtları ücretsiz, ticari olmayan yeniden dağıtım için lisanslamıştır; "kişisel ve eğitim

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 
 import '../services/content_store.dart';
 import '../services/quran_audio.dart';
@@ -36,6 +37,13 @@ class _SurahReadScreenState extends State<SurahReadScreen> {
   double _fs = 1;
   Timer? _saveTimer;
   late bool _audio = widget.listen; // sesli okuma çubuğu açık mı
+  late int _audioStart = widget.startAyah; // sesli okumanın başlayacağı ayet
+  int? _playingAyah; // okunan ayet (0 = besmele)
+  int _audioToken = 0; // "bu ayetten dinle" her dokunuşta artar
+  DateTime _userScrollAt = DateTime(0); // son elle kaydırma
+
+  /// Elle kaydırıldıktan sonra okunan ayeti takip etmeye ara verilen süre.
+  static const followPause = Duration(seconds: 4);
 
   @override
   void initState() {
@@ -64,6 +72,8 @@ class _SurahReadScreenState extends State<SurahReadScreen> {
     setState(() {
       _surah = surah;
       _keys = List.generate(data.verses[surah - 1].length, (_) => GlobalKey());
+      _audioStart = ayah;
+      _playingAyah = null;
     });
     _prefs?.setLastRead(surah, ayah);
     if (ayah > 1) {
@@ -122,20 +132,85 @@ class _SurahReadScreenState extends State<SurahReadScreen> {
     return false;
   }
 
+  /// Okurken en üstte görünen ayet.
+  int _topAyah() {
+    var current = 1;
+    for (var i = 0; i < _keys.length; i++) {
+      final c = _keys[i].currentContext;
+      if (c == null) continue;
+      final top = (c.findRenderObject() as RenderBox).localToGlobal(Offset.zero).dy;
+      if (top > _visibleTop + 4) break;
+      current = i + 1;
+    }
+    return current;
+  }
+
   /// Okurken en üstte görünen ayeti "kaldığın yer" olarak kaydeder.
   void _onScroll() {
     _saveTimer?.cancel();
     _saveTimer = Timer(const Duration(milliseconds: 300), () {
       if (!mounted) return;
-      var current = 1;
-      for (var i = 0; i < _keys.length; i++) {
-        final c = _keys[i].currentContext;
-        if (c == null) continue;
-        final top = (c.findRenderObject() as RenderBox).localToGlobal(Offset.zero).dy;
-        if (top > _visibleTop + 4) break;
-        current = i + 1;
+      _prefs?.setLastRead(_surah, _topAyah());
+    });
+  }
+
+  /// Sesli okumada sıradaki ayete geçildi: vurgula ve ekranda tut.
+  void _onAyahPlaying(int ayah) {
+    if (!mounted) return;
+    setState(() => _playingAyah = ayah);
+    if (ayah < 1 || ayah > _keys.length) return;
+    if (DateTime.now().difference(_userScrollAt) < followPause) return;
+    _follow(ayah);
+  }
+
+  void _follow(int ayah) {
+    if (!mounted || !_scroll.hasClients || ayah > _keys.length) return;
+    final box = _keys[ayah - 1].currentContext?.findRenderObject() as RenderBox?;
+    if (box == null) {
+      _jumpToAyah(ayah); // uzun surelerde henüz çizilmemiş ayet
+      return;
+    }
+    final top = box.localToGlobal(Offset.zero).dy;
+    final bottom = top + box.size.height;
+    final visibleBottom = MediaQuery.sizeOf(context).height - (_audio ? SurahAudioBar.height : 0) - 8;
+    if (top >= _visibleTop && bottom <= visibleBottom) return; // zaten görünüyor
+    final pos = _scroll.position;
+    _scroll.animateTo(
+      (pos.pixels + top - _visibleTop).clamp(pos.minScrollExtent, pos.maxScrollExtent),
+      duration: const Duration(milliseconds: 450),
+      curve: Curves.easeInOut,
+    );
+  }
+
+  bool _onScrollNote(ScrollNotification n) {
+    // Yalnızca parmakla kaydırma takibi durdurur; otomatik kaydırma durdurmaz.
+    if ((n is ScrollStartNotification && n.dragDetails != null) ||
+        (n is ScrollUpdateNotification && n.dragDetails != null) ||
+        (n is UserScrollNotification && n.direction != ScrollDirection.idle)) {
+      _userScrollAt = DateTime.now();
+    }
+    return false;
+  }
+
+  /// Ayetin yanındaki dinle simgesi: sesli okumayı o ayetten başlatır.
+  void _listenFrom(int ayah) {
+    setState(() {
+      _audio = true;
+      _audioStart = ayah;
+      _audioToken++;
+      _userScrollAt = DateTime(0);
+    });
+  }
+
+  void _toggleAudio() {
+    setState(() {
+      if (_audio) {
+        _audio = false;
+        _playingAyah = null;
+      } else {
+        _audioStart = _topAyah(); // ekranda hangi ayet varsa oradan
+        _audio = true;
       }
-      _prefs?.setLastRead(_surah, current);
     });
   }
 
@@ -172,7 +247,7 @@ class _SurahReadScreenState extends State<SurahReadScreen> {
     if (!_audio || surah == null) return shell;
     return Stack(
       children: [
-        shell,
+        NotificationListener<ScrollNotification>(onNotification: _onScrollNote, child: shell),
         Positioned(
           left: 0,
           right: 0,
@@ -180,9 +255,17 @@ class _SurahReadScreenState extends State<SurahReadScreen> {
           child: SurahAudioBar(
             surah: surah.no,
             surahName: surah.name,
+            startAyah: _audioStart,
+            startToken: _audioToken,
             onPrevSurah: surah.no > 1 ? () => _openSurah(surah.no - 1, 1) : null,
             onNextSurah: surah.no < 114 ? () => _openSurah(surah.no + 1, 1) : null,
-            onClose: () => setState(() => _audio = false),
+            onAyahChanged: _onAyahPlaying,
+            // Son ayetten sonra sonraki sûrenin 1. ayetinden devam; Nâs'ta durur.
+            onSurahFinished: surah.no < 114 ? () => _openSurah(surah.no + 1, 1) : null,
+            onClose: () => setState(() {
+              _audio = false;
+              _playingAyah = null;
+            }),
           ),
         ),
       ],
@@ -207,7 +290,7 @@ class _SurahReadScreenState extends State<SurahReadScreen> {
             icon: Icons.headphones,
             active: _audio,
             semanticLabel: _audio ? 'Sesli okumayı kapat' : 'Sûreyi dinle',
-            onTap: () => setState(() => _audio = !_audio),
+            onTap: _toggleAudio,
           ),
           HeroTool(label: 'Arapça', active: _showArabic, onTap: () => _toggle(arabic: true)),
           HeroTool(label: 'Meal', active: _showMeal, onTap: _toggle),
@@ -225,8 +308,9 @@ class _SurahReadScreenState extends State<SurahReadScreen> {
       ),
       const SizedBox(height: 10),
       if (_showArabic && s.no != 1 && s.no != 9) ...[
-        Padding(
+        Container(
           padding: const EdgeInsets.symmetric(vertical: 4),
+          foregroundDecoration: _audio && _playingAyah == 0 ? _playingDecoration() : null,
           child: Text(
             _besmele,
             textAlign: TextAlign.center,
@@ -240,7 +324,7 @@ class _SurahReadScreenState extends State<SurahReadScreen> {
         Padding(
           key: _keys[i],
           padding: const EdgeInsets.only(bottom: 8),
-          child: _verse(s, i + 1, verses[i]),
+          child: _verse(s, i + 1, verses[i], playing: _audio && _playingAyah == i + 1),
         ),
       const SizedBox(height: 2),
       PrevNextRow(
@@ -258,7 +342,29 @@ class _SurahReadScreenState extends State<SurahReadScreen> {
     ];
   }
 
-  Widget _verse(Surah s, int no, Ayah a) {
+  /// Okunan ayetin altın çerçevesi (yerleşimi kaydırmaz).
+  BoxDecoration _playingDecoration() => BoxDecoration(
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: _pal.gold, width: 2.5),
+      );
+
+  Widget _verse(Surah s, int no, Ayah a, {bool playing = false}) {
+    final box = _verseBox(s, no, a);
+    if (!playing) return box;
+    return Semantics(
+      label: '$no. ayet okunuyor',
+      child: Container(
+        foregroundDecoration: _playingDecoration(),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(14),
+          boxShadow: [BoxShadow(color: _pal.gold.withValues(alpha: 0.45), blurRadius: 12)],
+        ),
+        child: box,
+      ),
+    );
+  }
+
+  Widget _verseBox(Surah s, int no, Ayah a) {
     return PaperBox(
       pal: _pal,
       radius: 14,
@@ -270,6 +376,19 @@ class _SurahReadScreenState extends State<SurahReadScreen> {
             children: [
               OctaBadge(number: no, size: 32, color: _pal.gold, textColor: _pal.ink),
               const Spacer(),
+              Semantics(
+                button: true,
+                label: '$no. ayetten dinle',
+                child: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () => _listenFrom(no),
+                  child: Padding(
+                    padding: const EdgeInsets.all(4),
+                    child: Icon(Icons.headphones_outlined, size: 18, color: _pal.ink2),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 6),
               Semantics(
                 button: true,
                 label: '$no. ayeti kopyala',
