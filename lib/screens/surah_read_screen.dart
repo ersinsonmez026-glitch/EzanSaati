@@ -3,16 +3,19 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../services/content_store.dart';
+import '../services/quran_audio.dart';
 import '../widgets/page_shell.dart';
 import '../widgets/reading_ui.dart';
+import '../widgets/surah_audio_bar.dart';
 
 /// Bir surenin okunduğu sayfa: Arapça metin, meal ve dipnotlar.
 /// Kaldığın ayet kaydedilir, yazı boyutu ayarlanabilir.
 class SurahReadScreen extends StatefulWidget {
   final int surah;
   final int startAyah;
+  final bool listen; // açılışta sesli okumayı başlat
 
-  const SurahReadScreen({super.key, required this.surah, this.startAyah = 1});
+  const SurahReadScreen({super.key, required this.surah, this.startAyah = 1, this.listen = false});
 
   @override
   State<SurahReadScreen> createState() => _SurahReadScreenState();
@@ -32,6 +35,7 @@ class _SurahReadScreenState extends State<SurahReadScreen> {
   bool _showMeal = true;
   double _fs = 1;
   Timer? _saveTimer;
+  late bool _audio = widget.listen; // sesli okuma çubuğu açık mı
 
   @override
   void initState() {
@@ -150,11 +154,12 @@ class _SurahReadScreenState extends State<SurahReadScreen> {
   Widget build(BuildContext context) {
     final data = _data;
     final surah = data?.surahs[_surah - 1];
-    return PageShell(
+    final shell = PageShell(
       title: surah?.name ?? 'Sureler',
       background: _pal.background,
       controller: _scroll,
-      padding: const EdgeInsets.fromLTRB(12, 12, 12, 24),
+      // Sesli okuma çubuğu açıkken son ayetler çubuğun altında kalmasın.
+      padding: EdgeInsets.fromLTRB(12, 12, 12, 24 + (_audio ? SurahAudioBar.height : 0)),
       children: data == null || surah == null || _keys.isEmpty
           ? [
               Padding(
@@ -163,6 +168,24 @@ class _SurahReadScreenState extends State<SurahReadScreen> {
               ),
             ]
           : _content(data, surah),
+    );
+    if (!_audio || surah == null) return shell;
+    return Stack(
+      children: [
+        shell,
+        Positioned(
+          left: 0,
+          right: 0,
+          bottom: 0,
+          child: SurahAudioBar(
+            surah: surah.no,
+            surahName: surah.name,
+            onPrevSurah: surah.no > 1 ? () => _openSurah(surah.no - 1, 1) : null,
+            onNextSurah: surah.no < 114 ? () => _openSurah(surah.no + 1, 1) : null,
+            onClose: () => setState(() => _audio = false),
+          ),
+        ),
+      ],
     );
   }
 
@@ -179,6 +202,13 @@ class _SurahReadScreenState extends State<SurahReadScreen> {
           ),
         ],
         tools: [
+          HeroTool(
+            label: 'Dinle',
+            icon: Icons.headphones,
+            active: _audio,
+            semanticLabel: _audio ? 'Sesli okumayı kapat' : 'Sûreyi dinle',
+            onTap: () => setState(() => _audio = !_audio),
+          ),
           HeroTool(label: 'Arapça', active: _showArabic, onTap: () => _toggle(arabic: true)),
           HeroTool(label: 'Meal', active: _showMeal, onTap: _toggle),
           HeroTool(
@@ -223,7 +253,7 @@ class _SurahReadScreenState extends State<SurahReadScreen> {
       SourceNote(
         pal: _pal,
         text: 'Arapça metin: Tanzil Projesi (CC BY 3.0) · Türkçe meal: Ruvvâd Tercüme Merkezi, '
-            'QuranEnc.com (sürüm 1.0.4)',
+            'QuranEnc.com (sürüm 1.0.4)${_audio ? '\n$kQuranAudioSource' : ''}',
       ),
     ];
   }

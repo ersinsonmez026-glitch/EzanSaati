@@ -26,6 +26,7 @@ flutter run
 | Zikir Sayacı | ✅ (basit) |
 | Ayarlar | ✅ (temel) |
 | Sureler (114 sure, Arapça + meal, günün ayeti, favoriler, kaldığın yer) | ✅ |
+| Sesli sûre okuma (114 sûre, Mişari Râşid el-Afâsî; internetten akış, uygulamaya gömülü değil) | ✅ |
 | Dualar (106 dua, günün duası, arama, favoriler) | ✅ |
 | Namaz Öğren (rekât rekât anlatım, duruş görselleri, abdest/gusül/teyemmüm) | ✅ |
 | Ezan sesi / bildirim | ⏳ sırada |
@@ -71,3 +72,16 @@ mesajında paylaşılır.
 
 Testler: `flutter test` (eşitleme akışı `test/circle_sync_test.dart`), güvenlik kuralları
 emülatörde: `cd test_rules && npm install && npm test` (Java gerekir).
+
+## Sesli sûre okuma — ses kaynağı
+
+Sûreler internetten akışla çalınır; APK'ya ses dosyası eklenmez (`lib/services/quran_audio.dart`).
+
+- Kârî: Mişari Râşid el-Afâsî (murattal), 128 kbps; 114 sûrenin tamamı erişilebilir (doğrulandı).
+- Kaynak: Islamic Network / Al Quran Cloud ses CDN'i — https://alquran.cloud/cdn
+- Kullanım şartları (https://alquran.cloud/terms-and-conditions, 14 Haziran 2026): kârîler
+  kayıtları ücretsiz, ticari olmayan yeniden dağıtım için lisanslamıştır; "kişisel ve eğitim
+  amaçlı akış, gömme ve indirme" serbesttir. Telif kârîye aittir; kârî kaldırılmasını isteyebilir.
+- Değerlendirilip kullanılmayanlar: Diyanet (kamuya açık kullanım şartı/izin bulunamadı),
+  Quran.com (yalnız kişisel kullanım; dağıtım için yazılı izin gerekir), mp3quran / EveryAyah /
+  QuranicAudio (açık kullanım şartı yok).

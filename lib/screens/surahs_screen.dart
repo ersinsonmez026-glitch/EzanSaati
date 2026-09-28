@@ -55,9 +55,9 @@ class _SurahsScreenState extends State<SurahsScreen> {
     if (message != null) showNote(context, on ? message : 'Favorilerden çıkarıldı');
   }
 
-  Future<void> _open(int surah, [int ayah = 1]) async {
+  Future<void> _open(int surah, [int ayah = 1, bool listen = false]) async {
     await Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => SurahReadScreen(surah: surah, startAyah: ayah)),
+      MaterialPageRoute(builder: (_) => SurahReadScreen(surah: surah, startAyah: ayah, listen: listen)),
     );
     if (mounted) setState(() {}); // kaldığın yer ve favoriler güncellensin
   }
@@ -211,8 +211,7 @@ class _SurahsScreenState extends State<SurahsScreen> {
         Text('(${surah.name} Sûresi, $a. ayet)', style: const TextStyle(fontSize: 12, color: RC.verseInk2)),
       ],
       actions: [
-        ActionItem(Icons.volume_up, 'Dinle',
-            () => showNote(context, 'Sesli okuma izinli kayıtlarla sonraki güncellemede eklenecek')),
+        ActionItem(Icons.volume_up, 'Dinle', () => _open(s, a, true)),
         ActionItem(Icons.copy_outlined, 'Kopyala',
             () => copyToClipboard(context, '${ayah.arabic}\n\n$meal\n(${surah.name}, $a)')),
         ActionItem(Icons.ios_share, 'Paylaş',
