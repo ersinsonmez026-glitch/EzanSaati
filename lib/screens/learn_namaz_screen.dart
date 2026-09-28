@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 
 import '../data/namaz_ogren.dart';
+import '../data/namaz_videolari.dart';
 import '../services/content_store.dart';
 import '../services/location_store.dart';
 import '../services/prayer_calc.dart';
 import '../widgets/page_shell.dart';
 import '../widgets/reading_ui.dart';
 import '../widgets/gold_icon.dart';
+import 'video_screen.dart';
 
 /// Namaz Öğren: solda sabit namaz/konu listesi, sağda rekât rekât anlatım.
 /// Tasarım: onizleme/05-namaz-ogren.html
@@ -96,9 +98,11 @@ class _LearnNamazScreenState extends State<LearnNamazScreen> {
           railWidth: _railWidth,
           gap: _gap,
           rail: _rail(),
-          content: _topic != null
-              ? _topicView(infoTopics.firstWhere((t) => t.key == _topic))
-              : _namazView(namazlar[_namaz ?? 0]),
+          content: _topic == _videoKey
+              ? _allVideosView()
+              : _topic != null
+                  ? _topicView(infoTopics.firstWhere((t) => t.key == _topic))
+                  : _namazView(namazlar[_namaz ?? 0]),
         ),
         const SizedBox(height: 10),
         SourceNote(pal: _pal, text: "Anlatımlar Hanefî mezhebine ve Türkiye'deki uygulamaya göredir."),
@@ -118,6 +122,8 @@ class _LearnNamazScreenState extends State<LearnNamazScreen> {
     'vitir': Icons.nightlight_outlined,
     'teravih': Icons.light_outlined,
   };
+
+  static const _videoKey = 'video';
 
   static const _topicIcons = {
     'abdest': Icons.water_drop_outlined,
@@ -144,6 +150,13 @@ class _LearnNamazScreenState extends State<LearnNamazScreen> {
           selected: _topic == t.key,
           onTap: () => _selectTopic(t.key),
         ),
+      Container(height: 1, margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 3), color: RC.gold(0.35)),
+      _RailButton(
+        icon: Icons.ondemand_video_outlined,
+        label: 'Videolar',
+        selected: _topic == _videoKey,
+        onTap: () => _selectTopic(_videoKey),
+      ),
     ];
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -161,7 +174,7 @@ class _LearnNamazScreenState extends State<LearnNamazScreen> {
   Widget _namazView(Namaz n) {
     final part = n.parts[_part.clamp(0, n.parts.length - 1)];
     final steps = namazSteps(n, part);
-    final children = <Widget>[_namazHead(n, part)];
+    final children = <Widget>[_namazHead(n, part), ..._videoCard(n.key)];
     var no = 0;
     for (var k = 0; k < steps.length; k++) {
       final s = steps[k];
@@ -401,6 +414,7 @@ class _LearnNamazScreenState extends State<LearnNamazScreen> {
 
   Widget _topicView(InfoTopic t) {
     final children = <Widget>[
+      ..._videoCard(t.key),
       for (final c in t.cards) _infoCard(c),
       for (final a in t.accordions) _Accordion(pal: _pal, item: a),
     ];
@@ -410,6 +424,64 @@ class _LearnNamazScreenState extends State<LearnNamazScreen> {
         for (var i = 0; i < children.length; i++) ...[
           if (i > 0) const SizedBox(height: 8),
           children[i],
+        ],
+      ],
+    );
+  }
+
+  // ---------------------------------------------------------------- videolar
+
+  void _openVideo(List<NamazVideo> list, NamazVideo v) =>
+      Navigator.of(context).push(MaterialPageRoute(builder: (_) => VideoScreen(videos: list, index: list.indexOf(v))));
+
+  /// Konunun Diyanet videoları (yoksa boş).
+  List<Widget> _videoCard(String key) {
+    final list = videosFor(key);
+    if (list.isEmpty) return const [];
+    return [
+      PaperBox(
+        pal: _pal,
+        radius: 14,
+        padding: const EdgeInsets.fromLTRB(8, 8, 8, 2),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              children: [
+                GoldIcon(Icons.ondemand_video_outlined, size: 18, light: !_pal.night),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text('Videolu Anlatım (Diyanet)',
+                      style: TextStyle(color: _pal.gold, fontSize: 13, fontWeight: FontWeight.w700)),
+                ),
+              ],
+            ),
+            const SizedBox(height: 6),
+            for (final v in list)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 6),
+                child: VideoTile(pal: _pal, video: v, onTap: () => _openVideo(list, v)),
+              ),
+          ],
+        ),
+      ),
+    ];
+  }
+
+  Widget _allVideosView() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        for (final e in kVideoTopics.entries) ...[
+          Padding(
+            padding: const EdgeInsets.fromLTRB(2, 4, 2, 6),
+            child: Text(e.value, style: TextStyle(color: _pal.gold, fontSize: 14, fontWeight: FontWeight.w700)),
+          ),
+          for (final v in videosFor(e.key))
+            Padding(
+              padding: const EdgeInsets.only(bottom: 6),
+              child: VideoTile(pal: _pal, video: v, onTap: () => _openVideo(namazVideolari, v)),
+            ),
         ],
       ],
     );
@@ -500,10 +572,12 @@ class _RailButton extends StatelessWidget {
               Icon(icon, size: 17, color: selected ? RC.bronzeText : const Color(0xFFE9C96A)),
               const SizedBox(width: 5),
               Expanded(
-                child: Text(label,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(color: fg, fontSize: 11.5, fontWeight: FontWeight.w700)),
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerLeft,
+                  child: Text(label,
+                      maxLines: 1, style: TextStyle(color: fg, fontSize: 11.5, fontWeight: FontWeight.w700)),
+                ),
               ),
             ],
           ),
@@ -549,8 +623,8 @@ class _AccordionState extends State<_Accordion> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Expanded(
-                      child: Text(a.title,
-                          style: TextStyle(color: pal.ink, fontSize: 14.5, fontWeight: FontWeight.w700)),
+                      child:
+                          Text(a.title, style: TextStyle(color: pal.ink, fontSize: 14.5, fontWeight: FontWeight.w700)),
                     ),
                     AnimatedRotation(
                       turns: _open ? 0.25 : 0,

@@ -12,20 +12,16 @@ Bunlar Flutter koduna aktarılacak sayfaların örnekleridir; uygulamanın kendi
 | 05-namaz-ogren.html | Namaz Öğren | Onaylandı |
 | 06-zikir-sayaci.html | Zikir Sayacı | Onaylandı |
 | 07-kible.html | Kıble | Onaylandı |
-| 08-hadisler.html | Hadisler | Taslak (metinler uygulamada HadeethEnc.com'dan alınacak) |
-| 09-dini-mesajlar.html | Dini Mesajlar | Taslak (görseller ve mesajlar eklenecek) |
-| 10-dua-zinciri.html | Dua Zinciri + Online Dua | Taslak (sunucu gerekiyor) |
-| 11-ramazan.html | Ramazan (imsakiye, niyet ve dua, önemli günler) | Taslak |
-| 12-ilahiler.html | İlahiler (liste + oynatıcı) | Uygulamadan kaldırıldı |
-| 13-cami-bulucu.html | Cami Bulucu (harita, yakındaki camiler, yol tarifi) | Taslak |
-| 14-dini-hikayeler.html | Dini Hikâyeler (liste + oynatıcı) | Uygulamadan kaldırıldı |
+| 08-hadisler.html | Hadisler | Uygulamada (metinler HadeethEnc.com'dan canlı alınır) |
+| 09-dini-mesajlar.html | Dini Mesajlar | Uygulamada (96 mesaj) |
+| 10-dua-zinciri.html | Dua Çemberi + Online Dua | Uygulamada (Online Dua genel toplamı sunucu kuralı bekliyor) |
+| 11-ramazan.html | Ramazan (imsakiye, niyet ve dua, önemli günler) | Uygulamada |
+| 13-cami-bulucu.html | Cami Bulucu (yakındaki camiler, yol tarifi) | Uygulamada (OpenStreetMap) |
 
 ## kaynak/
 Flutter'a aktarırken kullanılacak veriler ve görseller:
 - `figurler/` Namaz Öğren duruş görselleri (p_*.webp) ve namaz verisi (nd.json)
 - `kible/` pusula kadranı ve ibre
 - `zikir/` tesbih taneleri
-- `hadis/` taslak hadis kayıtları (HadeethEnc; metinler doğrulanmadı, uygulamada doğrudan kaynaktan çekilecek)
-- `mesaj/` hazır mesajlar (ayet mealleri Ruvvâd mealinden birebir)
 - `dua/` dualar verisi
 - `sure/` Kur'an Arapça metni (Tanzil) ve meal (Ruvvâd, QuranEnc)

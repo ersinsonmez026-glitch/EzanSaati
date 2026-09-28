@@ -28,7 +28,8 @@ flutter run
 | Sureler (114 sure, Arapça + meal, günün ayeti, favoriler, kaldığın yer) | ✅ |
 | Sesli sûre okuma (114 sûre, Mişari Râşid el-Afâsî; ayet ayet çalma, okunan ayet vurgulanır, sûre bitince sonrakine geçer; internetten akış, uygulamaya gömülü değil) | ✅ |
 | Dualar (106 dua, günün duası, arama, favoriler) | ✅ |
-| Namaz Öğren (rekât rekât anlatım, duruş görselleri, abdest/gusül/teyemmüm) | ✅ |
+| Namaz Öğren (rekât rekât anlatım, duruş görselleri, abdest/gusül/teyemmüm; Diyanet'in resmî kanallarından 19 video, uygulama içinde oynatılır) | ✅ |
+| Gündüz / gece görünümü (vakte göre otomatik ya da ana ekrandaki güneş/ay tuşuyla; Ayarlar'dan seçilir) | ✅ |
 | Ezan bildirimleri (vakit vakit aç/kapa, sesli/sessiz, titreşim, vakit öncesi hatırlatma, kandil ve bayram hatırlatması; internetsiz, 10 gün ileriye kurulur) | ✅ |
 | Dini Mesajlar (96 mesaj: 41 ayetli Cuma, 20 Kandil, 20 Bayram, Ramazan, Sabah, Dua; günün mesajı, arama, kategori, favori, görsel paylaşma) | ✅ |
 | Ramazan (geri sayım, şehre göre imsakiye, niyet ve dualar, 2027 önemli günler) | ✅ |

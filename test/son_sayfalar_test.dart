@@ -1,4 +1,8 @@
+import 'package:ezan_saati/data/namaz_ogren.dart';
+import 'package:ezan_saati/data/namaz_videolari.dart';
 import 'package:ezan_saati/screens/about_screen.dart';
+import 'package:ezan_saati/screens/learn_namaz_screen.dart';
+import 'package:ezan_saati/screens/video_screen.dart';
 import 'package:ezan_saati/screens/city_picker_screen.dart';
 import 'package:ezan_saati/screens/hadiths_screen.dart';
 import 'package:ezan_saati/screens/mosque_finder_screen.dart';
@@ -231,5 +235,39 @@ void main() {
     await AppPrefs.instance.setDayMode(DayMode.otomatik);
     expect(isDaytime(), isDaytimeByClock());
     expect((await SharedPreferences.getInstance()).getInt('day_mode'), DayMode.otomatik.index);
+  });
+
+  group('Namaz videoları (Diyanet)', () {
+    test('her namaz ve abdest/gusül/teyemmüm için video var, kimlikler benzersiz', () {
+      expect(namazVideolari.map((v) => v.id).toSet().length, namazVideolari.length);
+      for (final n in namazlar) {
+        expect(videosFor(n.key), isNotEmpty, reason: n.key);
+      }
+      for (final k in ['abdest', 'gusul', 'teyemmum']) {
+        expect(videosFor(k), isNotEmpty, reason: k);
+      }
+      for (final v in namazVideolari) {
+        expect(kVideoTopics.containsKey(v.topic), isTrue, reason: v.id);
+        expect(RegExp(r'^[\w-]{11}$').hasMatch(v.id), isTrue, reason: v.id);
+        expect(v.channel, contains('Diyanet'));
+      }
+    });
+
+    testWidgets('Namaz Öğren: videolu anlatım kartı, Videolar listesi ve video ekranı', (t) async {
+      t.view.physicalSize = const Size(412, 2400);
+      t.view.devicePixelRatio = 1;
+      addTearDown(t.view.reset);
+      await t.pumpWidget(const MaterialApp(home: LearnNamazScreen()));
+      await t.pump();
+      expect(find.text('Videolu Anlatım (Diyanet)'), findsOneWidget);
+      await t.tap(find.text('Videolar'));
+      await t.pump();
+      expect(find.text('Bayram Namazı'), findsOneWidget);
+      await t.tap(find.text('Abdest Nasıl Alınır?'));
+      await t.pumpAndSettle();
+      expect(find.byType(VideoScreen), findsOneWidget);
+      expect(find.text("YouTube'da aç"), findsOneWidget);
+      expect(find.text('Diğer Videolar'), findsOneWidget);
+    });
   });
 }

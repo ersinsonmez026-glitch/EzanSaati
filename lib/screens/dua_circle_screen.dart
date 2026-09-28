@@ -290,7 +290,7 @@ class _DuaCircleScreenState extends State<DuaCircleScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _heading('Online Dua', sub: 'Tüm kullanıcıların birlikte okuduğu toplam'),
+        _heading('Online Dua', sub: 'Çemberlerde okuduklarınızın toplamı'),
         const Padding(
           padding: EdgeInsets.fromLTRB(12, 0, 12, 12),
           child: Text(
@@ -1130,19 +1130,25 @@ class _RailButton extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(title,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(color: fg, fontSize: 11.5, fontWeight: FontWeight.w700, height: 1.2)),
+                    // Dar ekranda kesilmesin: sığmazsa yazı küçülür.
+                    FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: Alignment.centerLeft,
+                      child: Text(title,
+                          maxLines: 1,
+                          style: TextStyle(color: fg, fontSize: 11.5, fontWeight: FontWeight.w700, height: 1.2)),
+                    ),
                     const SizedBox(height: 1),
-                    Text(subtitle,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(color: selected ? const Color(0xFFE9D49A) : RC.creamSoft, fontSize: 10)),
+                    FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: Alignment.centerLeft,
+                      child: Text(subtitle,
+                          maxLines: 1,
+                          style: TextStyle(color: selected ? const Color(0xFFE9D49A) : RC.creamSoft, fontSize: 10)),
+                    ),
                   ],
                 ),
               ),
-              Icon(Icons.chevron_right, size: 15, color: accent),
             ],
           ),
         ),
