@@ -103,9 +103,9 @@ class _HeaderDelegate extends SliverPersistentHeaderDelegate {
               top: -shrinkOffset,
               height: maxExtent,
               child: Image.asset(
-                'assets/images/header_page.jpg', // cami ortada; logo ve konum minarelerin arasında
+                _isDaytime() ? 'assets/images/header_gunduz.jpg' : 'assets/images/header_gece.jpg',
                 fit: BoxFit.cover,
-                alignment: Alignment.center,
+                alignment: const Alignment(0.24, 0.16),
               ),
             ),
             const DecoratedBox(
@@ -134,10 +134,13 @@ class _HeaderDelegate extends SliverPersistentHeaderDelegate {
                       Expanded(
                         child: Align(
                           alignment: Alignment.topCenter,
-                          child: Image.asset(
-                            _isDaytime() ? 'assets/images/logo_krem.png' : 'assets/images/logo_yesil.png',
-                            height: 42, // küçük ve soluk: manzarayı örtmesin
-                            fit: BoxFit.contain,
+                          // Logo levhalardan küçük ve daha aşağıda durur (levhalar önde).
+                          child: Padding(
+                            padding: const EdgeInsets.only(top: 12),
+                            child: Opacity(
+                              opacity: 0.9,
+                              child: Image.asset('assets/images/logo_sembol.png', height: 46, fit: BoxFit.contain),
+                            ),
                           ),
                         ),
                       ),
