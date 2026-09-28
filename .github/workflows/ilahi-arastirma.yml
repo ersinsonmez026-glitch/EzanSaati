@@ -14,13 +14,21 @@ jobs:
       - name: Commons ses dosyaları ve lisansları
         shell: python
         run: |
-          import json, re, urllib.parse, urllib.request
+          import json, re, urllib.parse, urllib.request, urllib.error
           API = 'https://commons.wikimedia.org/w/api.php'
-          UA = {'User-Agent': 'EzanSaati-license-check/1.0 (github actions)'}
+          UA = {'User-Agent': 'EzanSaatiLicenseCheck/1.1 (https://github.com/ersinsonmez026-glitch/EzanSaati; one-off license audit)'}
+          import time
           def get(params):
-              params = {**params, 'format': 'json'}
-              req = urllib.request.Request(API + '?' + urllib.parse.urlencode(params), headers=UA)
-              return json.load(urllib.request.urlopen(req, timeout=60))
+              params = {**params, 'format': 'json', 'maxlag': 5}
+              for attempt in range(8):
+                  time.sleep(2)
+                  try:
+                      req = urllib.request.Request(API + '?' + urllib.parse.urlencode(params), headers=UA)
+                      return json.load(urllib.request.urlopen(req, timeout=60))
+                  except urllib.error.HTTPError as e:
+                      if e.code != 429: raise
+                      time.sleep(15 * (attempt + 1))
+              raise RuntimeError('429 devam ediyor')
           titles = set()
           queries = ['ilahi', 'ilahisi', 'ilâhi', 'Yunus Emre', 'Sufi hymn', 'Turkish hymn', 'Turkish Sufi',
                      'Mevlevi', 'ayin', 'Itri', 'Tekbir', 'salavat', 'salat', 'naat', 'naat-ı şerif', 'Mevlid',
@@ -50,8 +58,8 @@ jobs:
           titles = sorted(t for t in titles if re.search(r'\.(ogg|oga|opus|mp3|flac|wav|webm)$', t, re.I))
           print('TOPLAM SES DOSYASI:', len(titles))
           strip = lambda s: re.sub(r'\s+', ' ', re.sub(r'<[^>]+>', '', s or '')).strip()
-          for i in range(0, len(titles), 40):
-              r = get({'action': 'query', 'prop': 'imageinfo', 'titles': '|'.join(titles[i:i+40]),
+          for i in range(0, len(titles), 25):
+              r = get({'action': 'query', 'prop': 'imageinfo', 'titles': '|'.join(titles[i:i+25]),
                        'iiprop': 'url|size|mime|extmetadata|user', 'iiextmetadatalanguage': 'en'})
               for p in r['query']['pages'].values():
                   ii = (p.get('imageinfo') or [{}])[0]; m = ii.get('extmetadata', {})
