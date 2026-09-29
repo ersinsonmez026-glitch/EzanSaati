@@ -205,7 +205,8 @@ class _PrayerReadScreenState extends State<PrayerReadScreen> {
           label: 'Videolu Dinle',
           onTap: () {
             _player?.pause();
-            final list = videosFor('dualar');
+            final list =
+                videosFor('dualar').any((v) => v.id == d.videos.first) ? videosFor('dualar') : gunlukDuaVideolari;
             final i = list.indexWhere((v) => v.id == d.videos.first);
             Navigator.of(context)
                 .push(MaterialPageRoute(builder: (_) => VideoScreen(videos: list, index: i < 0 ? 0 : i)));

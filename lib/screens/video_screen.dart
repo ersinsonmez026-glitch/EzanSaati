@@ -105,8 +105,11 @@ class _VideoScreenState extends State<VideoScreen> {
             ),
         SourceNote(
           pal: _pal,
-          text: "Videolar Diyanet İşleri Başkanlığı'nın resmî YouTube kanallarındandır (DiyanetTV, Diyanet Çocuk, "
-              'Diyanet Dijital, TRT Diyanet Çocuk). İzlemek için internet gerekir.',
+          text: widget.videos.every((x) => x.channel.contains('Diyanet'))
+              ? "Videolar Diyanet İşleri Başkanlığı'nın resmî YouTube kanallarındandır (DiyanetTV, Diyanet Çocuk, "
+                  'Diyanet Dijital, TRT Diyanet Çocuk). İzlemek için internet gerekir.'
+              : "Bu videoların bir kısmı Diyanet dışındaki YouTube kanallarındandır; kanal adı her videonun altında "
+                  'yazar. İzlemek için internet gerekir.',
         ),
       ],
     );

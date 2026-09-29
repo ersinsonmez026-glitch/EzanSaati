@@ -279,12 +279,15 @@ void main() {
       final all = await DuaData.all();
       expect(all.where((d) => d.hasAudio).length, 66);
       expect(all.where((d) => d.fromMeal).every((d) => d.hasAudio), isTrue);
-      final ids = namazVideolari.map((v) => v.id).toSet();
+      final ids = {...namazVideolari.map((v) => v.id), ...gunlukDuaVideolari.map((v) => v.id)};
       for (final d in all.where((d) => d.videos.isNotEmpty)) {
         expect(d.videos.every(ids.contains), isTrue, reason: d.title);
       }
       Dua byTitle(String t) => all.firstWhere((d) => d.title == t);
       expect(byTitle('Sübhâneke').videos, isNotEmpty);
+      expect(byTitle("Seyyidü'l-İstiğfâr").videos, isNotEmpty);
+      expect(videoById(byTitle("Seyyidü'l-İstiğfâr").videos.first)!.topic, 'gunluk');
+      expect(gunlukDuaVideolari.map((v) => v.id).toSet().length, gunlukDuaVideolari.length);
       // Zamm-ı sure: başa besmele eklenir; Fâtiha'da eklenmez; tek ayetlik dua tek dosya.
       expect(duaAudioUrls(byTitle('Fîl Sûresi').audio).length, 6);
       expect(duaAudioUrls(byTitle('Fîl Sûresi').audio).first, kQuranReciter.ayahUrl(1));
