@@ -55,11 +55,11 @@ class CountdownBanner extends StatelessWidget {
           Widget side(String label, PrayerSlot? p) => Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  gold(label, 11.5),
+                  gold(label, 10),
                   SizedBox(height: 2 * k),
-                  gold(p?.name ?? '--', 21),
+                  gold(p?.name ?? '--', 18),
                   SizedBox(height: 2 * k),
-                  Text(p == null ? '--:--' : formatHm(p.time), style: t(13, _time)),
+                  Text(p == null ? '--:--' : formatHm(p.time), style: t(11.5, _time)),
                 ],
               );
 
@@ -84,14 +84,14 @@ class CountdownBanner extends StatelessWidget {
                 Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    gold(s == null ? 'Kalan Süre' : '${s.next.name} Vaktine Kalan Süre', 11),
-                    gold(s == null ? '--:--:--' : formatDuration(s.remaining), 34),
+                    gold(s == null ? 'Kalan Süre' : '${s.next.name} Vaktine Kalan Süre', 10),
+                    gold(s == null ? '--:--:--' : formatDuration(s.remaining), 30),
                     Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        ArtIcon(kVakitIkonlari[iconOf(s?.next)], size: 18 * k),
+                        ArtIcon(kVakitIkonlari[iconOf(s?.next)], size: 15 * k),
                         SizedBox(width: 4 * k),
-                        gold(s?.next.name ?? '--', 15),
+                        gold(s?.next.name ?? '--', 13),
                       ],
                     ),
                   ],
@@ -151,14 +151,14 @@ class _SlotBox extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             if (current)
-              Text(name, style: style(11, const Color(0xFF2E2004)).copyWith(shadows: const []))
+              Text(name, style: style(10, const Color(0xFF2E2004)).copyWith(shadows: const []))
             else
               GoldText(name, style: TextStyle(fontFamily: 'EBGaramond', fontSize: 11 * k, fontWeight: FontWeight.w600)),
             Text(
               time,
               style: current
-                  ? style(13.5, const Color(0xFF241802), weight: FontWeight.w700).copyWith(shadows: const [])
-                  : style(13.5, const Color(0xFFF6E3B0), weight: FontWeight.w700),
+                  ? style(12, const Color(0xFF241802), weight: FontWeight.w700).copyWith(shadows: const [])
+                  : style(12, const Color(0xFFF6E3B0), weight: FontWeight.w700),
             ),
           ],
         ),

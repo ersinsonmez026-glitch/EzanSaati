@@ -51,7 +51,7 @@ class _PrayersScreenState extends State<PrayersScreen> {
 
   Future<void> _open(int index, {bool listen = false}) async {
     await Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => PrayerReadScreen(duas: _duas!, index: index, listen: listen)),
+      AppRoute(builder: (_) => PrayerReadScreen(duas: _duas!, index: index, listen: listen)),
     );
     if (mounted) setState(() {}); // favoriler değişmiş olabilir
   }
@@ -112,7 +112,7 @@ class _PrayersScreenState extends State<PrayersScreen> {
       DarkButton(
         label: 'Sesli Dinle (ritimli okunuş)',
         onTap: () => Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => const VideoScreen(videos: esmaVideolari)),
+          AppRoute(builder: (_) => const VideoScreen(videos: esmaVideolari)),
         ),
       ),
       const SizedBox(height: 10),

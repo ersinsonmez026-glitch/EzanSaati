@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:math' as math;
+import 'dart:ui' show ImageFilter;
 
 import 'package:flutter/material.dart';
 
@@ -107,7 +108,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _onTap(_MenuItem item) {
-    Navigator.of(context).push(MaterialPageRoute(builder: (_) => item.page()));
+    Navigator.of(context).push(AppRoute(builder: (_) => item.page()));
   }
 
   @override
@@ -133,16 +134,10 @@ class _HomeScreenState extends State<HomeScreen> {
             final tileW = (w - 2 * pad - 2 * gap) / 3;
             double gridFor(double tileH) => _rows * tileH + (_rows - 1) * gap + 2 * pad;
 
-            // Üst alanın içeriği: levhalar ve gece/gündüz tuşu, ayet, geri sayım paneli (genişlikle büyür).
-            // Hepsi üst üste binmeden sığmalı; sığmazsa önce tuşlar basıklaşır, yine sığmazsa ayet gizlenir.
-            final bannerH = (w - 12) / CountdownBanner.aspect + 4;
-            final topH = 6 + 133 * k; // levha (95k) + boşluk + gece/gündüz tuşu (34k)
-            final withVerse = topH + 68 * k + bannerH + 8, withoutVerse = topH + bannerH + 8;
-            final showVerse = h - gridFor(tileW / 1.75) >= withVerse;
-            // Tuş yüksekliği: tercih genişlik/1.2. Üst alan en az ekranın %40'ı (ve 270 px) ve içeriği kadar
-            // kalsın; sığmazsa tuşlar basıklaşır. Uzun ekranda üst alan %56'yı geçmesin, tuşlar büyür.
-            final minHero = math.max(math.max(270.0, h * 0.40), showVerse ? withVerse : withoutVerse);
-            final maxHero = math.max(h * 0.56, minHero);
+            // Üst alan içeriği (üstten alta): levhalar ve şehir/tarih/saat, ayet ve gece/gündüz tuşu,
+            // geri sayım paneli. Ölçüler ekran genişliğinden hesaplanır; yükseklik bunların toplamı kadardır,
+            // hiçbir şey üst üste binmez. Sığmazsa tuşlar basıklaşır.
+            final minHero = math.max(math.max(250.0, h * 0.36), _heroContent(w, k));            final maxHero = math.max(h * 0.56, minHero);
             var tileH = tileW / 1.2;
             if (h - gridFor(tileH) < minHero) {
               tileH = math.max(tileW / 1.75, (h - minHero - (_rows - 1) * gap - 2 * pad) / _rows);
@@ -159,7 +154,7 @@ class _HomeScreenState extends State<HomeScreen> {
               physics: scrolls ? const ClampingScrollPhysics() : const NeverScrollableScrollPhysics(),
               child: Column(
                 children: [
-                  SizedBox(height: heroH, child: _hero(now, loc, k, shadow, showVerse: showVerse)),
+                  SizedBox(height: heroH, child: _hero(now, loc, k, shadow)),
                   // ============================================================
                   // ALT KISIM - 12 TUŞ (3 × 4)
                   // ============================================================
@@ -200,166 +195,155 @@ class _HomeScreenState extends State<HomeScreen> {
   // ============================================================
   // ÜST YARI - ANA GÖRSEL, LEVHALAR, KONUM/TARİH, AYET, GERİ SAYIM
   // ============================================================
-  Widget _hero(DateTime now, AppLocation? loc, double k, List<Shadow> shadow, {bool showVerse = true}) {
-    final medal = 95 * k;
+  // Üst alanın ölçüleri (k: ekran genişliği ölçeği)
+  static double _medal(double k) => 80 * k;
+  static double _verseH(double k) => 46 * k;
+  static double _bannerW(double w) => math.min(w * 0.9, 500);
+  static double _heroContent(double w, double k) =>
+      6 + _medal(k) + 4 + _verseH(k) + 6 + _bannerW(w) / CountdownBanner.aspect + 8;
+
+  Widget _hero(DateTime now, AppLocation? loc, double k, List<Shadow> shadow) {
+    final medal = _medal(k);
     return Stack(
       children: [
-        // Arka plan: cami her ekran boyunda ortada dursun
+        // Arka plan: cami her ekran boyunda ortada dursun (gece ve gündüz aynı kadraj)
         Positioned.fill(
           child: LayoutBuilder(
-            builder: (context, box) {
-              final day = isDaytime();
-              return Image.asset(
-                day ? 'assets/images/home_hero.jpg' : 'assets/images/home_hero_gece.jpg',
-                fit: BoxFit.cover,
-                alignment: day ? _heroAlignment(box.biggest) : _nightAlignment(box.biggest),
-              );
-            },
+            builder: (context, box) => Image.asset(
+              isDaytime() ? 'assets/images/home_hero.jpg' : 'assets/images/home_hero_gece.jpg',
+              fit: BoxFit.cover,
+              alignment: _alignOn(box.biggest, 1536, 1024, 0.54, 0.52),
+            ),
           ),
         ),
-
-        // Alt kısım: ayet + tam genişlikte geri sayım şeridi
-        Positioned(
-          left: 0,
-          right: 0,
-          bottom: 4,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              if (showVerse)
-                Transform.translate(
-                  // Panelin sol kutusu ortadaki kemerden daha aşağıdan başlar; ayet o boşluğa iner.
-                  offset: Offset(0, 18 * k),
-                  child: Padding(
-                    padding: EdgeInsets.only(left: 14, bottom: 6 * k),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          '“Şüphesiz\nnamaz, müminler\nüzerine vakitleri\nbelirlenmiş bir farzdır.”',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontFamily: 'serif', // ayet eski yazı tipiyle, kalın italik
-                            fontSize: 12.5 * k,
-                            fontWeight: FontWeight.w600,
-                            height: 1.3,
-                            fontStyle: FontStyle.italic,
-                            shadows: shadow,
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                        GoldText(
-                          'Nisâ, 103',
-                          style: TextStyle(fontFamily: 'serif', fontSize: 10.5 * k, fontWeight: FontWeight.w600),
-                        ),
-                      ],
+        Positioned.fill(
+          child: LayoutBuilder(
+            builder: (context, box) => Column(
+              children: [
+                const SizedBox(height: 6),
+                // 1. sıra: Allah · şehir / tarih / saat · Muhammed
+                SizedBox(
+                  height: medal,
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SizedBox(width: 6),
+                      _Medallion('assets/images/hat_allah.webp', size: medal),
+                      Expanded(child: _cityDate(now, loc, k, shadow)),
+                      _Medallion('assets/images/hat_muhammed.webp', size: medal),
+                      const SizedBox(width: 6),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 4),
+                // 2. sıra: ayet (ortada) · gece/gündüz tuşu (sağda)
+                SizedBox(
+                  height: _verseH(k),
+                  child: Row(
+                    children: [
+                      SizedBox(width: 40 * k),
+                      Expanded(child: _verse(k, shadow)),
+                      SizedBox(width: 40 * k, child: Center(child: _DayNightButton(size: 32 * k))),
+                      const SizedBox(width: 4),
+                    ],
+                  ),
+                ),
+                const Spacer(),
+                // 3. sıra: geri sayım paneli (ekranın %90'ı, ortada)
+                Center(
+                  child: SizedBox(
+                    width: _bannerW(box.maxWidth),
+                    child: GestureDetector(
+                      onTap: () => _onTap(_items.first),
+                      child: CountdownBanner(status: _status),
                     ),
                   ),
                 ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 6),
-                child: GestureDetector(
-                  onTap: () => _onTap(_items.first),
-                  child: CountdownBanner(status: _status),
-                ),
-              ),
-            ],
-          ),
-        ),
-        // Üst sıra en üstte çizilir: gece/gündüz tuşu ve şehir her ekranda panelden önce dokunmayı alır.
-        // Üst sıra: sol levha · şehir / tarih / saat · sağ levha
-        Positioned(
-          top: 6,
-          left: 6,
-          right: 6,
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Tasarımdaki düzen: solda "Allah", sağda "Muhammed"
-              _Medallion('assets/images/levha_allah.png', size: medal),
-              Expanded(
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(12),
-                  onTap: () => Navigator.of(context).push(
-                    MaterialPageRoute(builder: (_) => const CityPickerScreen()),
-                  ),
-                  child: Padding(
-                    padding: EdgeInsets.fromLTRB(2, 6 * k, 2, 4),
-                    child: Column(
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            GoldIcon(Icons.location_on, size: 15 * k),
-                            const SizedBox(width: 2),
-                            Flexible(
-                              child: FittedBox(
-                                fit: BoxFit.scaleDown,
-                                child: Text(
-                                  loc?.name ?? 'Konum Seç',
-                                  maxLines: 1,
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 17 * k,
-                                    fontWeight: FontWeight.w700,
-                                    shadows: shadow,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        SizedBox(height: 3 * k),
-                        FittedBox(
-                          fit: BoxFit.scaleDown,
-                          child: Text(
-                            '${formatDateTr(now)} · ${weekdayTr(now)}',
-                            maxLines: 1,
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 13.5 * k,
-                              fontWeight: FontWeight.w600,
-                              shadows: shadow,
-                            ),
-                          ),
-                        ),
-                        SizedBox(height: 2 * k),
-                        Text(
-                          '${two(now.hour)}:${two(now.minute)}:${two(now.second)}',
-                          style: TextStyle(
-                            color: const Color(0xFFE8C88A), // başlıklarla aynı sıcak altın; açık gökte gölgeyle okunur
-                            shadows: shadow,
-                            fontSize: 19 * k,
-                            fontWeight: FontWeight.w600,
-                            letterSpacing: 1,
-                            fontFeatures: const [FontFeature.tabularFigures()],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-              Column(
-                children: [
-                  _Medallion('assets/images/levha_muhammed.png', size: medal),
-                  SizedBox(height: 4 * k),
-                  _DayNightButton(size: 34 * k),
-                ],
-              ),
-            ],
+                const SizedBox(height: 8),
+              ],
+            ),
           ),
         ),
       ],
     );
   }
 
+  Widget _cityDate(DateTime now, AppLocation? loc, double k, List<Shadow> shadow) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(12),
+      onTap: () => Navigator.of(context).push(AppRoute(builder: (_) => const CityPickerScreen())),
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        child: Padding(
+          padding: EdgeInsets.fromLTRB(2, 4 * k, 2, 2),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  GoldIcon(Icons.location_on, size: 13 * k),
+                  const SizedBox(width: 2),
+                  Text(
+                    loc?.name ?? 'Konum Seç',
+                    maxLines: 1,
+                    style:
+                        TextStyle(color: Colors.white, fontSize: 14.5 * k, fontWeight: FontWeight.w700, shadows: shadow),
+                  ),
+                ],
+              ),
+              SizedBox(height: 2 * k),
+              Text(
+                '${formatDateTr(now)} · ${weekdayTr(now)}',
+                maxLines: 1,
+                style: TextStyle(color: Colors.white, fontSize: 11.5 * k, fontWeight: FontWeight.w600, shadows: shadow),
+              ),
+              SizedBox(height: 2 * k),
+              Text(
+                '${two(now.hour)}:${two(now.minute)}:${two(now.second)}',
+                style: TextStyle(
+                  color: const Color(0xFFE8C88A),
+                  shadows: shadow,
+                  fontSize: 16 * k,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 1,
+                  fontFeatures: const [FontFeature.tabularFigures()],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Nisâ 103 (eski yazı tipiyle kalın italik); ayrılan alana sığmazsa küçülür, hiç gizlenmez.
+  Widget _verse(double k, List<Shadow> shadow) {
+    return FittedBox(
+      fit: BoxFit.scaleDown,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            '“Şüphesiz namaz, müminler üzerine\nvakitleri belirlenmiş bir farzdır.”',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: Colors.white,
+              fontFamily: 'serif',
+              fontSize: 12.5 * k,
+              fontWeight: FontWeight.w600,
+              height: 1.25,
+              fontStyle: FontStyle.italic,
+              shadows: shadow,
+            ),
+          ),
+          GoldText('Nisâ, 103', style: TextStyle(fontFamily: 'serif', fontSize: 10.5 * k, fontWeight: FontWeight.w600)),
+        ],
+      ),
+    );
+  }
+
   /// Arka plan fotoğrafını, caminin kutunun ortasına geleceği şekilde hizalar.
-  static Alignment _heroAlignment(Size box) => _alignOn(box, 1536, 1024, 0.54, 0.62);
-
-  /// Gece manzarası (1672×941): cami sağda, (0.70, 0.57) civarında.
-  static Alignment _nightAlignment(Size box) => _alignOn(box, 1672, 941, 0.70, 0.57);
-
   static Alignment _alignOn(Size box, double imgW, double imgH, double mosqueX, double mosqueY) {
     final scale = math.max(box.width / imgW, box.height / imgH);
     double axis(double frac, double scaled, double view) {
@@ -420,15 +404,26 @@ class _Medallion extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final image = Image.asset(asset, fit: BoxFit.contain);
+    // Altın hat, açık gökyüzünde de seçilsin: arkasında hattın bulanık koyu gölgesi.
     return SizedBox(
       width: size,
       height: size,
-      child: DecoratedBox(
-        decoration: const BoxDecoration(
-          shape: BoxShape.circle,
-          boxShadow: [BoxShadow(color: Colors.black45, blurRadius: 12, spreadRadius: -4)],
-        ),
-        child: Image.asset(asset, fit: BoxFit.contain),
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          Transform.translate(
+            offset: const Offset(0, 1.5),
+            child: ImageFiltered(
+              imageFilter: ImageFilter.blur(sigmaX: 3, sigmaY: 3),
+              child: ColorFiltered(
+                colorFilter: const ColorFilter.mode(Color(0xB3000000), BlendMode.srcIn),
+                child: image,
+              ),
+            ),
+          ),
+          image,
+        ],
       ),
     );
   }
@@ -465,7 +460,7 @@ class _LocationSheetState extends State<_LocationSheet> {
 
   Future<void> _pickCity() async {
     final navigator = Navigator.of(context);
-    await navigator.push(MaterialPageRoute(builder: (_) => const CityPickerScreen()));
+    await navigator.push(AppRoute(builder: (_) => const CityPickerScreen()));
     if (LocationStore.instance.current != null && mounted) navigator.pop();
   }
 

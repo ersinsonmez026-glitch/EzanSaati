@@ -51,7 +51,7 @@ class _SurahsScreenState extends State<SurahsScreen> {
 
   Future<void> _open(int surah, [int ayah = 1, bool listen = false]) async {
     await Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => SurahReadScreen(surah: surah, startAyah: ayah, listen: listen)),
+      AppRoute(builder: (_) => SurahReadScreen(surah: surah, startAyah: ayah, listen: listen)),
     );
     if (mounted) setState(() {}); // kaldığın yer ve favoriler güncellensin
   }

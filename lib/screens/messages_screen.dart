@@ -75,7 +75,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
 
   Future<void> _open(List<ReligiousMessage> list, int i) async {
     await Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => MessageShareScreen(messages: list, index: i)),
+      AppRoute(builder: (_) => MessageShareScreen(messages: list, index: i)),
     );
     if (mounted) setState(() {}); // favoriler değişmiş olabilir
   }

@@ -80,7 +80,7 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
   }
 
   void _changeCity() {
-    Navigator.of(context).push(MaterialPageRoute(builder: (_) => const CityPickerScreen()));
+    Navigator.of(context).push(AppRoute(builder: (_) => const CityPickerScreen()));
   }
 
   String get _title => switch (_view) {
@@ -215,7 +215,7 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
               EzanNotifications.instance.settings.enabled
                   ? '${EzanNotifications.instance.settings.activeCount} vakit açık'
                   : 'Ezan ayarları',
-              () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const NotificationsScreen())),
+              () => Navigator.of(context).push(AppRoute(builder: (_) => const NotificationsScreen())),
             ),
           ),
           const SizedBox(width: 8),

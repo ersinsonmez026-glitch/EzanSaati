@@ -109,7 +109,7 @@ class _MosqueFinderScreenState extends State<MosqueFinderScreen> {
                       DarkButton(
                         label: 'Şehir Seç',
                         onTap: () async {
-                          await Navigator.of(context).push(MaterialPageRoute(builder: (_) => const CityPickerScreen()));
+                          await Navigator.of(context).push(AppRoute(builder: (_) => const CityPickerScreen()));
                           if (mounted) {
                             setState(() {});
                             _load();

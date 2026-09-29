@@ -24,7 +24,8 @@ void main() {
     'Namaz Öğren', 'Dini Mesajlar', 'Ayarlar',
   ];
 
-  for (final size in const [Size(390, 763), Size(360, 616), Size(430, 839)]) {
+  // 360×568: General Mobile GM5 Plus d gibi kısa telefonlar (durum ve gezinme çubukları çıkınca)
+  for (final size in const [Size(390, 763), Size(360, 616), Size(360, 568), Size(430, 839), Size(600, 950)]) {
     testWidgets('ana ekran ${size.width.toInt()}×${size.height.toInt()}: 3×4, sabit sıra, kaydırmasız', (t) async {
       t.view.physicalSize = size;
       t.view.devicePixelRatio = 1;
@@ -53,11 +54,14 @@ void main() {
       final scroll = t.widget<SingleChildScrollView>(find.byType(SingleChildScrollView));
       expect(scroll.physics, isA<NeverScrollableScrollPhysics>());
 
-      // Geri sayım tam ortada ve ekran genişliğinde
+      // Geri sayım ortada, ekranın %90'ı; ayet her ekranda görünür ve panelle çakışmaz
       final banner = t.getRect(find.byType(CountdownBanner));
       expect(banner.center.dx, moreOrLessEquals(size.width / 2, epsilon: 0.5));
-      expect(banner.width, moreOrLessEquals(size.width - 12, epsilon: 0.5));
+      expect(banner.width, lessThanOrEqualTo(size.width * 0.9 + 0.5));
       expect(banner.bottom, lessThanOrEqualTo(rects.first.top));
+      final verse = find.textContaining('Şüphesiz namaz');
+      expect(verse, findsOneWidget);
+      expect(t.getRect(verse).bottom, lessThanOrEqualTo(banner.top));
 
       // Gece/gündüz tuşu panelin altında kalmaz: basınca görünüm değişir, Namaz Vakitleri açılmaz
       final toggle = find.bySemanticsLabel(RegExp('görünümüne geç'));

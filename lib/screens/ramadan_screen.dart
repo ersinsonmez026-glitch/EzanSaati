@@ -433,7 +433,7 @@ class _RamadanScreenState extends State<RamadanScreen> {
               label: 'Şehir Seç',
               height: 40,
               onTap: () =>
-                  Navigator.of(context).push(MaterialPageRoute(builder: (_) => const CityPickerScreen())),
+                  Navigator.of(context).push(AppRoute(builder: (_) => const CityPickerScreen())),
             ),
           ],
         ),
@@ -624,7 +624,7 @@ class _RamadanScreenState extends State<RamadanScreen> {
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTap: () async {
-          await Navigator.of(context).push(MaterialPageRoute(builder: (_) => FastingTrackerScreen(data: d)));
+          await Navigator.of(context).push(AppRoute(builder: (_) => FastingTrackerScreen(data: d)));
           if (mounted) setState(() {});
         },
         // Diğer tuşlar gibi dolgulu: koyu yeşil zemin, altın kenar.
@@ -669,7 +669,7 @@ class _RamadanScreenState extends State<RamadanScreen> {
     final (surah, ayah) = kCuzBaslangic[cuz - 1];
     final name = surah <= _surahs.length ? _surahs[surah - 1].name : '$surah. sûre';
     void open({bool listen = false}) => Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => SurahReadScreen(surah: surah, startAyah: ayah, listen: listen)),
+          AppRoute(builder: (_) => SurahReadScreen(surah: surah, startAyah: ayah, listen: listen)),
         );
     Widget arrow(IconData icon, String label, int to) => Semantics(
           button: true,

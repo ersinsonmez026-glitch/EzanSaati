@@ -432,7 +432,7 @@ class _LearnNamazScreenState extends State<LearnNamazScreen> {
   // ---------------------------------------------------------------- videolar
 
   void _openVideo(List<NamazVideo> list, NamazVideo v) =>
-      Navigator.of(context).push(MaterialPageRoute(builder: (_) => VideoScreen(videos: list, index: list.indexOf(v))));
+      Navigator.of(context).push(AppRoute(builder: (_) => VideoScreen(videos: list, index: list.indexOf(v))));
 
   /// Konunun Diyanet videoları (yoksa boş).
   List<Widget> _videoCard(String key) {

@@ -47,7 +47,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     showNote(context, error ?? 'Konum güncellendi: ${_location.current?.name ?? ''}');
   }
 
-  void _open(Widget page) => Navigator.of(context).push(MaterialPageRoute(builder: (_) => page));
+  void _open(Widget page) => Navigator.of(context).push(AppRoute(builder: (_) => page));
 
   @override
   Widget build(BuildContext context) {

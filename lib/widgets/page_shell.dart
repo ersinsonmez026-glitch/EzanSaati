@@ -272,7 +272,7 @@ class _HeaderDelegate extends SliverPersistentHeaderDelegate {
                       excludeSemantics: true,
                       child: GestureDetector(
                         onTap: () => Navigator.of(context).push(
-                          MaterialPageRoute(builder: (_) => const SettingsScreen()),
+                          AppRoute(builder: (_) => const SettingsScreen()),
                         ),
                         child: Image.asset('assets/images/ikon/ayarlar.webp', width: 28.5, height: 28.5),
                       ),
@@ -419,7 +419,7 @@ class _LocationPill extends StatelessWidget {
         label: 'Konum: ${store.current?.name ?? 'seçilmedi'}',
         excludeSemantics: true,
         child: GestureDetector(
-          onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const CityPickerScreen())),
+          onTap: () => Navigator.of(context).push(AppRoute(builder: (_) => const CityPickerScreen())),
           child: Container(
             constraints: const BoxConstraints(maxWidth: 118),
             padding: const EdgeInsets.fromLTRB(7, 4, 4, 4),
@@ -484,6 +484,30 @@ class _Ornament extends StatelessWidget {
         const SizedBox(width: 4),
         line(false),
       ],
+    );
+  }
+}
+
+/// Uygulamadaki sayfa geçişi: varsayılandan biraz yavaş (450 ms), yumuşak kayarak belirme.
+class AppRoute<T> extends MaterialPageRoute<T> {
+  AppRoute({required super.builder});
+
+  @override
+  Duration get transitionDuration => const Duration(milliseconds: 450);
+
+  @override
+  Duration get reverseTransitionDuration => const Duration(milliseconds: 350);
+
+  @override
+  Widget buildTransitions(
+      BuildContext context, Animation<double> animation, Animation<double> secondaryAnimation, Widget child) {
+    final curved = CurvedAnimation(parent: animation, curve: Curves.easeOutCubic, reverseCurve: Curves.easeInCubic);
+    return FadeTransition(
+      opacity: curved,
+      child: SlideTransition(
+        position: Tween(begin: const Offset(0, 0.04), end: Offset.zero).animate(curved),
+        child: child,
+      ),
     );
   }
 }

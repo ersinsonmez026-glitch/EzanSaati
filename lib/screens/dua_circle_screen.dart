@@ -82,7 +82,7 @@ class _DuaCircleScreenState extends State<DuaCircleScreen> {
 
   Future<void> _newCircle({(String, String, int)? template}) async {
     final c = await Navigator.of(context).push<DuaCircle>(
-      MaterialPageRoute(builder: (_) => DuaCircleFormScreen(template: template)),
+      AppRoute(builder: (_) => DuaCircleFormScreen(template: template)),
     );
     if (c == null || !mounted) return;
     setState(() {
@@ -94,14 +94,14 @@ class _DuaCircleScreenState extends State<DuaCircleScreen> {
 
   Future<void> _edit(DuaCircle c, {bool addPerson = false}) async {
     final r = await Navigator.of(context).push<DuaCircle>(
-      MaterialPageRoute(builder: (_) => DuaCircleFormScreen(circle: c, addPerson: addPerson)),
+      AppRoute(builder: (_) => DuaCircleFormScreen(circle: c, addPerson: addPerson)),
     );
     if (r == null || !mounted) return;
     if (r.pending.isNotEmpty) _invite(r);
   }
 
   void _invite(DuaCircle c) {
-    Navigator.of(context).push(MaterialPageRoute(builder: (_) => DuaCircleInviteScreen(circle: c)));
+    Navigator.of(context).push(AppRoute(builder: (_) => DuaCircleInviteScreen(circle: c)));
   }
 
   @override

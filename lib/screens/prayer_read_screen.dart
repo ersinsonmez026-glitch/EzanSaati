@@ -180,7 +180,7 @@ class _PrayerReadScreenState extends State<PrayerReadScreen> {
             ActionItem(
               Icons.touch_app_outlined,
               'Zikret',
-              () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const DhikrScreen())),
+              () => Navigator.of(context).push(AppRoute(builder: (_) => const DhikrScreen())),
             ),
           ],
         ),
@@ -275,5 +275,5 @@ class _PrayerReadScreenState extends State<PrayerReadScreen> {
 void openDuaVideo(BuildContext context, Dua d) {
   final list = videosFor('dualar').any((v) => v.id == d.videos.first) ? videosFor('dualar') : gunlukDuaVideolari;
   final i = list.indexWhere((v) => v.id == d.videos.first);
-  Navigator.of(context).push(MaterialPageRoute(builder: (_) => VideoScreen(videos: list, index: i < 0 ? 0 : i)));
+  Navigator.of(context).push(AppRoute(builder: (_) => VideoScreen(videos: list, index: i < 0 ? 0 : i)));
 }

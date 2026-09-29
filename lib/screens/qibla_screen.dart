@@ -90,7 +90,7 @@ class _QiblaScreenState extends State<QiblaScreen> {
   static double _near(double cur, double target) => cur + signedDiff(target, cur);
 
   Future<void> _pickCity() async {
-    await Navigator.of(context).push(MaterialPageRoute(builder: (_) => const CityPickerScreen()));
+    await Navigator.of(context).push(AppRoute(builder: (_) => const CityPickerScreen()));
     final l = LocationStore.instance.current;
     if (l != null) Compass.setLocation(l.lat, l.lng);
     if (mounted) setState(() {});

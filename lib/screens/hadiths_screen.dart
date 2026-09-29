@@ -71,7 +71,7 @@ class _HadithsScreenState extends State<HadithsScreen> {
   }
 
   Future<void> _open(List<Hadith> list, int index) async {
-    await Navigator.of(context).push(MaterialPageRoute(builder: (_) => HadithReadScreen(items: list, index: index)));
+    await Navigator.of(context).push(AppRoute(builder: (_) => HadithReadScreen(items: list, index: index)));
     if (mounted) setState(() {});
   }
 
