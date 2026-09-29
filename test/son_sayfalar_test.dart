@@ -7,12 +7,15 @@ import 'package:ezan_saati/screens/city_picker_screen.dart';
 import 'package:ezan_saati/screens/hadiths_screen.dart';
 import 'package:ezan_saati/screens/mosque_finder_screen.dart';
 import 'package:ezan_saati/screens/notifications_screen.dart';
+import 'package:ezan_saati/screens/prayer_read_screen.dart';
 import 'package:ezan_saati/screens/settings_screen.dart';
 import 'package:ezan_saati/services/app_prefs.dart';
 import 'package:ezan_saati/services/ezan_notifications.dart';
 import 'package:ezan_saati/services/hadith_store.dart';
 import 'package:ezan_saati/services/location_store.dart';
+import 'package:ezan_saati/services/content_store.dart';
 import 'package:ezan_saati/services/mosque_store.dart';
+import 'package:ezan_saati/services/quran_audio.dart';
 import 'package:ezan_saati/services/takvim.dart';
 import 'package:ezan_saati/widgets/page_shell.dart';
 import 'package:ezan_saati/widgets/reading_ui.dart';
@@ -268,6 +271,44 @@ void main() {
       expect(find.byType(VideoScreen), findsOneWidget);
       expect(find.text("YouTube'da aç"), findsOneWidget);
       expect(find.text('Diğer Videolar'), findsOneWidget);
+    });
+  });
+
+  group('Duaların sesli okunuşu', () {
+    test("Kur'an dualarının hepsinde ses, namaz dualarında Diyanet videosu var", () async {
+      final all = await DuaData.all();
+      expect(all.where((d) => d.hasAudio).length, 66);
+      expect(all.where((d) => d.fromMeal).every((d) => d.hasAudio), isTrue);
+      final ids = namazVideolari.map((v) => v.id).toSet();
+      for (final d in all.where((d) => d.videos.isNotEmpty)) {
+        expect(d.videos.every(ids.contains), isTrue, reason: d.title);
+      }
+      Dua byTitle(String t) => all.firstWhere((d) => d.title == t);
+      expect(byTitle('Sübhâneke').videos, isNotEmpty);
+      // Zamm-ı sure: başa besmele eklenir; Fâtiha'da eklenmez; tek ayetlik dua tek dosya.
+      expect(duaAudioUrls(byTitle('Fîl Sûresi').audio).length, 6);
+      expect(duaAudioUrls(byTitle('Fîl Sûresi').audio).first, kQuranReciter.ayahUrl(1));
+      expect(duaAudioUrls(byTitle('Fâtiha Sûresi').audio).length, 7);
+      expect(duaAudioUrls(byTitle('Rabbenâ Duaları').audio), [
+        kQuranReciter.ayahUrl(globalAyahNumber(2, 201)),
+        kQuranReciter.ayahUrl(globalAyahNumber(14, 41)),
+      ]);
+    });
+
+    testWidgets('dua sayfasında Sesli Dinle ve Videolu Dinle düğmeleri', (t) async {
+      t.view.physicalSize = const Size(390, 1600);
+      t.view.devicePixelRatio = 1;
+      addTearDown(t.view.reset);
+      final all = await t.runAsync(() => DuaData.all());
+      final i = all!.indexWhere((d) => d.title == 'Rabbenâ Duaları');
+      await t.pumpWidget(MaterialApp(home: PrayerReadScreen(duas: all, index: i)));
+      await t.pump();
+      expect(find.text('Sesli Dinle'), findsOneWidget);
+      expect(find.text('Videolu Dinle'), findsOneWidget);
+      await t.tap(find.text('Videolu Dinle'));
+      await t.pumpAndSettle();
+      expect(find.byType(VideoScreen), findsOneWidget);
+      expect(find.text('Rabbenâ Âtinâ Duası'), findsOneWidget);
     });
   });
 }

@@ -87,3 +87,12 @@ class SurahPlaylist {
   /// Ayetin listedeki sırası. 1. ayetten başlarken besmele de okunur.
   int indexOf(int ayah) => ayah <= 1 ? 0 : (hasBasmala ? ayah : ayah - 1);
 }
+
+/// Kur'an'dan bir duanın ses listesi: verilen ayet aralıkları sırayla. Sûrenin tamamı okunuyorsa
+/// (zamm-ı sureler) başa besmele eklenir (Fâtiha ve Tevbe hariç).
+List<Uri> duaAudioUrls(List<(int, int, int)> refs, [QuranReciter reciter = kQuranReciter]) => [
+      for (final (s, a1, a2) in refs) ...[
+        if (a1 == 1 && a2 == kSurahAyahCounts[s - 1] && s != 1 && s != 9) reciter.ayahUrl(1),
+        for (var a = a1; a <= a2; a++) reciter.ayahUrl(globalAyahNumber(s, a)),
+      ],
+    ];

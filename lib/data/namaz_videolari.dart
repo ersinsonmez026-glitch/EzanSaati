@@ -1,6 +1,6 @@
 /// Namaz Öğren videoları: yalnızca Diyanet İşleri Başkanlığı'nın resmî YouTube kanallarından
 /// (DiyanetTV, Diyanet Çocuk, Diyanet Dijital, TRT Diyanet Çocuk). Hepsinin gömülerek
-/// oynatılabildiği YouTube oEmbed ile doğrulandı (28 Eylül 2026).
+/// oynatılabildiği YouTube oEmbed ile doğrulandı (28-29 Eylül 2026).
 class NamazVideo {
   final String id; // YouTube video kimliği
   final String title;
@@ -25,6 +25,7 @@ const kVideoTopics = {
   'cuma': 'Cuma Namazı',
   'teravih': 'Teravih Namazı',
   'bayram': 'Bayram Namazı',
+  'dualar': 'Namaz Duaları',
   'gusul': 'Gusül',
   'teyemmum': 'Teyemmüm',
 };
@@ -46,6 +47,15 @@ const namazVideolari = <NamazVideo>[
   NamazVideo('2qDWDcYDqzI', 'Cuma Namazı Nasıl Kılınır?', 'DiyanetTV', '6:29', 'cuma'),
   NamazVideo('qPxWcs_rBuc', 'Teravih Namazı Nasıl Kılınır? (Uygulamalı Anlatım)', 'DiyanetTV', '16:45', 'teravih'),
   NamazVideo('z1HITLrgeCk', 'Bayram Namazı Nasıl Kılınır?', 'Diyanet Dijital', '2:19', 'bayram'),
+  NamazVideo('F4SN5A3zi8Y', 'Sübhâneke Duası', 'Diyanet Dijital · Elif Bâ', '0:53', 'dualar'),
+  NamazVideo('L9IceGdzzJQ', 'Tahiyyât (Ettehiyyâtü) Duası', 'Diyanet Dijital · Elif Bâ', '1:27', 'dualar'),
+  NamazVideo('r4-Bo5o_5EE', 'Salli Duası', 'Diyanet Dijital · Elif Bâ', '1:03', 'dualar'),
+  NamazVideo('OWklgEzJxJ4', 'Bârik Duası', 'Diyanet Dijital · Elif Bâ', '1:03', 'dualar'),
+  NamazVideo('g1AAOwgHAHk', 'Rabbenâ Âtinâ Duası', 'Diyanet Dijital · Elif Bâ', '0:42', 'dualar'),
+  NamazVideo('JyajztAUuUk', 'Rabbenağfirlî Duası', 'Diyanet Dijital · Elif Bâ', '0:34', 'dualar'),
+  NamazVideo('G4SKsQHP4ko', 'Kunut Duası 1', 'Diyanet Dijital · Elif Bâ', '1:12', 'dualar'),
+  NamazVideo('TwvOFaNTfVY', 'Kunut Duası 2', 'Diyanet Dijital · Elif Bâ', '0:52', 'dualar'),
+  NamazVideo('B67s_jO8qzI', 'Ezan Duası (Nusretiye Camii)', 'DiyanetTV', '1:29', 'dualar'),
   NamazVideo('Rh0YPTJD_H0', 'Gusül Abdesti Nasıl Alınır?', 'DiyanetTV', '5:50', 'gusul'),
   NamazVideo('flZozLiZyGY', 'Teyemmüm Nasıl Alınır?', 'TRT Diyanet Çocuk', '1:01', 'teyemmum'),
   NamazVideo('VsRRUmTdfR0', 'Teyemmüm Hangi Şartlarda Yapılır?', 'DiyanetTV', '2:15', 'teyemmum'),

@@ -91,6 +91,8 @@ class Dua {
   final String meaning; // anlamı
   final String source;
   final bool fromMeal; // anlamı ayet meali mi
+  final List<(int, int, int)> audio; // Kur'an duası ise okunacak ayetler: (sûre, ilk ayet, son ayet)
+  final List<String> videos; // Diyanet'in okunuş videoları (namaz_videolari.dart kimlikleri)
 
   const Dua({
     required this.group,
@@ -102,7 +104,11 @@ class Dua {
     required this.meaning,
     required this.source,
     required this.fromMeal,
+    this.audio = const [],
+    this.videos = const [],
   });
+
+  bool get hasAudio => audio.isNotEmpty;
 
   factory Dua.fromJson(Map<String, dynamic> j) => Dua(
         group: (j['g'] as String?) ?? '',
@@ -114,6 +120,10 @@ class Dua {
         meaning: j['an'] as String,
         source: (j['src'] as String?) ?? '',
         fromMeal: j['n'] == 'meal',
+        videos: [for (final v in (j['yt'] as List? ?? const [])) v as String],
+        audio: [
+          for (final r in (j['au'] as List? ?? const [])) ((r as List)[0] as int, r[1] as int, r[2] as int),
+        ],
       );
 
   /// Kopyalama ve paylaşma metni.

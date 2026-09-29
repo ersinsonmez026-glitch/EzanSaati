@@ -1,9 +1,16 @@
-import 'package:flutter/material.dart';
+import 'dart:async';
 
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:just_audio/just_audio.dart';
+
+import '../data/namaz_videolari.dart';
 import '../services/content_store.dart';
+import '../services/quran_audio.dart';
 import '../widgets/page_shell.dart';
 import '../widgets/reading_ui.dart';
 import 'dhikr_screen.dart';
+import 'video_screen.dart';
 
 /// Tek bir duanın okunduğu sayfa: Arapça, okunuşu, anlamı ve kaynağı.
 class PrayerReadScreen extends StatefulWidget {
@@ -26,6 +33,13 @@ class _PrayerReadScreenState extends State<PrayerReadScreen> {
   bool _showReading = true;
   double _fs = 1;
 
+  // Kur'an dualarının sesli okunuşu (Sureler'deki kaynakla aynı, internetten akış).
+  AudioPlayer? _player;
+  StreamSubscription<PlayerState>? _playerSub;
+  int? _loaded; // çalar listesine yüklü duanın sırası
+  bool _playing = false;
+  bool _busy = false;
+
   @override
   void initState() {
     super.initState();
@@ -40,13 +54,65 @@ class _PrayerReadScreenState extends State<PrayerReadScreen> {
 
   @override
   void dispose() {
+    _playerSub?.cancel();
+    _player?.dispose();
     _scroll.dispose();
     super.dispose();
   }
 
   void _go(int i) {
-    setState(() => _index = i);
+    _player?.stop();
+    setState(() {
+      _index = i;
+      _playing = false;
+      _busy = false;
+    });
     if (_scroll.hasClients) _scroll.jumpTo(0);
+  }
+
+  Future<void> _toggleListen(Dua d) async {
+    final p = _player ??= AudioPlayer();
+    _playerSub ??= p.playerStateStream.listen((s) {
+      if (!mounted) return;
+      final done = s.processingState == ProcessingState.completed;
+      setState(() {
+        _playing = s.playing && !done;
+        _busy = s.playing &&
+            (s.processingState == ProcessingState.loading || s.processingState == ProcessingState.buffering);
+      });
+      if (done) {
+        p.pause();
+        p.seek(Duration.zero, index: 0);
+      }
+    }, onError: (Object _, StackTrace __) => _audioFailed());
+    if (_playing) {
+      await p.pause();
+      return;
+    }
+    setState(() => _busy = true);
+    try {
+      if (_loaded != _index) {
+        await p.setAudioSources([for (final u in duaAudioUrls(d.audio)) AudioSource.uri(u)]);
+        _loaded = _index;
+      }
+      unawaited(p.play());
+    } catch (e) {
+      _audioFailed(e);
+    }
+  }
+
+  void _audioFailed([Object? e]) {
+    if (!mounted) return;
+    setState(() {
+      _busy = false;
+      _playing = false;
+      _loaded = null;
+    });
+    showNote(
+        context,
+        e is MissingPluginException
+            ? 'Bu cihazda ses çalınamıyor.'
+            : 'Ses yüklenemedi. İnternet bağlantınızı kontrol edip tekrar deneyin.');
   }
 
   @override
@@ -98,6 +164,7 @@ class _PrayerReadScreenState extends State<PrayerReadScreen> {
             ),
           ],
         ),
+        if (d.hasAudio || d.videos.isNotEmpty) ...[const SizedBox(height: 10), _listenRow(d)],
         const SizedBox(height: 10),
         _article(d),
         const SizedBox(height: 10),
@@ -121,6 +188,36 @@ class _PrayerReadScreenState extends State<PrayerReadScreen> {
           onPrev: _index > 0 ? () => _go(_index - 1) : null,
           onNext: _index < last ? () => _go(_index + 1) : null,
         ),
+      ],
+    );
+  }
+
+  /// Sesli dinleme (Kur'an duaları) ve Diyanet'in okunuş videosu.
+  Widget _listenRow(Dua d) {
+    final buttons = <Widget>[
+      if (d.hasAudio)
+        DarkButton(
+          label: _playing ? 'Durdur' : (_busy ? 'Yükleniyor…' : 'Sesli Dinle'),
+          onTap: () => _toggleListen(d),
+        ),
+      if (d.videos.isNotEmpty)
+        DarkButton(
+          label: 'Videolu Dinle',
+          onTap: () {
+            _player?.pause();
+            final list = videosFor('dualar');
+            final i = list.indexWhere((v) => v.id == d.videos.first);
+            Navigator.of(context)
+                .push(MaterialPageRoute(builder: (_) => VideoScreen(videos: list, index: i < 0 ? 0 : i)));
+          },
+        ),
+    ];
+    return Row(
+      children: [
+        for (var i = 0; i < buttons.length; i++) ...[
+          if (i > 0) const SizedBox(width: 8),
+          Expanded(child: buttons[i]),
+        ],
       ],
     );
   }
@@ -160,9 +257,12 @@ class _PrayerReadScreenState extends State<PrayerReadScreen> {
           DashedLine(color: _pal.line),
           const SizedBox(height: 8),
           Text(
-            d.fromMeal
-                ? 'Anlam, ayetin mealidir (Ruvvâd Tercüme Merkezi, QuranEnc.com). Kaynak: ${d.source}'
-                : 'Kaynak: ${d.source}',
+            [
+              d.fromMeal
+                  ? 'Anlam, ayetin mealidir (Ruvvâd Tercüme Merkezi, QuranEnc.com). Kaynak: ${d.source}'
+                  : 'Kaynak: ${d.source}',
+              if (d.hasAudio) 'Ses: ${kQuranReciter.name} (murattal); ayetin tamamı okunur.',
+            ].join('\n'),
             style: TextStyle(fontSize: 12, color: _pal.ink2),
           ),
         ],
