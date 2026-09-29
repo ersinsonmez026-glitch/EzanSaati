@@ -10,6 +10,7 @@ jobs:
   kaynak:
     runs-on: ubuntu-latest
     steps:
+      - run: sudo /usr/bin/python -m pip install -q --break-system-packages pypdf
       - shell: python
         run: |
           import json, re, urllib.request, urllib.parse, time, html as H
@@ -51,7 +52,6 @@ jobs:
                       full=urllib.parse.urljoin(u,H.unescape(href)); out.append(full); print('  ',full,'|',t[:90])
               return out
           import subprocess, io
-          subprocess.run(['pip','install','-q','pypdf'],check=False)
           from pypdf import PdfReader
           def pdf(u,name):
               print('\n##### PDF:',name)
