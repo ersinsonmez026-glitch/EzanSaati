@@ -33,9 +33,9 @@ flutter run
 | Ezan bildirimleri (vakit vakit aç/kapa, sesli/sessiz, titreşim, vakit öncesi hatırlatma, kandil ve bayram hatırlatması; internetsiz, 10 gün ileriye kurulur) | ✅ |
 | Dini Mesajlar (96 mesaj: 41 ayetli Cuma, 20 Kandil, 20 Bayram, Ramazan, Sabah, Dua; günün mesajı, arama, kategori, favori, görsel paylaşma) | ✅ |
 | Ramazan (geri sayım, şehre göre imsakiye, niyet ve dualar, 2027 önemli günler) | ✅ |
-| Dua Çemberi – 1. aşama (çember kurma, rehberden kişi seçme, paylaştırma, WhatsApp daveti; veriler telefonda) | ✅ |
-| Dua Çemberi – 2. aşama (Firebase: uygulama içi davet/kabul/ret, ortak ilerleme ve tamamlanma) | ✅ (konsol ayarı gerekli, aşağıda) |
-| Dua Çemberi – Online Dua genel toplamı, uygulama kapalıyken bildirim | ⏳ |
+| Dua Zinciri – 1. aşama (zincir kurma, rehberden kişi seçme, paylaştırma, WhatsApp daveti; veriler telefonda) | ✅ |
+| Dua Zinciri – 2. aşama (Firebase: uygulama içi davet/kabul/ret, ortak ilerleme ve tamamlanma) | ✅ (konsol ayarı gerekli, aşağıda) |
+| Dua Zinciri – Online Dua genel toplamı, uygulama kapalıyken bildirim | ⏳ |
 | Hadisler (15 hadis, günün hadisi, arama, favoriler, Arapça ve açıklama; HadeethEnc.com'dan metin değiştirilmeden çekilir, telefonda saklanır) | ✅ |
 
 ## Klasörler
@@ -49,7 +49,7 @@ flutter run
 - `assets/images/` – tuş ve arka plan görselleri
 - `android/app/src/main/kotlin/.../MainActivity.kt` – Android pusula sensörü
 
-## Dua Çemberi — Firebase (ücretsiz Spark planı)
+## Dua Zinciri — Firebase (ücretsiz Spark planı)
 
 Paket adı: `com.ezansaati.app`. Yapılandırma: `android/app/google-services.json`,
 `lib/firebase_options.dart`. Yalnızca **Anonim Giriş** ve **Cloud Firestore** kullanılır

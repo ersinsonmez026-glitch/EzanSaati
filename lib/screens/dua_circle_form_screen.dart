@@ -8,8 +8,8 @@ import '../widgets/reading_ui.dart';
 import 'dua_circle_screen.dart' show typeIcon;
 import '../widgets/gold_icon.dart';
 
-/// Yeni çember oluşturma ya da mevcut çemberi düzenleme.
-/// Sonuç olarak kaydedilen çember döner.
+/// Yeni zincir oluşturma ya da mevcut zinciri düzenleme.
+/// Sonuç olarak kaydedilen zincir döner.
 class DuaCircleFormScreen extends StatefulWidget {
   final DuaCircle? circle;
   final (String, String, int)? template;
@@ -175,7 +175,7 @@ class _DuaCircleFormScreenState extends State<DuaCircleFormScreen> {
   String? _validate() {
     final total = _totalValue;
     if (_name.text.trim().isEmpty) {
-      return _type == 'ozel' ? 'Okunacak duanın adını yazın' : 'Çembere bir ad verin';
+      return _type == 'ozel' ? 'Okunacak duanın adını yazın' : 'Zincire bir ad verin';
     }
     if (total < 1) return 'Toplam adet en az 1 olmalı';
     if (_rows.length < 2) return 'Rehberden en az bir kişi ekleyin';
@@ -201,7 +201,7 @@ class _DuaCircleFormScreenState extends State<DuaCircleFormScreen> {
       showNote(context, err);
       return;
     }
-    // Ortak çemberde davet edilenler kurucunun adını görür.
+    // Ortak zincirde davet edilenler kurucunun adını görür.
     final sync = CircleSync.instance;
     if (!_editing && sync.ready && sync.profileName.isEmpty) {
       final name = await showDialog<String>(context: context, builder: (_) => const _NameDialog());
@@ -252,7 +252,7 @@ class _DuaCircleFormScreenState extends State<DuaCircleFormScreen> {
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Çember silinsin mi?'),
+        title: const Text('Zincir silinsin mi?'),
         content: Text(widget.circle!.remote
             ? '"${widget.circle!.name}" ve tüm ilerlemesi bütün katılımcılar için silinecek.'
             : '"${widget.circle!.name}" ve tüm ilerlemesi bu telefondan silinecek.'),
@@ -320,7 +320,7 @@ class _DuaCircleFormScreenState extends State<DuaCircleFormScreen> {
     final total = _totalValue, sum = _sum;
     final type = kDuaTypesByKey[_type]!;
     return PageShell(
-      title: _editing ? 'Çemberi Düzenle' : 'Yeni Çember',
+      title: _editing ? 'Zinciri Düzenle' : 'Yeni Zincir',
       background: _pal.background,
       padding: const EdgeInsets.fromLTRB(12, 12, 12, 28),
       children: [
@@ -424,14 +424,14 @@ class _DuaCircleFormScreenState extends State<DuaCircleFormScreen> {
                   colors: [Color(0xFFE6C35A), Color(0xFFC29A2C)],
                 ),
               ),
-              child: Text(_editing ? 'Kaydet' : 'Çemberi oluştur ve davet gönder',
+              child: Text(_editing ? 'Kaydet' : 'Zinciri oluştur ve davet gönder',
                   style: const TextStyle(color: Color(0xFF1D1406), fontSize: 15, fontWeight: FontWeight.w700)),
             ),
           ),
         ),
         if (_editing) ...[
           const SizedBox(height: 10),
-          DarkButton(label: 'Çemberi sil', onTap: _delete),
+          DarkButton(label: 'Zinciri sil', onTap: _delete),
         ],
       ],
     );
@@ -694,7 +694,7 @@ class _PersonDialogState extends State<_PersonDialog> {
   }
 }
 
-/// Ortak çember kurulurken kurucunun adı (davet edilenler görür).
+/// Ortak zincir kurulurken kurucunun adı (davet edilenler görür).
 class _NameDialog extends StatefulWidget {
   const _NameDialog();
 

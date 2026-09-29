@@ -2,7 +2,7 @@ import 'package:firebase_core/firebase_core.dart';
 
 /// Firebase ayarları (android/app/google-services.json ile aynı değerler).
 /// Proje: ezansaati-premium-2026 — ücretsiz Spark planı.
-/// Yalnızca Android uygulaması kayıtlı; diğer platformlarda Dua Çemberi
+/// Yalnızca Android uygulaması kayıtlı; diğer platformlarda Dua Zinciri
 /// telefonda (sunucusuz) çalışmaya devam eder.
 class DefaultFirebaseOptions {
   static const android = FirebaseOptions(

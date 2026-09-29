@@ -33,7 +33,7 @@ class AboutScreen extends StatelessWidget {
                 'kıble ve takvim internetsiz olarak telefonda hesaplanır. Cami Bulucu açıldığında yakındaki camileri '
                 'bulmak için konumunuz OpenStreetMap sunucusuna (Overpass) gönderilir; kimliğiniz gönderilmez.'),
             para('Zikir sayıları, favoriler, kaldığınız yer ve ayarlar yalnızca bu telefonda tutulur.'),
-            para('Dua Çemberi: Ortak çemberler Google Firebase üzerinde anonim bir hesapla tutulur. Sunucuda çember '
+            para('Dua Zinciri: Ortak zincirler Google Firebase üzerinde anonim bir hesapla tutulur. Sunucuda zincir '
                 'adı, niyet, kişi adları ve okunan sayılar bulunur. Telefon numaraları sunucuya yazılmaz; davet '
                 'eşleştirmesi için numaradan üretilen tek yönlü özet saklanır ve davet kabul edilince silinir. Rehber '
                 'yalnızca davet edilecek kişiyi seçmek için kullanılır.'),

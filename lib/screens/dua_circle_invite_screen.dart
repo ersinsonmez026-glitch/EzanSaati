@@ -99,7 +99,7 @@ class _DuaCircleInviteScreenState extends State<DuaCircleInviteScreen> {
           style: TextStyle(color: _pal.ink2, fontSize: 12, height: 1.45),
         ),
         const SizedBox(height: 12),
-        DarkButton(label: 'Çembere git', onTap: () => Navigator.of(context).pop()),
+        DarkButton(label: 'Zincire git', onTap: () => Navigator.of(context).pop()),
       ],
     );
   }

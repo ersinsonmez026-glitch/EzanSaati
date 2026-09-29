@@ -19,7 +19,7 @@ premium bir sete geçirilecek. Tüm simgeler TEK SETTE ve AYNI TARZDA hazırlanm
 - [x] Zikir Sayacı — tesbih (33 tane, püsküllü)
 - [x] Kıble Bulucu — pusula, ibrenin ucunda Kâbe
 - [x] Cami Bulucu — konum iğnesi içinde cami silueti
-- [x] Dua Çemberi — halka şeklinde birbirine bağlı kişiler / dua eden eller çemberi
+- [x] Dua Zinciri — halka şeklinde birbirine bağlı kişiler / dua eden eller zinciri
 - [x] Hadisler — kapalı kitap üzerinde mühür / hat süsü
 - [x] Ramazan — Ramazan feneri, yanında hilal
 - [x] Namaz Öğren — seccade üzerinde namaz kılan figür silueti
@@ -35,7 +35,7 @@ premium bir sete geçirilecek. Tüm simgeler TEK SETTE ve AYNI TARZDA hazırlanm
       bayram (cami kubbesi), kadir gecesi (yıldız), bildirim (çan), kum saati, onay rozeti
 - [ ] Favori (kalp dolu/boş), kopyala, paylaş, sesli dinle (kulaklık), oynat/duraklat, önceki/sonraki,
       arama (büyüteç), geri al, sıfırla, titreşim, kapat, bilgi, uyarı
-- [ ] Dua Çemberi: kişi ekle, kişi çıkar, kişi grubu, WhatsApp tarzı konuşma balonu, bağlantı (link), onaylı rozet
+- [ ] Dua Zinciri: kişi ekle, kişi çıkar, kişi grubu, WhatsApp tarzı konuşma balonu, bağlantı (link), onaylı rozet
 - [ ] Namaz Öğren: su damlası (abdest), seccade
 
 ## 1d. Ana ekran Ramazan kartı (isteğe bağlı yenileme)

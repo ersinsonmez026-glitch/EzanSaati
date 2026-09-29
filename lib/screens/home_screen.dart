@@ -52,7 +52,7 @@ class _HomeScreenState extends State<HomeScreen> {
     _MenuItem('zikir_sayaci', 'Zikir Sayacı', 'tesbih', () => const DhikrScreen()),
     _MenuItem('kible_bulucu', 'Kıble Bulucu', 'kible_bulucu', () => const QiblaScreen()),
     _MenuItem('cami_bulucu', 'Cami Bulucu', 'cami_bulucu', () => const MosqueFinderScreen()),
-    _MenuItem('dua_cemberi', 'Dua Çemberi', 'dua_cemberi', () => const DuaCircleScreen()),
+    _MenuItem('dua_cemberi', 'Dua Zinciri', 'dua_cemberi', () => const DuaCircleScreen()),
     _MenuItem('hadisler', 'Hadisler', 'hadisler', () => const HadithsScreen()),
     _MenuItem('ramazan', 'Ramazan', 'fener', () => const RamadanScreen()),
     _MenuItem('namaz_ogren', 'Namaz Öğren', 'cami', () => const LearnNamazScreen()),

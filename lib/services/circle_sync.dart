@@ -13,7 +13,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../firebase_options.dart';
 import 'dua_circle_store.dart';
 
-/// Dua Çemberi'nin ortak (sunuculu) kısmı: Firebase ücretsiz Spark planı.
+/// Dua Zinciri'nin ortak (sunuculu) kısmı: Firebase ücretsiz Spark planı.
 ///
 /// Kullanılan servisler yalnızca Anonim Giriş ve Cloud Firestore'dur.
 /// Telefon numaraları sunucuya yazılmaz; davetleri eşleştirmek için yalnızca
@@ -22,10 +22,10 @@ import 'dua_circle_store.dart';
 ///
 /// Firestore yapısı (kurallar: firestore.rules):
 /// * users/{uid}                  — ad ve kendi numarasının özeti
-/// * circles/{cid}                — çemberin ortak bilgileri, üyelerin uid listesi
+/// * circles/{cid}                — zincirin ortak bilgileri, üyelerin uid listesi
 /// * circles/{cid}/members/{mid}  — kişi başına pay, okunan, durum
 ///                                  (kurucu: mid = uid; davetli: mid = davet kodu)
-/// * invites/{kod}                — davet kodundan çembere ulaşmak için
+/// * invites/{kod}                — davet kodundan zincire ulaşmak için
 enum SyncState { off, connecting, ready, error }
 
 /// Kişiye gelen, henüz yanıtlanmamış davet.
@@ -141,7 +141,7 @@ class CircleSync extends ChangeNotifier {
 
   // ---------------- Başlatma ----------------
 
-  /// Firebase'e bağlanır (yalnız Android). Başarısız olursa çemberler telefonda çalışmaya devam eder.
+  /// Firebase'e bağlanır (yalnız Android). Başarısız olursa zincirler telefonda çalışmaya devam eder.
   Future<void> start() => _starting ??= _start();
 
   Future<void> _start() async {
@@ -295,7 +295,7 @@ class CircleSync extends ChangeNotifier {
       if (docs == null) continue;
       final c = circleFromFirestore(e.key, e.value, [for (final d in docs) (d.id, d.data())], _uid ?? '', phones);
       if (c.mine) _ownerCleanup(c, now);
-      // Süresi geçmiş ve tamamlanmamış çemberler üyelere gösterilmez (kurucu silene kadar).
+      // Süresi geçmiş ve tamamlanmamış zincirler üyelere gösterilmez (kurucu silene kadar).
       if (!c.isComplete && !now.isBefore(c.deadline)) continue;
       list.add(c);
     }
@@ -341,7 +341,7 @@ class CircleSync extends ChangeNotifier {
     }
   }
 
-  /// Yeni çemberi sunucuya yazar. Davetlilere kod verilir (üyelerin [CircleMember.key] alanı).
+  /// Yeni zinciri sunucuya yazar. Davetlilere kod verilir (üyelerin [CircleMember.key] alanı).
   Future<DuaCircle> createCircle(DuaCircle c) async {
     final db = _db!, uid = _uid!;
     final now = DateTime.now();
@@ -507,7 +507,7 @@ class CircleSync extends ChangeNotifier {
 
   /// Kurucu tarafında süre kuralları:
   /// * 24 saatte yanıt vermeyen ya da reddeden kişinin payı kurucuya döner.
-  /// * Son günü geçen ve tamamlanmamış çember silinir; tamamlananlar saklanır.
+  /// * Son günü geçen ve tamamlanmamış zincir silinir; tamamlananlar saklanır.
   void _ownerCleanup(DuaCircle c, DateTime now) {
     if (_cleaning.contains(c.id)) return;
     final db = _db;
@@ -583,7 +583,7 @@ class CircleSync extends ChangeNotifier {
     _p?.setStringList(_codesKey, codes);
   }
 
-  /// Daveti kabul eder: kişi çemberin üyesi olur, payı ona ait olur.
+  /// Daveti kabul eder: kişi zincirin üyesi olur, payı ona ait olur.
   Future<void> accept(CircleInvite i) async {
     final db = _db!, uid = _uid!;
     final ref = db.collection('circles').doc(i.circleId);

@@ -5,7 +5,7 @@ import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-/// Ortak Dua Çemberi akışı: iki telefon (kurucu "alice", davetli "bob") aynı
+/// Ortak Dua Zinciri akışı: iki telefon (kurucu "alice", davetli "bob") aynı
 /// Firestore'u sırayla kullanır. Güvenlik kuralları ayrıca emülatörde test edilir
 /// (test_rules/).
 void main() {
@@ -76,7 +76,7 @@ void main() {
     expect(phoneHash('123'), '');
   });
 
-  test('Kurucu ortak çember kurar; telefon numarası sunucuya açık yazılmaz', () async {
+  test('Kurucu ortak zincir kurar; telefon numarası sunucuya açık yazılmaz', () async {
     final c = await aliceCreates();
     expect(c.remote, isTrue);
     final code = c.members.firstWhere((m) => !m.isOwner).key;
@@ -191,14 +191,14 @@ void main() {
     expect(mine.notice, contains('24 saat içinde yanıt vermedi'));
   });
 
-  test('Son günü geçen tamamlanmamış çember silinir, tamamlanan saklanır', () async {
+  test('Son günü geçen tamamlanmamış zincir silinir, tamamlanan saklanır', () async {
     final open = await aliceCreates();
     final done = await aliceCreates();
     Future<void> expire(String id) => db.collection('circles').doc(id).update({
           'endDate': '2020-01-01',
           'deadline': Timestamp.fromDate(DateTime(2020, 1, 2)),
         });
-    // İkinci çemberi tamamla: kurucu kendi payını, davetliyi elle katılımcı yapıp payını girer
+    // İkinci zinciri tamamla: kurucu kendi payını, davetliyi elle katılımcı yapıp payını girer
     var d = remote().firstWhere((c) => c.id == done.id);
     await store.accept(d, d.pending.single);
     await pumpEventQueue();

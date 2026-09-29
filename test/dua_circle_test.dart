@@ -14,7 +14,7 @@ DuaCircle _circle({
     DuaCircle(
       id: id,
       type: 'salavat',
-      name: 'Çember $id',
+      name: 'Zincir $id',
       total: total,
       created: created,
       end: end,
@@ -30,7 +30,7 @@ void main() {
 
   setUp(() => SharedPreferences.setMockInitialValues({}));
 
-  group('Dua Çemberi kuralları', () {
+  group('Dua Zinciri kuralları', () {
     test('Eşit bölme: artan adet baştakilere verilir, toplam korunur', () {
       expect(splitEvenly(110, 3), [37, 37, 36]);
       expect(splitEvenly(41, 5).reduce((a, b) => a + b), 41);
@@ -57,7 +57,7 @@ void main() {
       expect(c.notice, contains('Ali'));
     });
 
-    test('Kabul eden kişi 24 saatten sonra da çemberde kalır', () {
+    test('Kabul eden kişi 24 saatten sonra da zincirde kalır', () {
       final t0 = DateTime(2026, 10, 1, 9);
       final c = _circle(id: 'b', created: t0, end: DateTime(2026, 10, 20));
       c.members[1].status = MemberStatus.accepted;
@@ -67,7 +67,7 @@ void main() {
       expect(c.members.length, 2);
     });
 
-    test('Son günü geçen tamamlanmamış çember silinir, tamamlanan saklanır', () {
+    test('Son günü geçen tamamlanmamış zincir silinir, tamamlanan saklanır', () {
       final t0 = DateTime(2026, 10, 1, 9);
       final open = _circle(id: 'open', created: t0, end: DateTime(2026, 10, 5));
       final done = _circle(id: 'done', created: t0, end: DateTime(2026, 10, 5), members: [
@@ -78,7 +78,7 @@ void main() {
       expect(s.circles.length, 2, reason: 'son gün bitmeden silinmez');
       s.cleanup(DateTime(2026, 10, 6, 0, 1));
       expect(s.circles.map((c) => c.id), ['done']);
-      expect(s.takeCleanupNote(), contains('Çember open'));
+      expect(s.takeCleanupNote(), contains('Zincir open'));
     });
 
     test('Okumaya başlamamış kişi çıkarılınca payı kurucuya döner', () {
@@ -104,7 +104,7 @@ void main() {
     });
   });
 
-  testWidgets('Dua Çemberi: oluştur, toplam uyarısı, davet ve okuma ekleme', (t) async {
+  testWidgets('Dua Zinciri: oluştur, toplam uyarısı, davet ve okuma ekleme', (t) async {
     t.view.physicalSize = const Size(390, 844);
     t.view.devicePixelRatio = 1;
     addTearDown(t.view.reset);
@@ -113,9 +113,9 @@ void main() {
     await t.pumpWidget(const MaterialApp(home: DuaCircleScreen()));
     await t.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 50)));
     await t.pumpAndSettle();
-    expect(find.textContaining('Henüz çemberiniz yok'), findsOneWidget);
+    expect(find.textContaining('Henüz zinciriniz yok'), findsOneWidget);
 
-    await t.tap(find.text('Yeni Çember').first);
+    await t.tap(find.text('Yeni Zincir').first);
     await t.pumpAndSettle();
     // Sayfa içeriği tembel kurulur; öğe görünene kadar kaydırılır.
     Future<void> show(Finder f) async {
@@ -128,8 +128,8 @@ void main() {
     }
 
     // Tek kişiyle kaydedilemez
-    await show(find.text('Çemberi oluştur ve davet gönder'));
-    await t.tap(find.text('Çemberi oluştur ve davet gönder'));
+    await show(find.text('Zinciri oluştur ve davet gönder'));
+    await t.tap(find.text('Zinciri oluştur ve davet gönder'));
     await t.pump();
     expect(find.text('Rehberden en az bir kişi ekleyin'), findsOneWidget);
     t.state<ScaffoldMessengerState>(find.byType(ScaffoldMessenger)).clearSnackBars(); // uyarı kapansın
@@ -152,8 +152,8 @@ void main() {
     await t.pumpAndSettle();
     expect(find.text('105 / 110'), findsOneWidget);
     expect(find.text('Toplam tutmuyor: 5 salavat dağıtılmadı.'), findsOneWidget);
-    await show(find.text('Çemberi oluştur ve davet gönder'));
-    await t.tap(find.text('Çemberi oluştur ve davet gönder'));
+    await show(find.text('Zinciri oluştur ve davet gönder'));
+    await t.tap(find.text('Zinciri oluştur ve davet gönder'));
     await t.pump();
     expect(find.textContaining('hedefle (110) aynı olmalı'), findsOneWidget);
     t.state<ScaffoldMessengerState>(find.byType(ScaffoldMessenger)).clearSnackBars(); // uyarı kapansın
@@ -164,19 +164,19 @@ void main() {
     await t.enterText(find.byKey(const ValueKey('share:Ali Yılmaz')), '50');
     await t.pumpAndSettle();
     expect(find.text('110 / 110'), findsOneWidget);
-    await show(find.text('Çemberi oluştur ve davet gönder'));
-    await t.tap(find.text('Çemberi oluştur ve davet gönder'));
+    await show(find.text('Zinciri oluştur ve davet gönder'));
+    await t.tap(find.text('Zinciri oluştur ve davet gönder'));
     await t.pumpAndSettle();
 
     // Davet ekranı
     expect(find.text('Davet Gönder'), findsOneWidget);
     expect(find.text('Görevi: 50 salavat'), findsOneWidget);
     expect(find.textContaining('Sana düşen: 50 salavat'), findsOneWidget);
-    await show(find.text('Çembere git'));
-    await t.tap(find.text('Çembere git'));
+    await show(find.text('Zincire git'));
+    await t.tap(find.text('Zincire git'));
     await t.pumpAndSettle();
 
-    // Çember kartı
+    // Zincir kartı
     expect(find.text('110 Salavat'), findsWidgets);
     expect(find.text('0 / 60'), findsOneWidget);
     expect(find.textContaining('1 kişi henüz kabul etmedi'), findsOneWidget);

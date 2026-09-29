@@ -6,11 +6,11 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'circle_sync.dart';
 
-/// Dua Çemberi: bir görevi (salavat, Yasin, hatim…) kişilere bölüştürme.
+/// Dua Zinciri: bir görevi (salavat, Yasin, hatim…) kişilere bölüştürme.
 ///
-/// İki tür çember vardır:
-/// * Telefonda tutulan çemberler (1. aşama; Firebase bağlantısı yokken de kurulur).
-/// * Ortak çemberler (2. aşama): Firebase'de tutulur, davet/kabul ve ilerleme
+/// İki tür zincir vardır:
+/// * Telefonda tutulan zincirler (1. aşama; Firebase bağlantısı yokken de kurulur).
+/// * Ortak zincirler (2. aşama): Firebase'de tutulur, davet/kabul ve ilerleme
 ///   herkes için eşitlenir. Bkz. circle_sync.dart.
 
 /// Dua türü. [key] 'ozel' ise duanın adını kişi kendisi yazar.
@@ -32,7 +32,7 @@ const kDuaTypes = [
   DuaType('ozel', 'Özel', 'adet', 100),
 ];
 
-/// Önerilen hazır çemberler: (tür, ad, toplam).
+/// Önerilen hazır zincirler: (tür, ad, toplam).
 const kCircleTemplates = [
   ('yasin', '41 Yasin', 41),
   ('ihlas', '1000 İhlas', 1000),
@@ -42,7 +42,7 @@ const kCircleTemplates = [
   ('ozel', '70.000 Kelime-i Tevhid', 70000),
 ];
 
-/// Çemberin en uzun süresi (gün) ve davete yanıt süresi.
+/// Zincirin en uzun süresi (gün) ve davete yanıt süresi.
 const kCircleMaxDays = 30;
 const kInviteHours = 24;
 
@@ -50,18 +50,18 @@ const kInviteHours = 24;
 /// çıkınca buraya yazılacak; boşken mesaja bağlantı eklenmez.
 const kAppLink = '';
 
-/// [me]: çemberi kuran kişi (adı eski kayıtlarla uyum için korunuyor).
+/// [me]: zinciri kuran kişi (adı eski kayıtlarla uyum için korunuyor).
 enum MemberStatus { me, pending, accepted, declined }
 
 class CircleMember {
-  String key; // ortak çemberde belge kimliği (kurucu: uid, davetli: davet kodu)
+  String key; // ortak zincirde belge kimliği (kurucu: uid, davetli: davet kodu)
   String name;
   String phone; // yalnız bu telefonda tutulur, sunucuya yazılmaz
   int share; // bu kişiye düşen adet
   int done; // okuduğu adet
   MemberStatus status;
   DateTime invitedAt;
-  String? uid; // ortak çemberde katılan kişinin kimliği
+  String? uid; // ortak zincirde katılan kişinin kimliği
   bool self; // bu telefondaki kişi mi
 
   CircleMember({
@@ -123,7 +123,7 @@ class DuaCircle {
   DateTime end; // son gün (gün sonuna kadar)
   List<CircleMember> members;
   String notice; // kurucuya bilgi (ör. yanıt vermeyenin payı döndü)
-  bool remote; // ortak (Firebase) çember mi
+  bool remote; // ortak (Firebase) zincir mi
   bool mine; // bu telefondaki kişi mi kurdu
   String ownerUid;
   String ownerName;
@@ -247,22 +247,22 @@ String trNum(int n) {
 String inviteMessage(DuaCircle c, CircleMember m) {
   final first = m.name.trim().split(RegExp(r'\s+')).first;
   final b = StringBuffer()
-    ..write('Selamün aleyküm $first, "${c.name}" dua çemberine seni davet ediyorum. ')
+    ..write('Selamün aleyküm $first, "${c.name}" dua zincirine seni davet ediyorum. ')
     ..write('Sana düşen: ${trNum(m.share)} ${c.unit}.');
   if (c.intent.isNotEmpty) b.write('\nNiyet: ${c.intent}');
   b.write('\nSon gün: ${trDate(c.end)}. Davet $kInviteHours saat geçerlidir.');
   if (c.remote && m.key.isNotEmpty) {
     b.write('\nDavet kodun: ${formatCode(m.key)}');
-    b.write('\nEzan Saati uygulamasında Dua Çemberi > Davetler bölümüne bu kodu yazarak katılabilirsin.');
+    b.write('\nEzan Saati uygulamasında Dua Zinciri > Davetler bölümüne bu kodu yazarak katılabilirsin.');
   } else {
-    b.write('\nEzan Saati uygulamasındaki Dua Çemberi bölümünden katılabilirsin.');
+    b.write('\nEzan Saati uygulamasındaki Dua Zinciri bölümünden katılabilirsin.');
   }
   if (kAppLink.isNotEmpty) b.write('\nUygulama yüklü değilse: $kAppLink');
   return b.toString();
 }
 
-/// Çemberlerin kaydı. Telefondaki çemberler SharedPreferences'ta (JSON) tutulur;
-/// ortak çemberler [CircleSync] tarafından Firestore'dan gelir.
+/// Zincirlerin kaydı. Telefondaki zincirler SharedPreferences'ta (JSON) tutulur;
+/// ortak zincirler [CircleSync] tarafından Firestore'dan gelir.
 class DuaCircleStore extends ChangeNotifier {
   DuaCircleStore._();
   static final instance = DuaCircleStore._();
@@ -274,11 +274,11 @@ class DuaCircleStore extends ChangeNotifier {
   List<DuaCircle> _remote = [];
   String _lastCleanup = '';
 
-  /// Ortak ve telefondaki çemberler, yeniden eskiye.
+  /// Ortak ve telefondaki zincirler, yeniden eskiye.
   List<DuaCircle> get circles =>
       List.unmodifiable([..._remote, ..._circles]..sort((a, b) => b.created.compareTo(a.created)));
 
-  /// Son temizlikte silinen çemberlerin adları (bir kez gösterilir).
+  /// Son temizlikte silinen zincirlerin adları (bir kez gösterilir).
   String takeCleanupNote() {
     final s = _lastCleanup;
     _lastCleanup = '';
@@ -302,7 +302,7 @@ class DuaCircleStore extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Ortak çemberler (CircleSync'ten).
+  /// Ortak zincirler (CircleSync'ten).
   void setRemote(List<DuaCircle> list) {
     _remote = list;
     notifyListeners();
@@ -310,9 +310,9 @@ class DuaCircleStore extends ChangeNotifier {
 
   void notifyRemoteChanged() => notifyListeners();
 
-  /// Süre kurallarını telefondaki çemberlere uygular (ortak çemberlerde CircleSync uygular):
+  /// Süre kurallarını telefondaki zincirlere uygular (ortak zincirlerde CircleSync uygular):
   /// * 24 saat içinde yanıt vermeyen davetlinin payı kurucuya döner.
-  /// * Son günü geçen ve tamamlanmamış çemberler silinir; tamamlananlar saklanır.
+  /// * Son günü geçen ve tamamlanmamış zincirler silinir; tamamlananlar saklanır.
   /// Değişiklik olduysa true döner.
   @visibleForTesting
   bool cleanup(DateTime now) {
@@ -328,7 +328,7 @@ class DuaCircleStore extends ChangeNotifier {
     if (removed.isNotEmpty) {
       changed = true;
       _lastCleanup =
-          'Süresi dolan ${removed.length == 1 ? '"${removed.first}" çemberi' : '${removed.length} çember'} silindi.';
+          'Süresi dolan ${removed.length == 1 ? '"${removed.first}" zinciri' : '${removed.length} zincir'} silindi.';
     }
     for (final c in _circles) {
       final late = c.pending.where((m) => m.inviteLeft(now) <= Duration.zero).toList();
@@ -353,7 +353,7 @@ class DuaCircleStore extends ChangeNotifier {
     return null;
   }
 
-  /// Telefondaki çemberi ekler ya da günceller.
+  /// Telefondaki zinciri ekler ya da günceller.
   void upsert(DuaCircle c) {
     final i = _circles.indexWhere((x) => x.id == c.id);
     if (i < 0) {
@@ -364,8 +364,8 @@ class DuaCircleStore extends ChangeNotifier {
     _save();
   }
 
-  /// Formdan gelen çemberi kaydeder. Firebase bağlıysa yeni çember ortak kurulur;
-  /// telefondaki (1. aşama) çemberler telefonda kalır.
+  /// Formdan gelen zinciri kaydeder. Firebase bağlıysa yeni zincir ortak kurulur;
+  /// telefondaki (1. aşama) zincirler telefonda kalır.
   Future<DuaCircle> save(DuaCircle c, {required bool isNew}) async {
     final sync = CircleSync.instance;
     if (c.remote) {

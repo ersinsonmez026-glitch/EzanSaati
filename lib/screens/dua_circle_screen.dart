@@ -9,8 +9,8 @@ import 'dua_circle_form_screen.dart';
 import 'dua_circle_invite_screen.dart';
 import '../widgets/gold_icon.dart';
 
-/// Dua Çemberi ana sayfası (onizleme/10-dua-zinciri.html): solda menü, sağda
-/// seçili çemberin kartı, altta diğer çemberler.
+/// Dua Zinciri ana sayfası (onizleme/10-dua-zinciri.html): solda menü, sağda
+/// seçili zincirin kartı, altta diğer zincirler.
 class DuaCircleScreen extends StatefulWidget {
   const DuaCircleScreen({super.key});
 
@@ -108,7 +108,7 @@ class _DuaCircleScreenState extends State<DuaCircleScreen> {
   Widget build(BuildContext context) {
     final cur = _current;
     return PageShell(
-      title: 'Dua Çemberi',
+      title: 'Dua Zinciri',
       background: _pal.background,
       padding: const EdgeInsets.fromLTRB(10, 12, 10, 24),
       children: !_store.loaded
@@ -131,7 +131,7 @@ class _DuaCircleScreenState extends State<DuaCircleScreen> {
                 const SizedBox(height: 16),
                 SectionHead(
                   pal: _pal,
-                  title: 'Diğer Çemberlerim',
+                  title: 'Diğer Zincirlerim',
                   trailing: Text('Seçmek için dokunun', style: TextStyle(color: _pal.ink2, fontSize: 12)),
                 ),
                 const SizedBox(height: 8),
@@ -140,8 +140,8 @@ class _DuaCircleScreenState extends State<DuaCircleScreen> {
               const SizedBox(height: 12),
               SourceNote(
                 pal: _pal,
-                text: 'Dua Çemberi: bir görevi (salavat, Yasin, hatim…) sevdiklerinizle bölüşün. '
-                    '${_sync.ready ? 'Çemberler katılımcılarla eşitlenir; telefon numaraları sunucuya yazılmaz.' : 'İnternet bağlantısı olmadan kurulan çemberler yalnızca bu telefonda tutulur.'}',
+                text: 'Dua Zinciri: bir görevi (salavat, Yasin, hatim…) sevdiklerinizle bölüşün. '
+                    '${_sync.ready ? 'Zincirler katılımcılarla eşitlenir; telefon numaraları sunucuya yazılmaz.' : 'İnternet bağlantısı olmadan kurulan zincirler yalnızca bu telefonda tutulur.'}',
               ),
             ],
     );
@@ -155,12 +155,12 @@ class _DuaCircleScreenState extends State<DuaCircleScreen> {
     final mine = all.where((c) => c.mine).length;
     final inv = _sync.invites.length;
     final items = [
-      ('mine', Icons.link, 'Çemberlerim', '$mine çember'),
-      ('joined', Icons.group, 'Katıldıklarım', '${all.length - mine} çember'),
-      ('new', Icons.add_circle, 'Yeni Çember', 'Oluştur'),
+      ('mine', Icons.link, 'Zincirlerim', '$mine zincir'),
+      ('joined', Icons.group, 'Katıldıklarım', '${all.length - mine} zincir'),
+      ('new', Icons.add_circle, 'Yeni Zincir', 'Oluştur'),
       ('sug', Icons.menu_book, 'Önerilenler', 'Hazır görevler'),
-      ('act', Icons.schedule, 'Devam Eden', '$act çember'),
-      ('fin', Icons.verified, 'Tamamlanan', '${all.length - act} çember'),
+      ('act', Icons.schedule, 'Devam Eden', '$act zincir'),
+      ('fin', Icons.verified, 'Tamamlanan', '${all.length - act} zincir'),
       ('inv', Icons.mail, 'Davetler', inv > 0 ? '$inv bekliyor' : 'Yok'),
       ('online', Icons.groups, 'Online Dua', 'Toplam'),
       ('set', Icons.settings, 'Ayarlar', 'Profil, kurallar'),
@@ -197,11 +197,11 @@ class _DuaCircleScreenState extends State<DuaCircleScreen> {
       case 'fin':
         if (cur != null) return _circlePane(cur);
         return _info(
-          const {'mine': 'Çemberlerim', 'act': 'Devam Edenler', 'fin': 'Tamamlananlar'}[_menu]!,
+          const {'mine': 'Zincirlerim', 'act': 'Devam Edenler', 'fin': 'Tamamlananlar'}[_menu]!,
           _menu == 'fin'
-              ? 'Tamamlanan çemberleriniz burada saklanır.'
-              : 'Henüz çemberiniz yok. Bir dua seçip sevdiklerinizle bölüşün.',
-          action: _menu == 'fin' ? null : ('Yeni Çember', () => _newCircle()),
+              ? 'Tamamlanan zincirleriniz burada saklanır.'
+              : 'Henüz zinciriniz yok. Bir dua seçip sevdiklerinizle bölüşün.',
+          action: _menu == 'fin' ? null : ('Yeni Zincir', () => _newCircle()),
         );
       case 'sug':
         return _suggestions();
@@ -209,7 +209,7 @@ class _DuaCircleScreenState extends State<DuaCircleScreen> {
         if (cur != null) return _circlePane(cur);
         return _info(
             'Katıldıklarım',
-            'Başkalarının kurduğu ve sizin kabul ettiğiniz çemberler burada görünür. '
+            'Başkalarının kurduğu ve sizin kabul ettiğiniz zincirler burada görünür. '
                 'Size gelen davetleri Davetler bölümünden kabul edebilirsiniz.');
       case 'inv':
         return _invites();
@@ -258,7 +258,7 @@ class _DuaCircleScreenState extends State<DuaCircleScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _heading('Önerilen Çemberler', sub: 'Dokunun, hazır ayarlarla başlasın'),
+        _heading('Önerilen Zincirler', sub: 'Dokunun, hazır ayarlarla başlasın'),
         Padding(
           padding: const EdgeInsets.fromLTRB(10, 0, 10, 10),
           child: Column(
@@ -290,12 +290,12 @@ class _DuaCircleScreenState extends State<DuaCircleScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _heading('Online Dua', sub: 'Çemberlerde okuduklarınızın toplamı'),
+        _heading('Online Dua', sub: 'Zincirlerde okuduklarınızın toplamı'),
         const Padding(
           padding: EdgeInsets.fromLTRB(12, 0, 12, 12),
           child: Text(
             'Herkesin toplamı sunucu bağlantısı kurulduğunda burada canlı görünecek. '
-            'Şimdilik bu telefonda çemberlerde okuduklarınız:',
+            'Şimdilik bu telefonda zincirlerde okuduklarınız:',
             textAlign: TextAlign.center,
             style: TextStyle(color: RC.creamSoft, fontSize: 12, height: 1.5),
           ),
@@ -333,15 +333,15 @@ class _DuaCircleScreenState extends State<DuaCircleScreen> {
 
   Widget _rules() {
     const rules = [
-      'Çemberin son günü en fazla $kCircleMaxDays gün sonrası olabilir.',
-      'Son günü geçen ve tamamlanmamış çemberler silinir; tamamlananlar saklanır.',
+      'Zincirin son günü en fazla $kCircleMaxDays gün sonrası olabilir.',
+      'Son günü geçen ve tamamlanmamış zincirler silinir; tamamlananlar saklanır.',
       'Davete $kInviteHours saat içinde yanıt vermeyen kişinin payı size döner; dilerseniz başkasına verebilirsiniz.',
       'Paylar eşit olmak zorunda değildir; toplamı hedefle aynı olmalıdır.',
     ];
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _heading('Çember kuralları'),
+        _heading('Zincir kuralları'),
         Padding(
           padding: const EdgeInsets.fromLTRB(12, 0, 12, 6),
           child: Column(
@@ -380,10 +380,10 @@ class _DuaCircleScreenState extends State<DuaCircleScreen> {
   // ---------------- Davetler ve ayarlar ----------------
 
   String get _syncText => switch (_sync.state) {
-        SyncState.ready => 'Bağlı: çemberler katılımcılarla eşitleniyor.',
+        SyncState.ready => 'Bağlı: zincirler katılımcılarla eşitleniyor.',
         SyncState.connecting => 'Bağlanıyor…',
         SyncState.error => 'Bağlanılamadı. İnternet bağlantınızı kontrol edin.',
-        SyncState.off => 'Ortak çember bu cihazda kullanılamıyor; çemberler telefonda tutulur.',
+        SyncState.off => 'Ortak zincir bu cihazda kullanılamıyor; zincirler telefonda tutulur.',
       };
 
   Widget _paneText(String t, {double size = 12, Color color = RC.creamSoft}) => Padding(
@@ -569,7 +569,7 @@ class _DuaCircleScreenState extends State<DuaCircleScreen> {
     );
   }
 
-  // ---------------- Çember kartı ----------------
+  // ---------------- Zincir kartı ----------------
 
   Widget _circlePane(DuaCircle c) {
     final me = c.meOrNull;
@@ -589,7 +589,7 @@ class _DuaCircleScreenState extends State<DuaCircleScreen> {
               const SizedBox(height: 3),
               Text(
                   c.mine
-                      ? (!c.remote && _sync.ready ? 'Sizin çemberiniz · yalnız bu telefonda' : 'Sizin çemberiniz')
+                      ? (!c.remote && _sync.ready ? 'Sizin zinciriniz · yalnız bu telefonda' : 'Sizin zinciriniz')
                       : '${c.ownerName} oluşturdu',
                   textAlign: TextAlign.center,
                   style: const TextStyle(color: Color(0xFFE7DDC4), fontSize: 12.5)),
@@ -953,7 +953,7 @@ class _DuaCircleScreenState extends State<DuaCircleScreen> {
               item(Icons.chat, 'WhatsApp ile yaz', wa.isEmpty ? null : () => _openWhatsApp(wa, inviteMessage(c, m)),
                   sub: wa.isEmpty ? 'Telefon numarası yok' : null),
               if (m.done == 0)
-                item(Icons.person_remove, 'Çemberden çıkar', () => _store.removeMember(c, m), sub: 'Payı size döner'),
+                item(Icons.person_remove, 'Zincirden çıkar', () => _store.removeMember(c, m), sub: 'Payı size döner'),
               const SizedBox(height: 8),
             ],
           ),
@@ -982,7 +982,7 @@ class _DuaCircleScreenState extends State<DuaCircleScreen> {
     if (mounted) showNote(context, 'WhatsApp açılamadı.');
   }
 
-  // ---------------- Diğer çemberler ----------------
+  // ---------------- Diğer zincirler ----------------
 
   Widget _others(DuaCircle? cur) {
     final list = _store.circles;
