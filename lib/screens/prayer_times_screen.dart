@@ -113,6 +113,7 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
       },
       child: PageShell(
         title: _title,
+        heading: 'Namaz Vakitleri',
         background: _pal.background,
         controller: _scroll,
         padding: const EdgeInsets.fromLTRB(12, 12, 12, 24),

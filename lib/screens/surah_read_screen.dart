@@ -231,6 +231,7 @@ class _SurahReadScreenState extends State<SurahReadScreen> {
     final surah = data?.surahs[_surah - 1];
     final shell = PageShell(
       title: surah?.name ?? 'Sureler',
+      heading: 'Sureler',
       background: _pal.background,
       controller: _scroll,
       // Sesli okuma çubuğu açıkken son ayetler çubuğun altında kalmasın.

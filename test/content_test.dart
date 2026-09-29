@@ -193,7 +193,7 @@ void main() {
     });
 
     testWidgets('Ramazan: panel ve sekmeler', (t) async {
-      await pump(t, const RamadanScreen());
+      await pump(t, const RamadanScreen(), height: 1600);
       expect(find.text('İmsakiye'), findsWidgets);
       await t.tap(find.text('Önemli Günler'));
       await t.pump();
