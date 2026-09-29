@@ -33,7 +33,9 @@ jobs:
           print('url =', ii['url'], 'size =', ii['size'], 'mime =', ii['mime'])
           lic = ((m.get('License') or {}).get('value') or '').lower()
           assert lic in ('cc0', 'pd', 'public domain') or 'cc0' in lic or lic.startswith('pd'), 'Lisans CC0/kamu malı değil: ' + lic
-          urllib.request.urlretrieve(ii['url'], 'kaynak.ogg')
+          data = urllib.request.urlopen(urllib.request.Request(ii['url'], headers=UA), timeout=60).read()
+          open('kaynak.ogg', 'wb').write(data)
+          print('indirildi', len(data), 'bayt')
       - name: Sesleri hazırla
         run: |
           which ffmpeg || (sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg)
