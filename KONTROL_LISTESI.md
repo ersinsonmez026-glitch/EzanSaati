@@ -25,6 +25,10 @@ hazır ve doğrulanmış kaynaklardan birebir alındığı için listede yok. A�
       Sıkıntı anında, Yâ Hayyü yâ Kayyûm, İstiğfar, Af duası, Kalbimi dininde sabit kıl,
       Hidayet ve takva, Zikir ve şükür, Faydalı ilim, Mescide girerken/çıkarken, Evden çıkarken,
       Uyumadan önce, Uyanınca, Yemeğe başlarken, Yemekten sonra)
+- [ ] "Yemekten Sonra" duasının (Ebû Dâvûd, Tirmizî) rivayeti bazı âlimlerce zayıf sayılıyor; yerinde kalsın mı
+- [ ] Kur'an dualarının başlıkları: Diyanet Din Hizmetleri'nin "Ayetler Çerçevesinde Dua" (2024) yayınındaki
+      gibi duayı yapan kişiye ya da amacına göre verildi (ör. "Hz. Mûsâ'nın Hayır Duası", "Havârîlerin Duası",
+      "Akıl Sahiplerinin Duası"); duanın metni ve meali ayetten birebir (Tanzil, Ruvvâd)
 
 ### Kaynak gösterimleri
 - [ ] Hadis dualarındaki kitap/bölüm adları (Buhârî, Müslim, Ebû Dâvûd, Tirmizî, Nesâî, İbn Mâce)
