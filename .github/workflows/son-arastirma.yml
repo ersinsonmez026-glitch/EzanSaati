@@ -61,21 +61,29 @@ jobs:
                   print('sayfa',len(r.pages),'karakter',len(t)); return t
               except Exception as e: print('HATA',e); return ''
           o=pdf('https://diykapi.diyanet.gov.tr/api/Files/ReadFile/0193c42d-cc23-7435-cad4-eb3193469b9e','Oruç SSS')
-          z=pdf('https://diykapi.diyanet.gov.tr/api/Files/ReadFile/0193c42d-cbef-74c8-2587-94bbc2a36b70','Zekât SSS')
           def dump(name,t):
               print('\n#####BEGIN',name)
               for i in range(0,len(t),900): print('|'+t[i:i+900].replace('\n',' '))
               print('#####END',name)
-          i=o.find('28. Orucu bozan'); dump('ORUC-BOZAN',o[i:i+26000] if i>0 else o[:5000])
-          i=o.find('5. Oruç fidyesi ne demektir'); dump('ORUC-FIDYE',o[i:i+3000])
-          i=z.rfind('SADAKA-İ FITIR'); dump('FITIR',z[i:i+9000])
-          h=get('https://vakithesaplama.diyanet.gov.tr/dinigunler.php?yil=2028')
-          i=h.find('<body'); dump('VAKIT-HTML',re.sub(r'\s+',' ',h[i:]))
-          dump('TIRMIZI',re.sub(r'\n\s*\n+','\n',text(get('https://sunnah.com/tirmidhi:3507')))[:9000])
-          hh=get('https://islamansiklopedisi.org.tr/')
-          for f in re.findall(r'<form[^>]*>',hh): print('FORM',f)
-          for sl in ['rahman','kuddus','selam','mumin','muheymin','cebbar','fettah','kabz','basit','hafiz','mani','nafi','sabur','zul-celali-vel-ikram','malikul-mulk']:
+          a=o.rfind('28. Orucu bozan'); b=o.rfind('59. Ramazan ayını'); dump('BOZAN',o[a:b])
+          a=o.rfind('5. Oruç fidyesi ne demektir'); b=o.rfind('7. İmsak nedir'); dump('FIDYE',o[a:b])
+          a=o.rfind('25. Oruç fidyesi nasıl'); b=o.rfind('28. Orucu bozan'); dump('FIDYE2',o[a:b])
+          a=o.rfind('20. Oruçlu kimse abdest'); b=o.rfind('23. Fıtır sadakası'); dump('ABDEST',o[a:b])
+          for u in ['https://vakithesaplama.diyanet.gov.tr/','https://vakithesaplama.diyanet.gov.tr/dinigunler.php?yil=2028']:
+              h=get(u)
+              for href in sorted(set(re.findall(r'href="?([^" >]+)',h))):
+                  if re.search('gun|yil|2028',href,re.I): print('VH',u,'->',href)
+          SL=['rahman', 'rahim', 'melik', 'kuddus', 'selam', 'mumin', 'muheymin', 'aziz', 'cebbar', 'mutekebbir', 'halik', 'bari', 'musavvir', 'gaffar', 'kahhar', 'vehhab', 'rezzak', 'fettah', 'alim', 'kabiz', 'basit', 'hafid', 'rafi', 'muiz', 'muzil', 'semi', 'basir', 'hakem', 'adl', 'latif', 'habir', 'halim', 'azim', 'gafur', 'sekur', 'ali', 'kebir', 'hafiz', 'mukit', 'hasib', 'celil', 'kerim', 'rakib', 'mucib', 'vasi', 'hakim', 'vedud', 'mecid', 'bais', 'sehid', 'hak', 'vekil', 'kavi', 'metin', 'veli', 'hamid', 'muhsi', 'mubdi', 'muid', 'muhyi', 'mumit', 'hay', 'kayyum', 'vacid', 'macid', 'vahid', 'samed', 'kadir', 'muktedir', 'mukaddim', 'muahhir', 'evvel', 'ahir', 'zahir', 'batin', 'vali', 'muteali', 'berr', 'tevvab', 'muntekim', 'afuv', 'rauf', 'malikul-mulk', 'zul-celal-vel-ikram', 'muksit', 'cami', 'gani', 'mugni', 'mani', 'darr', 'nafi', 'nur', 'hadi', 'bedi', 'baki', 'varis', 'resid', 'sabur']
+          for n,sl in enumerate(SL,1):
               try:
-                  t=re.sub(r'\n\s*\n+','\n',text(get('https://islamansiklopedisi.org.tr/'+sl)))
-                  j=t.find('Sözlükte'); print('\nDIA',sl,'OK',len(t),'|',t[j:j+500].replace('\n',' ') if j>=0 else t[:300].replace('\n',' '))
-              except Exception as e: print('\nDIA',sl,'HATA',e)
+                  t=re.sub(r'\s+',' ',text(get('https://islamansiklopedisi.org.tr/'+sl)))
+                  title=t[:80].strip()
+                  j=t.find('Sözlükte')
+                  if 'Arama - TDV' in title:
+                      hh=get('https://islamansiklopedisi.org.tr/'+sl)
+                      ls=[x for x in re.findall(r'href="(/[a-z0-9\-]+)"',hh) if len(x)>2][:12]
+                      print('ESMA',n,sl,'ARAMA',ls)
+                  else:
+                      print('ESMA',n,sl,'|',title[:40],'|',t[j:j+420] if j>=0 else t[600:1000])
+              except Exception as e: print('ESMA',n,sl,'HATA',e)
+              time.sleep(0.5)
