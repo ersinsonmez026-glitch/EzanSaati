@@ -1,6 +1,7 @@
 import 'package:ezan_saati/screens/dua_circle_screen.dart';
 import 'package:ezan_saati/services/dua_circle_store.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -135,13 +136,16 @@ void main() {
     t.state<ScaffoldMessengerState>(find.byType(ScaffoldMessenger)).clearSnackBars(); // uyarı kapansın
     await t.pumpAndSettle();
 
-    // Numarayla kişi ekle
-    await show(find.text('Numarayla ekle'));
-    await t.tap(find.text('Numarayla ekle'));
-    await t.pumpAndSettle();
-    await t.enterText(find.widgetWithText(TextField, 'Ad Soyad'), 'Ali Yılmaz');
-    await t.enterText(find.widgetWithText(TextField, 'Telefon (WhatsApp)'), '0532 111 22 33');
-    await t.tap(find.text('Ekle'));
+    // Kişi yalnız rehberden eklenir (numarayla ekleme yok)
+    expect(find.text('Numarayla ekle'), findsNothing);
+    t.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+      const MethodChannel('ezan_saati/contacts'),
+      (call) async => {'name': 'Ali Yılmaz', 'phone': '0532 111 22 33'},
+    );
+    addTearDown(() => t.binding.defaultBinaryMessenger
+        .setMockMethodCallHandler(const MethodChannel('ezan_saati/contacts'), null));
+    await show(find.text('Rehberden seç'));
+    await t.tap(find.text('Rehberden seç'));
     await t.pumpAndSettle();
     expect(find.text('Ali Yılmaz'), findsOneWidget);
     expect(find.text('110 / 110'), findsOneWidget);

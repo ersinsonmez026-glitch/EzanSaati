@@ -52,7 +52,7 @@ void main() {
     for (final n in ['İmsak', 'Güneş', 'Öğle', 'İkindi', 'Akşam', 'Yatsı']) {
       expect(find.textContaining(n), findsWidgets, reason: n);
     }
-    expect(find.textContaining('Şimdi', findRichText: true), findsOneWidget); // "Şimdi  Yatsı" tek satır
+    expect(find.text('Şimdi'), findsNothing); // üstte yalnız kalan süre satırı
     expect(find.textContaining('vaktine kalan süre'), findsOneWidget);
     expect(find.text('Bugün'), findsOneWidget);
     await t.tap(find.bySemanticsLabel('Sonraki gün'));
@@ -76,7 +76,7 @@ void main() {
     // Geri tuşu önce Namaz Vakitleri'ne döner
     await t.binding.handlePopRoute();
     await t.pump();
-    expect(find.textContaining('Şimdi', findRichText: true), findsOneWidget); // "Şimdi  Yatsı" tek satır
+    expect(find.text('Şimdi'), findsNothing); // üstte yalnız kalan süre satırı
 
     await t.tap(find.bySemanticsLabel('Hicri Takvim'));
     await t.pump();
@@ -93,7 +93,7 @@ void main() {
     await t.pump();
     await t.binding.handlePopRoute();
     await t.pump();
-    expect(find.textContaining('Şimdi', findRichText: true), findsOneWidget); // "Şimdi  Yatsı" tek satır
+    expect(find.text('Şimdi'), findsNothing); // üstte yalnız kalan süre satırı
   });
 
   testWidgets('Kıble: pusulaya göre yön, hizalanınca onay, yardım bölümü', (t) async {

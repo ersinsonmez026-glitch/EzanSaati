@@ -154,37 +154,34 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
     final day = _offset == 0 ? status.today : PrayerCalc.forDay(loc, shown);
     final ci = PrayerCalc.names.indexOf(status.current.name);
     final beforeImsak = now.isBefore(status.today.slots.first.time);
-    final total = status.next.time.difference(status.current.time).inSeconds;
-    final done = now.difference(status.current.time).inSeconds;
 
     return [
-      _hero(
-        image: 'assets/images/vakit_kapak.jpg',
-        imageAlign: const Alignment(-0.6, 0.9), // fotoğrafın üstü kesilir, cami görünür
-        label: 'Şimdi',
-        labelValue: status.current.name,
-        trailing: _cityChip(loc),
-        minHeight: 0,
-        children: [
-          const SizedBox(height: 4),
-          Text('${status.next.name} vaktine kalan süre',
-              style: const TextStyle(color: Color(0xE6FFFFFF), fontSize: 12.5)),
-          Text(
-            formatDuration(status.remaining),
-            style: const TextStyle(
-              color: RC.goldText,
-              fontSize: 26,
-              height: 1.1,
-              fontWeight: FontWeight.w800,
-              fontFeatures: [FontFeature.tabularFigures()],
+      // Tek satır: "İmsak vaktine kalan süre" ve karşısında süre (resim ve çizgi yok).
+      Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        decoration: BoxDecoration(
+          gradient: RC.darkPanel,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: RC.gold(0.75), width: 1.2),
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: Text('${status.next.name} vaktine kalan süre',
+                  maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: RC.cream, fontSize: 15)),
             ),
-          ),
-          const SizedBox(height: 8),
-          FractionallySizedBox(
-            widthFactor: 0.62,
-            child: _progress(total <= 0 ? 0 : done / total),
-          ),
-        ],
+            const SizedBox(width: 8),
+            Text(
+              formatDuration(status.remaining),
+              style: const TextStyle(
+                color: RC.goldText,
+                fontSize: 22,
+                fontWeight: FontWeight.w800,
+                fontFeatures: [FontFeature.tabularFigures()],
+              ),
+            ),
+          ],
+        ),
       ),
       gap,
       Padding(
@@ -271,25 +268,6 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
               ),
             ],
           ),
-        ),
-      ),
-    );
-  }
-
-  Widget _progress(double v) {
-    return Container(
-      height: 7,
-      clipBehavior: Clip.antiAlias,
-      decoration: BoxDecoration(
-        color: const Color(0x24FFFFFF),
-        borderRadius: BorderRadius.circular(9),
-        border: Border.all(color: RC.gold(0.5)),
-      ),
-      child: FractionallySizedBox(
-        alignment: Alignment.centerLeft,
-        widthFactor: v.clamp(0.0, 1.0),
-        child: const DecoratedBox(
-          decoration: BoxDecoration(gradient: LinearGradient(colors: [Color(0xFFC29A2C), Color(0xFFF3DC97)])),
         ),
       ),
     );
@@ -543,13 +521,11 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
     required Alignment imageAlign,
     required List<Widget> children,
     String? label,
-    String? labelValue, // etiketin yanında büyük yazılır (ör. "Şimdi  Yatsı")
     Widget? trailing,
     Widget? leading,
-    double minHeight = 150,
   }) {
     return Container(
-      constraints: BoxConstraints(minHeight: minHeight),
+      constraints: const BoxConstraints(minHeight: 150),
       clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
         color: const Color(0xFF062A1C),
@@ -589,19 +565,10 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
                         const GoldIcon(Icons.brightness_2, size: 13),
                         const SizedBox(width: 5),
                         Expanded(
-                          child: Text.rich(
-                            TextSpan(children: [
-                              TextSpan(text: label, style: const TextStyle(color: RC.goldText, fontSize: 12)),
-                              if (labelValue != null)
-                                TextSpan(
-                                  text: '  $labelValue',
-                                  style: const TextStyle(
-                                      color: Colors.white, fontSize: 26, height: 1.05, fontWeight: FontWeight.w800),
-                                ),
-                            ]),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
+                          child: Text(label,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(color: RC.goldText, fontSize: 12)),
                         ),
                       ],
                       if (label == null) const Spacer(),

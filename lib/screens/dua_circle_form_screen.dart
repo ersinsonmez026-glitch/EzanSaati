@@ -120,14 +120,13 @@ class _DuaCircleFormScreenState extends State<DuaCircleFormScreen> {
     try {
       r = await ContactPicker.pick();
     } on UnsupportedError {
-      r = await _manualEntry();
+      // Kişi yalnız rehberden eklenir; numara elle yazılmaz.
+      if (mounted) showNote(context, 'Rehber açılamadı. Kişiyi önce telefonunuzun rehberine ekleyin.');
+      return;
     }
     if (r == null || !mounted) return;
     _addPerson(r.$1, r.$2);
   }
-
-  Future<(String, String)?> _manualEntry() =>
-      showDialog<(String, String)>(context: context, builder: (_) => const _PersonDialog());
 
   void _addPerson(String name, String phone) {
     if (name.isEmpty && phone.isEmpty) return;
@@ -395,12 +394,8 @@ class _DuaCircleFormScreenState extends State<DuaCircleFormScreen> {
                 ],
               ),
               const SizedBox(height: 8),
-              _lightButton(Icons.person_add_alt, 'Numarayla ekle', () async {
-                final r = await _manualEntry();
-                if (r != null && mounted) _addPerson(r.$1, r.$2);
-              }),
-              const SizedBox(height: 8),
               Text(
+                'Kişiler telefonunuzun rehberinden seçilir; listede olmayan kişiyi önce rehberinize ekleyin. '
                 'Rehber izni istenmez; yalnızca seçtiğiniz kişi eklenir. Paylar eşit olmak zorunda değildir.',
                 style: TextStyle(color: _pal.ink2, fontSize: 11.5, height: 1.4),
               ),
@@ -640,56 +635,6 @@ class _DuaCircleFormScreenState extends State<DuaCircleFormScreen> {
           ),
         ),
       ),
-    );
-  }
-}
-
-/// Adı ve numarası elle yazılarak kişi ekleme.
-class _PersonDialog extends StatefulWidget {
-  const _PersonDialog();
-
-  @override
-  State<_PersonDialog> createState() => _PersonDialogState();
-}
-
-class _PersonDialogState extends State<_PersonDialog> {
-  final _name = TextEditingController();
-  final _phone = TextEditingController();
-
-  @override
-  void dispose() {
-    _name.dispose();
-    _phone.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      title: const Text('Kişi ekle'),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          TextField(
-            controller: _name,
-            autofocus: true,
-            textCapitalization: TextCapitalization.words,
-            decoration: const InputDecoration(labelText: 'Ad Soyad'),
-          ),
-          TextField(
-            controller: _phone,
-            keyboardType: TextInputType.phone,
-            decoration: const InputDecoration(labelText: 'Telefon (WhatsApp)', hintText: '05xx xxx xx xx'),
-          ),
-        ],
-      ),
-      actions: [
-        TextButton(onPressed: () => Navigator.pop(context), child: const Text('Vazgeç')),
-        TextButton(
-          onPressed: () => Navigator.pop(context, (_name.text.trim(), _phone.text.trim())),
-          child: const Text('Ekle'),
-        ),
-      ],
     );
   }
 }
