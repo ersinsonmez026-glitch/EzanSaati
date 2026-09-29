@@ -226,7 +226,7 @@ class _RamadanScreenState extends State<RamadanScreen> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Padding(
-                padding: const EdgeInsets.fromLTRB(14, 16, 14, 14),
+                padding: const EdgeInsets.fromLTRB(14, 10, 14, 10),
                 child: Column(
                   children: [
                     const _HeroOrnament(),
@@ -246,7 +246,7 @@ class _RamadanScreenState extends State<RamadanScreen> {
                         child: Text(
                           big,
                           style: const TextStyle(
-                            fontSize: 48,
+                            fontSize: 36,
                             height: 1.1,
                             fontWeight: FontWeight.w800,
                             letterSpacing: 1,
@@ -258,8 +258,8 @@ class _RamadanScreenState extends State<RamadanScreen> {
                     ),
                     Text(sub,
                         textAlign: TextAlign.center,
-                        style: const TextStyle(color: Color(0xFFF3D27A), fontSize: 16, fontWeight: FontWeight.w700)),
-                    const SizedBox(height: 8),
+                        style: const TextStyle(color: Color(0xFFF3D27A), fontSize: 14, fontWeight: FontWeight.w700)),
+                    const SizedBox(height: 6),
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
                       decoration: BoxDecoration(
@@ -275,7 +275,7 @@ class _RamadanScreenState extends State<RamadanScreen> {
               ),
               Container(
                 height: 10,
-                margin: const EdgeInsets.fromLTRB(14, 0, 14, 12),
+                margin: const EdgeInsets.fromLTRB(14, 0, 14, 10),
                 clipBehavior: Clip.antiAlias,
                 decoration: BoxDecoration(
                   color: const Color(0x1FFFFFFF),
@@ -324,21 +324,32 @@ class _RamadanScreenState extends State<RamadanScreen> {
   }
 
   Widget _timeCell(String icon, String label, String value) {
+    // Simge solda, yazılar yanında: kart daha kısa kalır.
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 10),
-      child: Column(
+      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          ArtIcon(icon, size: 30),
-          const SizedBox(height: 2),
-          Text(label, style: const TextStyle(color: RC.creamSoft, fontSize: 11)),
-          Text(value,
-              style: const TextStyle(
-                color: RC.cream,
-                fontSize: 22,
-                fontWeight: FontWeight.w800,
-                fontFeatures: [FontFeature.tabularFigures()],
-              )),
+          ArtIcon(icon, size: 28),
+          const SizedBox(width: 8),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(label, style: const TextStyle(color: RC.creamSoft, fontSize: 11)),
+              Text(value,
+                  style: const TextStyle(
+                    color: RC.cream,
+                    fontSize: 20,
+                    height: 1.1,
+                    fontWeight: FontWeight.w800,
+                    fontFeatures: [FontFeature.tabularFigures()],
+                  )),
+            ],
+          ),
         ],
+        ),
       ),
     );
   }
@@ -616,9 +627,15 @@ class _RamadanScreenState extends State<RamadanScreen> {
           await Navigator.of(context).push(MaterialPageRoute(builder: (_) => FastingTrackerScreen(data: d)));
           if (mounted) setState(() {});
         },
-        child: PaperBox(
-          pal: _pal,
+        // Diğer tuşlar gibi dolgulu: koyu yeşil zemin, altın kenar.
+        child: Container(
           padding: const EdgeInsets.fromLTRB(12, 10, 10, 10),
+          decoration: BoxDecoration(
+            gradient: RC.darkPanel,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: RC.gold(0.8), width: 1.2),
+            boxShadow: const [BoxShadow(color: Color(0x66000000), blurRadius: 8, offset: Offset(0, 3))],
+          ),
           child: Row(
             children: [
               const ArtIcon('imsak', size: 38),
@@ -627,15 +644,15 @@ class _RamadanScreenState extends State<RamadanScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Oruç Takibi', style: TextStyle(color: _pal.ink, fontSize: 16, fontWeight: FontWeight.w700)),
+                    const GoldText('Oruç Takibi', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
                     Text(
                       kept == 0 ? 'Tuttuğunuz oruçları takvimde işaretleyin' : '${d.days} günün $kept günü tutuldu',
-                      style: TextStyle(color: _pal.ink2, fontSize: 12.5),
+                      style: const TextStyle(color: RC.creamSoft, fontSize: 12.5),
                     ),
                   ],
                 ),
               ),
-              Icon(Icons.chevron_right, color: _pal.gold),
+              const Icon(Icons.chevron_right, color: RC.goldIcon),
             ],
           ),
         ),
@@ -699,7 +716,8 @@ class _RamadanScreenState extends State<RamadanScreen> {
           if (!inRamadan) ...[
             const SizedBox(height: 4),
             Text(
-              "Ramazan'da her gün o günün cüzü gösterilir.",
+              "Mukabele: Ramazan'da her gün bir cüz okunarak ay sonunda Kur'an hatmedilir. "
+              "Ramazan'da burada o günün cüzü gösterilir.",
               textAlign: TextAlign.center,
               style: TextStyle(color: _pal.ink2, fontSize: 11.5),
             ),

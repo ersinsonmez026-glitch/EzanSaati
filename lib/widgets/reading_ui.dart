@@ -525,6 +525,29 @@ class SourceNote extends StatelessWidget {
 }
 
 /// Favori kalbi.
+/// Listelerde favori kalbinin önündeki dinle simgesi.
+class ListenButton extends StatelessWidget {
+  final PagePalette pal;
+  final String label;
+  final VoidCallback onTap;
+
+  const ListenButton({super.key, required this.pal, required this.label, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      label: '$label dinle',
+      excludeSemantics: true,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onTap,
+        child: SizedBox(width: 32, height: 36, child: GoldIcon(Icons.volume_up, size: 22, light: !pal.night)),
+      ),
+    );
+  }
+}
+
 class HeartButton extends StatelessWidget {
   final PagePalette pal;
   final bool on;

@@ -218,6 +218,55 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
 
+        // Alt kısım: ayet + tam genişlikte geri sayım şeridi
+        Positioned(
+          left: 0,
+          right: 0,
+          bottom: 4,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              if (showVerse)
+                Transform.translate(
+                  // Panelin sol kutusu ortadaki kemerden daha aşağıdan başlar; ayet o boşluğa iner.
+                  offset: Offset(0, 18 * k),
+                  child: Padding(
+                    padding: EdgeInsets.only(left: 14, bottom: 6 * k),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '“Şüphesiz\nnamaz, müminler\nüzerine vakitleri\nbelirlenmiş bir farzdır.”',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontFamily: 'serif', // ayet eski yazı tipiyle, kalın italik
+                            fontSize: 12.5 * k,
+                            fontWeight: FontWeight.w600,
+                            height: 1.3,
+                            fontStyle: FontStyle.italic,
+                            shadows: shadow,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        GoldText(
+                          'Nisâ, 103',
+                          style: TextStyle(fontFamily: 'serif', fontSize: 10.5 * k, fontWeight: FontWeight.w600),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 6),
+                child: GestureDetector(
+                  onTap: () => _onTap(_items.first),
+                  child: CountdownBanner(status: _status),
+                ),
+              ),
+            ],
+          ),
+        ),
+        // Üst sıra en üstte çizilir: gece/gündüz tuşu ve şehir her ekranda panelden önce dokunmayı alır.
         // Üst sıra: sol levha · şehir / tarih / saat · sağ levha
         Positioned(
           top: 6,
@@ -301,55 +350,6 @@ class _HomeScreenState extends State<HomeScreen> {
             ],
           ),
         ),
-
-        // Alt kısım: ayet + tam genişlikte geri sayım şeridi
-        Positioned(
-          left: 0,
-          right: 0,
-          bottom: 4,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              if (showVerse)
-                Transform.translate(
-                  // Panelin sol kutusu ortadaki kemerden daha aşağıdan başlar; ayet o boşluğa iner.
-                  offset: Offset(0, 18 * k),
-                  child: Padding(
-                    padding: EdgeInsets.only(left: 14, bottom: 6 * k),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          '“Şüphesiz\nnamaz, müminler\nüzerine vakitleri\nbelirlenmiş bir farzdır.”',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontFamily: 'serif', // ayet eski yazı tipiyle, kalın italik
-                            fontSize: 12.5 * k,
-                            fontWeight: FontWeight.w600,
-                            height: 1.3,
-                            fontStyle: FontStyle.italic,
-                            shadows: shadow,
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                        GoldText(
-                          'Nisâ, 103',
-                          style: TextStyle(fontFamily: 'serif', fontSize: 10.5 * k, fontWeight: FontWeight.w600),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 6),
-                child: GestureDetector(
-                  onTap: () => _onTap(_items.first),
-                  child: CountdownBanner(status: _status),
-                ),
-              ),
-            ],
-          ),
-        ),
       ],
     );
   }
@@ -387,6 +387,7 @@ class _DayNightButton extends StatelessWidget {
       label: day ? 'Gece görünümüne geç' : 'Gündüz görünümüne geç',
       excludeSemantics: true,
       child: GestureDetector(
+        behavior: HitTestBehavior.opaque, // simgenin saydam yerleri de tuşa sayılır
         onTap: () {
           final toDay = !day;
           final mode = toDay == isDaytimeByClock() ? DayMode.otomatik : (toDay ? DayMode.gunduz : DayMode.gece);

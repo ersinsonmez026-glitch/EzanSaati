@@ -78,7 +78,7 @@ void main() {
       expect(store.load(), throwsException);
     });
 
-    testWidgets('sayfa: günün hadisi, liste, favori sekmesi ve okuma', (t) async {
+    testWidgets('sayfa: liste, favori sekmesi ve okuma (günün hadisi kartı yok)', (t) async {
       t.view.physicalSize = const Size(390, 1600);
       t.view.devicePixelRatio = 1;
       addTearDown(t.view.reset);
@@ -86,7 +86,7 @@ void main() {
       await t.pumpWidget(MaterialApp(home: HadithsScreen(store: store)));
       await t.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 100)));
       await t.pumpAndSettle();
-      expect(find.text('Günün Hadisi'), findsOneWidget);
+      expect(find.text('Günün Hadisi'), findsNothing);
       expect(find.text('Tüm Hadisler'), findsOneWidget);
       expect(find.text('Başlık ${kHadithIds[1]}'), findsOneWidget);
       await t.tap(find.text('Favorilerim'));

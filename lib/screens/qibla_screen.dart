@@ -196,12 +196,8 @@ class _QiblaScreenState extends State<QiblaScreen> {
               ),
             ),
             const SizedBox(height: 14),
-            _compass(aligned),
-            const SizedBox(height: 4),
-            Text('${qibla.round()}°',
-                style: TextStyle(color: _pal.ink, fontSize: 30, height: 1.1, fontWeight: FontWeight.w700)),
-            const SizedBox(height: 2),
-            Text('Kuzeyden saat yönünde kıble açısı', style: TextStyle(color: _pal.ink2, fontSize: 12.5)),
+            // Sayfa kaydırmadan sığsın: pusula ekran yüksekliğine göre küçülür (kıble açısı alttaki bilgi satırında).
+            SizedBox.square(dimension: _compassSize(context), child: FittedBox(child: _compass(aligned))),
             const SizedBox(height: 8),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 6),
@@ -251,6 +247,13 @@ class _QiblaScreenState extends State<QiblaScreen> {
             : 'Kıble açısı seçili şehrin merkezine göre hesaplanır.',
       ),
     ];
+  }
+
+  /// Başlık, bilgi satırı ve yardım dışında kalan yükseklik; en fazla 260, en az 170.
+  static double _compassSize(BuildContext context) {
+    final m = MediaQuery.of(context);
+    final h = m.size.height - m.padding.top - m.padding.bottom;
+    return (h - 470).clamp(170.0, 260.0);
   }
 
   Widget _compass(bool aligned) {

@@ -27,7 +27,6 @@ class _HadithsScreenState extends State<HadithsScreen> {
   bool _loading = true;
   String _query = '';
   bool _onlyFav = false;
-  int _daily = 0;
 
   @override
   void initState() {
@@ -60,10 +59,7 @@ class _HadithsScreenState extends State<HadithsScreen> {
   }
 
   void _set(List<Hadith> items) {
-    setState(() {
-      _items = items;
-      _daily = items.isEmpty ? 0 : dayOfYear(DateTime.now()) % items.length;
-    });
+    setState(() => _items = items);
   }
 
   Set<String> get _favs => _prefs?.favorites(kHadithFavKey) ?? const {};
@@ -129,29 +125,7 @@ class _HadithsScreenState extends State<HadithsScreen> {
             (q.isEmpty || trSearchKey('${items[i].title} ${items[i].text}').contains(q)))
           i,
     ];
-    final d = items[_daily];
     return [
-      DailyCard(
-        pal: _pal,
-        title: 'Günün Hadisi',
-        subtitle: d.attribution,
-        favorite: favs.contains(d.id),
-        onFavorite: () => _toggleFav(d),
-        onPrev: () => setState(() => _daily = (_daily + items.length - 1) % items.length),
-        onNext: () => setState(() => _daily = (_daily + 1) % items.length),
-        body: [
-          const OrnamentStar(),
-          Text('“${d.title}”', style: const TextStyle(fontSize: 17, height: 1.5, fontWeight: FontWeight.w700)),
-          const SizedBox(height: 6),
-          Text('(${d.attribution} · ${d.grade})', style: const TextStyle(fontSize: 12, color: RC.verseInk2)),
-        ],
-        actions: [
-          ActionItem(Icons.menu_book_outlined, 'Oku', () => _open(items, _daily)),
-          ActionItem(Icons.copy_outlined, 'Kopyala', () => copyToClipboard(context, d.shareText)),
-          ActionItem(Icons.ios_share, 'Paylaş', () => shareText(context, d.shareText)),
-        ],
-      ),
-      gap,
       Row(
         children: [
           for (final (fav, label) in const [(false, 'Tüm Hadisler'), (true, 'Favorilerim')]) ...[

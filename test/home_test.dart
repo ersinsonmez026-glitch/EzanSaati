@@ -1,7 +1,10 @@
 import 'package:ezan_saati/screens/home_screen.dart';
+import 'package:ezan_saati/screens/prayer_times_screen.dart';
+import 'package:ezan_saati/services/app_prefs.dart';
 import 'package:ezan_saati/services/location_store.dart';
 import 'package:ezan_saati/widgets/countdown_banner.dart';
 import 'package:ezan_saati/widgets/menu_tile.dart';
+import 'package:ezan_saati/widgets/page_shell.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -55,6 +58,18 @@ void main() {
       expect(banner.center.dx, moreOrLessEquals(size.width / 2, epsilon: 0.5));
       expect(banner.width, moreOrLessEquals(size.width - 12, epsilon: 0.5));
       expect(banner.bottom, lessThanOrEqualTo(rects.first.top));
+
+      // Gece/gündüz tuşu panelin altında kalmaz: basınca görünüm değişir, Namaz Vakitleri açılmaz
+      final toggle = find.bySemanticsLabel(RegExp('görünümüne geç'));
+      expect(t.getRect(toggle).bottom, lessThanOrEqualTo(banner.top));
+      final wasDay = isDaytime();
+      await t.tap(toggle);
+      await t.pump();
+      await t.pump(const Duration(seconds: 1));
+      expect(find.byType(PrayerTimesScreen), findsNothing);
+      expect(isDaytime(), !wasDay);
+      await AppPrefs.instance.setDayMode(DayMode.otomatik);
+      await t.pump(const Duration(seconds: 5)); // bilgi notu kapansın
     });
   }
 }

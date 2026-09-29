@@ -49,9 +49,9 @@ class _PrayersScreenState extends State<PrayersScreen> {
     showNote(context, on ? 'Favorilere eklendi' : 'Favorilerden çıkarıldı');
   }
 
-  Future<void> _open(int index) async {
+  Future<void> _open(int index, {bool listen = false}) async {
     await Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => PrayerReadScreen(duas: _duas!, index: index)),
+      MaterialPageRoute(builder: (_) => PrayerReadScreen(duas: _duas!, index: index, listen: listen)),
     );
     if (mounted) setState(() {}); // favoriler değişmiş olabilir
   }
@@ -329,7 +329,14 @@ class _PrayersScreenState extends State<PrayersScreen> {
                 ],
               ),
             ),
-            const SizedBox(width: 10),
+            const SizedBox(width: 6),
+            // Ses kaydı ya da okunuş videosu olan dualarda dinle simgesi
+            if (d.hasAudio || d.videos.isNotEmpty)
+              ListenButton(
+                pal: _pal,
+                label: d.title,
+                onTap: () => d.hasAudio ? _open(index, listen: true) : openDuaVideo(context, d),
+              ),
             HeartButton(pal: _pal, on: fav, label: d.title, onTap: () => _toggleFav(d)),
           ],
         ),

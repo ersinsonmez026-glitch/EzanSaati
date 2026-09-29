@@ -169,7 +169,7 @@ class _DuaCircleScreenState extends State<DuaCircleScreen> {
       children: [
         for (final (key, icon, title, sub) in items)
           Padding(
-            padding: const EdgeInsets.only(bottom: 6),
+            padding: const EdgeInsets.only(bottom: 4),
             child: _RailButton(
               icon: icon,
               title: title,
@@ -1106,8 +1106,8 @@ class _RailButton extends StatelessWidget {
         behavior: HitTestBehavior.opaque,
         onTap: onTap,
         child: Container(
-          constraints: const BoxConstraints(minHeight: 48),
-          padding: const EdgeInsets.fromLTRB(5, 7, 4, 7),
+          constraints: const BoxConstraints(minHeight: 42), // 9 tuş telefona kaydırmadan sığsın
+          padding: const EdgeInsets.fromLTRB(5, 4, 4, 4),
           decoration: BoxDecoration(
             gradient: selected
                 ? RC.bronze

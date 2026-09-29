@@ -16,8 +16,9 @@ import 'video_screen.dart';
 class PrayerReadScreen extends StatefulWidget {
   final List<Dua> duas;
   final int index;
+  final bool listen; // açılınca sesli okuma başlasın
 
-  const PrayerReadScreen({super.key, required this.duas, required this.index});
+  const PrayerReadScreen({super.key, required this.duas, required this.index, this.listen = false});
 
   @override
   State<PrayerReadScreen> createState() => _PrayerReadScreenState();
@@ -43,6 +44,8 @@ class _PrayerReadScreenState extends State<PrayerReadScreen> {
   @override
   void initState() {
     super.initState();
+    final d = widget.duas[widget.index];
+    if (widget.listen && d.hasAudio) WidgetsBinding.instance.addPostFrameCallback((_) => _toggleListen(d));
     ReadingPrefs.get().then((p) {
       if (!mounted) return;
       setState(() {
@@ -205,13 +208,9 @@ class _PrayerReadScreenState extends State<PrayerReadScreen> {
           label: 'Videolu Dinle',
           onTap: () {
             _player?.pause();
-            final list =
-                videosFor('dualar').any((v) => v.id == d.videos.first) ? videosFor('dualar') : gunlukDuaVideolari;
-            final i = list.indexWhere((v) => v.id == d.videos.first);
-            Navigator.of(context)
-                .push(MaterialPageRoute(builder: (_) => VideoScreen(videos: list, index: i < 0 ? 0 : i)));
+            openDuaVideo(context, d);
           },
-        ),
+              ),
     ];
     return Row(
       children: [
@@ -270,4 +269,11 @@ class _PrayerReadScreenState extends State<PrayerReadScreen> {
       ),
     );
   }
+}
+
+/// Duanın okunuş videosunu açar (Diyanet namaz duaları ya da günlük dua videoları).
+void openDuaVideo(BuildContext context, Dua d) {
+  final list = videosFor('dualar').any((v) => v.id == d.videos.first) ? videosFor('dualar') : gunlukDuaVideolari;
+  final i = list.indexWhere((v) => v.id == d.videos.first);
+  Navigator.of(context).push(MaterialPageRoute(builder: (_) => VideoScreen(videos: list, index: i < 0 ? 0 : i)));
 }
