@@ -6,6 +6,7 @@ import 'package:ezan_saati/screens/messages_screen.dart';
 import 'package:ezan_saati/screens/prayers_screen.dart';
 import 'package:ezan_saati/screens/ramadan_screen.dart';
 import 'package:ezan_saati/screens/surahs_screen.dart';
+import 'package:ezan_saati/screens/video_screen.dart';
 import 'package:ezan_saati/services/content_store.dart';
 import 'package:ezan_saati/services/takvim.dart';
 import 'package:flutter/material.dart';
@@ -110,7 +111,8 @@ void main() {
       expect(r.kadir, DateTime(2027, 3, 5));
       expect(r.bayram, DateTime(2027, 3, 9));
       expect(r.importantDays.length, 7);
-      expect(r.prayers.length, 2);
+      expect(r.prayers.length, 3);
+      expect(r.fasting.map((f) => f.kind), ['bozar', 'bozmaz', 'bilgi']);
     });
 
     test('Rekât sayıları anlatımla uyumlu', () {
@@ -137,6 +139,7 @@ void main() {
             DuaData.namaz(),
             MessageData.all(),
             RamazanData.load(),
+            EsmaName.all(),
             ReadingPrefs.get(),
           ]));
       await t.pumpWidget(MaterialApp(home: page));
@@ -198,6 +201,16 @@ void main() {
       await t.tap(find.text('Niyet ve Dua'));
       await t.pump();
       expect(find.text('İFTAR DUASI'), findsOneWidget);
+    });
+
+    testWidgets("Dualar: Esmâü'l-Hüsnâ sekmesi ve sesli dinleme", (t) async {
+      await pump(t, const PrayersScreen(), height: 1600);
+      await t.tap(find.text("Esmâü'l-Hüsnâ").first);
+      await t.pump();
+      expect(find.text('er-Rahmân'), findsOneWidget);
+      await t.tap(find.text('Sesli Dinle (ritimli okunuş)'));
+      await t.pumpAndSettle();
+      expect(find.byType(VideoScreen), findsOneWidget);
     });
   });
 }

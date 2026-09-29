@@ -165,10 +165,17 @@ class _PrayersScreenState extends State<PrayersScreen> {
             ),
           ),
           const SizedBox(width: 8),
-          Text(
-            e.arabic,
-            textDirection: TextDirection.rtl,
-            style: TextStyle(fontFamily: kQuranFont, fontSize: 20, height: 1.6, color: _pal.ink),
+          ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 130),
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerRight,
+              child: Text(
+                e.arabic,
+                textDirection: TextDirection.rtl,
+                style: TextStyle(fontFamily: kQuranFont, fontSize: 20, height: 1.6, color: _pal.ink),
+              ),
+            ),
           ),
         ],
       ),

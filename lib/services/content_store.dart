@@ -301,6 +301,15 @@ class RamazanPrayer {
   const RamazanPrayer(this.title, this.arabic, this.reading, this.meaning, this.source);
 }
 
+/// Oruç Rehberi bölümü: maddeler ve Din İşleri Yüksek Kurulu "Oruç Sıkça Sorulanlar" soru numaraları.
+class FastingSection {
+  final String title;
+  final String kind; // bozar, bozmaz, bilgi
+  final List<(String, String)> items; // (metin, soru no)
+
+  const FastingSection(this.title, this.kind, this.items);
+}
+
 class RamazanData {
   final int year;
   final DateTime start; // Ramazan'ın ilk günü
@@ -313,6 +322,7 @@ class RamazanData {
   final String niyet;
   final String niyetNote;
   final List<RamazanPrayer> prayers;
+  final List<FastingSection> fasting;
 
   const RamazanData({
     required this.year,
@@ -326,6 +336,7 @@ class RamazanData {
     required this.niyet,
     required this.niyetNote,
     required this.prayers,
+    required this.fasting,
   });
 
   static Future<RamazanData>? _loading;
@@ -360,6 +371,14 @@ class RamazanData {
                 d['ok'] as String,
                 d['an'] as String,
                 (d['kaynak'] as String?) ?? '',
+              ),
+          ],
+          fasting: [
+            for (final o in j['oruc'] as List)
+              FastingSection(
+                (o as Map)['baslik'] as String,
+                o['tur'] as String,
+                [for (final m in o['maddeler'] as List) ((m as List)[0] as String, m[1] as String)],
               ),
           ],
         );

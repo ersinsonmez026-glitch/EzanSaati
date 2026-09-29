@@ -1,3 +1,4 @@
+import 'package:ezan_saati/data/cuz.dart';
 import 'package:ezan_saati/data/namaz_ogren.dart';
 import 'package:ezan_saati/data/namaz_videolari.dart';
 import 'package:ezan_saati/screens/about_screen.dart';
@@ -8,6 +9,8 @@ import 'package:ezan_saati/screens/hadiths_screen.dart';
 import 'package:ezan_saati/screens/mosque_finder_screen.dart';
 import 'package:ezan_saati/screens/notifications_screen.dart';
 import 'package:ezan_saati/screens/prayer_read_screen.dart';
+import 'package:ezan_saati/screens/ramadan_screen.dart';
+import 'package:ezan_saati/screens/surah_read_screen.dart';
 import 'package:ezan_saati/screens/settings_screen.dart';
 import 'package:ezan_saati/services/app_prefs.dart';
 import 'package:ezan_saati/services/ezan_notifications.dart';
@@ -312,6 +315,59 @@ void main() {
       await t.pumpAndSettle();
       expect(find.byType(VideoScreen), findsOneWidget);
       expect(find.text('Rabbenâ Âtinâ Duası'), findsOneWidget);
+    });
+  });
+
+  group('Ramazan ve Esmâü\'l-Hüsnâ', () {
+    test('cüz başlangıçları sıralı ve ayet sayıları içinde', () async {
+      final q = await QuranData.load();
+      expect(kCuzBaslangic.length, 30);
+      for (var i = 0; i < 30; i++) {
+        final (s, a) = kCuzBaslangic[i];
+        expect(a, inInclusiveRange(1, q.surahs[s - 1].ayahCount), reason: '${i + 1}. cüz');
+        if (i > 0) expect(globalAyahNumber(s, a), greaterThan(globalAyahNumber(kCuzBaslangic[i - 1].$1, kCuzBaslangic[i - 1].$2)));
+      }
+    });
+
+    test('Esmâü\'l-Hüsnâ: 99 isim, Allah ile başlar, Sabûr ile biter', () async {
+      final e = await EsmaName.all();
+      expect(e.length, 99);
+      expect(e.first.reading, 'Allah');
+      expect(e.last.reading, 'es-Sabûr');
+      expect(e.every((x) => x.arabic.isNotEmpty && x.meaning.isNotEmpty), isTrue);
+      expect(esmaVideolari.where((v) => v.channel == 'DiyanetTV').length, 2);
+    });
+
+    testWidgets('Ramazan: günün cüzü, oruç rehberi, fitre ve zekât hesabı', (t) async {
+      t.view.physicalSize = const Size(390, 2400);
+      t.view.devicePixelRatio = 1;
+      addTearDown(t.view.reset);
+      await t.runAsync(() => Future.wait([RamazanData.load(), QuranData.load()]));
+      await t.pumpWidget(const MaterialApp(home: RamadanScreen()));
+      await t.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 50)));
+      await t.pumpAndSettle();
+      expect(find.textContaining('. Cüz'), findsOneWidget);
+      await t.tap(find.text('Oruç Rehberi'));
+      await t.pump();
+      expect(find.text('ORUCU BOZMAYANLAR'), findsOneWidget);
+      await t.tap(find.text('Fitre ve Zekât'));
+      await t.pump();
+      expect(find.textContaining('açıklanması bekleniyor'), findsOneWidget);
+      await t.enterText(find.widgetWithText(TextField, 'Kişi başı fitre (TL)'), '300');
+      await t.tap(find.bySemanticsLabel('Kişi sayısı artır'));
+      await t.pump();
+      expect(find.text('600,00 TL'), findsOneWidget);
+      await t.enterText(find.widgetWithText(TextField, 'Gram altın fiyatı (TL)'), '1.000');
+      await t.enterText(find.widgetWithText(TextField, 'Nakit ve banka (TL)'), '100.000');
+      await t.pump();
+      expect(find.text('80.180,00 TL'), findsOneWidget); // nisap
+      expect(find.text('2.500,00 TL'), findsOneWidget); // kırkta bir
+      // Geri sayım her saniye yenilendiği için pumpAndSettle beklemez; sabit adımlarla ilerlenir.
+      await t.tap(find.text('Oku'));
+      await t.pump();
+      await t.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 50)));
+      await t.pump(const Duration(milliseconds: 500));
+      expect(find.byType(SurahReadScreen), findsOneWidget);
     });
   });
 }

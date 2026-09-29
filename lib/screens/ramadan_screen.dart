@@ -2,16 +2,20 @@ import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
+import '../data/cuz.dart';
 import '../services/content_store.dart';
 import '../services/location_store.dart';
 import '../services/prayer_calc.dart';
 import '../widgets/page_shell.dart';
 import '../widgets/reading_ui.dart';
 import 'city_picker_screen.dart';
+import 'surah_read_screen.dart';
 import '../widgets/gold_icon.dart';
 
-/// Ramazan: geri sayım, şehre göre imsakiye, oruç niyeti ve dualar, önemli günler.
+/// Ramazan: geri sayım, günün cüzü, şehre göre imsakiye, oruç niyeti ve dualar, önemli günler,
+/// oruç rehberi, fitre-fidye-zekât hesabı.
 /// Tasarım: onizleme/11-ramazan.html · Veri: assets/data/ramazan.json
 class RamadanScreen extends StatefulWidget {
   const RamadanScreen({super.key});
@@ -20,7 +24,7 @@ class RamadanScreen extends StatefulWidget {
   State<RamadanScreen> createState() => _RamadanScreenState();
 }
 
-enum _Tab { imsakiye, dua, gunler }
+enum _Tab { imsakiye, dua, gunler, oruc, zekat }
 
 class _RamadanScreenState extends State<RamadanScreen> {
   final _pal = PagePalette.current();
@@ -28,6 +32,20 @@ class _RamadanScreenState extends State<RamadanScreen> {
   RamazanData? _data;
   _Tab _tab = _Tab.imsakiye;
   Timer? _ticker;
+
+  List<Surah> _surahs = const [];
+  int? _cuz; // kullanıcının seçtiği cüz; boşsa Ramazan'ın günü
+
+  // Fitre ve zekât hesabı
+  final _fitre = TextEditingController();
+  int _people = 1;
+  int _fidyeDays = 1;
+  final _gold = TextEditingController();
+  final _cash = TextEditingController();
+  final _goldGr = TextEditingController();
+  final _other = TextEditingController();
+  final _trade = TextEditingController();
+  final _debt = TextEditingController();
 
   // İmsakiye her saniye yeniden hesaplanmasın.
   String? _tableKey;
@@ -40,6 +58,9 @@ class _RamadanScreenState extends State<RamadanScreen> {
     RamazanData.load().then((d) {
       if (mounted) setState(() => _data = d);
     });
+    QuranData.load().then((q) {
+      if (mounted) setState(() => _surahs = q.surahs);
+    });
     _ticker = Timer.periodic(const Duration(seconds: 1), (_) => _refresh());
   }
 
@@ -47,6 +68,9 @@ class _RamadanScreenState extends State<RamadanScreen> {
   void dispose() {
     _ticker?.cancel();
     _location.removeListener(_refresh);
+    for (final c in [_fitre, _gold, _cash, _goldGr, _other, _trade, _debt]) {
+      c.dispose();
+    }
     super.dispose();
   }
 
@@ -86,18 +110,30 @@ class _RamadanScreenState extends State<RamadanScreen> {
     return [
       _panel(d),
       gap,
+      _cuzCard(d),
+      gap,
       _tabs(),
       gap,
       switch (_tab) {
         _Tab.imsakiye => _imsakiyeView(d),
         _Tab.dua => _duaView(d),
         _Tab.gunler => _daysView(d),
+        _Tab.oruc => _fastingView(d),
+        _Tab.zekat => _zekatView(d),
       },
       gap,
       SourceNote(
         pal: _pal,
-        text: 'İmsakiye seçili şehre göre Diyanet yöntemiyle hesaplanır. Tarihler Diyanet İşleri Başkanlığı '
-            '${d.year} dini günler takvimine göredir.',
+        text: switch (_tab) {
+          _Tab.oruc => 'Din İşleri Yüksek Kurulu, "Oruç Sıkça Sorulanlar" kitapçığından özetlenmiştir; '
+              'numaralar kitapçıktaki soru numaralarıdır. Size özel durumlar için 190 Diyanet Fetva Hattı\'na '
+              'danışabilirsiniz.',
+          _Tab.zekat => 'Din İşleri Yüksek Kurulu, "Zekât Sıkça Sorulanlar" ve "Oruç Sıkça Sorulanlar" '
+              'kitapçıklarına göredir: nisap 80,18 gr altın, zekât oranı kırkta bir (%2,5), bir fidye bir fitre '
+              'miktarıdır. Hesaplama yol göstericidir.',
+          _ => 'İmsakiye seçili şehre göre Diyanet yöntemiyle hesaplanır. Tarihler Diyanet İşleri Başkanlığı '
+              '${d.year} dini günler takvimine göredir. Cüz başlangıçları Tanzil Projesi verisine göredir.',
+        },
       ),
     ];
   }
@@ -142,10 +178,17 @@ class _RamadanScreenState extends State<RamadanScreen> {
       final isKadir = DateTime(now.year, now.month, now.day) == d.kadir;
       chip = isKadir ? 'Bu gece Kadir Gecesi' : 'Hayırlı Ramazanlar';
       progress = k / d.days;
-    } else {
+    } else if (now.isBefore(d.bayram.add(const Duration(days: 3)))) {
       label = 'Ramazan tamamlandı';
       big = 'Bayram';
       sub = 'Ramazan Bayramınız mübarek olsun';
+      chip = d.bayramLabel;
+      progress = 1;
+    } else {
+      // Sonraki yılın Diyanet takvimi henüz uygulamada yok; tarih uydurulmaz.
+      label = 'Ramazan ${d.year} tamamlandı';
+      big = 'Allah kabul etsin';
+      sub = 'Yeni Ramazan takvimi uygulama güncellemesiyle eklenecek';
       chip = d.bayramLabel;
       progress = 1;
     }
@@ -331,13 +374,25 @@ class _RamadanScreenState extends State<RamadanScreen> {
       );
     }
 
-    return Row(
+    return Column(
       children: [
-        tab(_Tab.imsakiye, Icons.calendar_month, 'İmsakiye'),
-        const SizedBox(width: 8),
-        tab(_Tab.dua, Icons.back_hand_outlined, 'Niyet ve Dua'),
-        const SizedBox(width: 8),
-        tab(_Tab.gunler, Icons.star, 'Önemli Günler'),
+        Row(
+          children: [
+            tab(_Tab.imsakiye, Icons.calendar_month, 'İmsakiye'),
+            const SizedBox(width: 8),
+            tab(_Tab.dua, Icons.back_hand_outlined, 'Niyet ve Dua'),
+            const SizedBox(width: 8),
+            tab(_Tab.gunler, Icons.star, 'Önemli Günler'),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            tab(_Tab.oruc, Icons.no_food_outlined, 'Oruç Rehberi'),
+            const SizedBox(width: 8),
+            tab(_Tab.zekat, Icons.volunteer_activism_outlined, 'Fitre ve Zekât'),
+          ],
+        ),
       ],
     );
   }
@@ -536,6 +591,321 @@ class _RamadanScreenState extends State<RamadanScreen> {
             ),
         ], _pal.line),
       ),
+    );
+  }
+
+  // ---------------------------------------------------------------- günün cüzü
+
+  Widget _cuzCard(RamazanData d) {
+    final k = d.dayNumber(DateTime.now());
+    final inRamadan = k >= 1 && k <= d.days;
+    final cuz = _cuz ?? (inRamadan ? math.min(k, 30) : 1);
+    final (surah, ayah) = kCuzBaslangic[cuz - 1];
+    final name = surah <= _surahs.length ? _surahs[surah - 1].name : '$surah. sûre';
+    void open({bool listen = false}) => Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => SurahReadScreen(surah: surah, startAyah: ayah, listen: listen)),
+        );
+    Widget arrow(IconData icon, String label, int to) => Semantics(
+          button: true,
+          label: label,
+          child: InkResponse(
+            onTap: to < 1 || to > 30 ? null : () => setState(() => _cuz = to),
+            radius: 22,
+            child: Padding(
+              padding: const EdgeInsets.all(6),
+              child: Icon(icon, color: to < 1 || to > 30 ? _pal.line : _pal.gold, size: 26),
+            ),
+          ),
+        );
+
+    return PaperBox(
+      pal: _pal,
+      padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              arrow(Icons.chevron_left, 'Önceki cüz', cuz - 1),
+              Expanded(
+                child: Column(
+                  children: [
+                    Text(
+                      trUpper(inRamadan && _cuz == null ? 'Günün Cüzü · Mukabele' : 'Mukabele'),
+                      style: TextStyle(color: _pal.gold, fontSize: 11, fontWeight: FontWeight.w700, letterSpacing: 0.6),
+                    ),
+                    Text('$cuz. Cüz',
+                        style: TextStyle(color: _pal.ink, fontSize: 20, fontWeight: FontWeight.w800, height: 1.25)),
+                    Text(
+                      '$name $ayah. ayetten başlar',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: _pal.ink2, fontSize: 12.5),
+                    ),
+                  ],
+                ),
+              ),
+              arrow(Icons.chevron_right, 'Sonraki cüz', cuz + 1),
+            ],
+          ),
+          if (!inRamadan) ...[
+            const SizedBox(height: 4),
+            Text(
+              "Ramazan'da her gün o günün cüzü gösterilir.",
+              textAlign: TextAlign.center,
+              style: TextStyle(color: _pal.ink2, fontSize: 11.5),
+            ),
+          ],
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              Expanded(child: DarkButton(label: 'Oku', height: 40, onTap: open)),
+              const SizedBox(width: 8),
+              Expanded(child: DarkButton(label: 'Sesli Dinle', height: 40, onTap: () => open(listen: true))),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ---------------------------------------------------------------- oruç rehberi
+
+  Widget _fastingView(RamazanData d) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        for (final sec in d.fasting) ...[
+          if (sec != d.fasting.first) const SizedBox(height: 10),
+          PaperBox(
+            pal: _pal,
+            padding: const EdgeInsets.fromLTRB(14, 12, 14, 10),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(
+                  children: [
+                    Icon(
+                      switch (sec.kind) {
+                        'bozar' => Icons.cancel_outlined,
+                        'bozmaz' => Icons.check_circle_outline,
+                        _ => Icons.info_outline,
+                      },
+                      size: 20,
+                      color: _pal.gold,
+                    ),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(trUpper(sec.title),
+                          style: TextStyle(
+                              color: _pal.gold, fontSize: 11.5, fontWeight: FontWeight.w700, letterSpacing: 0.6)),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                for (final (text, no) in sec.items)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 6),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.only(top: 7, right: 8),
+                          child: Container(
+                            width: 5,
+                            height: 5,
+                            decoration: BoxDecoration(color: _pal.gold, shape: BoxShape.circle),
+                          ),
+                        ),
+                        Expanded(
+                          child: Text.rich(
+                            TextSpan(children: [
+                              TextSpan(text: text),
+                              TextSpan(text: '  ($no)', style: TextStyle(color: _pal.ink2, fontSize: 11.5)),
+                            ]),
+                            style: TextStyle(color: _pal.ink, fontSize: 13.5, height: 1.45),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  // ---------------------------------------------------------------- fitre, fidye, zekât
+
+  static const _nisapGram = 80.18;
+
+  /// "1.234,5", "1.000" ya da "1234.5" biçimindeki tutarı okur; boş ya da hatalıysa null.
+  static double? _num(TextEditingController c) {
+    var t = c.text.replaceAll(' ', '');
+    if (t.isEmpty) return null;
+    if (t.contains(',')) {
+      t = t.replaceAll('.', '').replaceAll(',', '.');
+    } else if (RegExp(r'^\d{1,3}(\.\d{3})+$').hasMatch(t)) {
+      t = t.replaceAll('.', ''); // binlik ayırıcı
+    }
+    return double.tryParse(t);
+  }
+
+  static String _tl(double v) {
+    final whole = v.truncate();
+    final kurus = ((v - whole) * 100).round();
+    final digits = (kurus == 100 ? whole + 1 : whole).toString();
+    final b = StringBuffer();
+    for (var i = 0; i < digits.length; i++) {
+      if (i > 0 && (digits.length - i) % 3 == 0) b.write('.');
+      b.write(digits[i]);
+    }
+    return '$b,${(kurus == 100 ? 0 : kurus).toString().padLeft(2, '0')} TL';
+  }
+
+  Widget _zekatView(RamazanData d) {
+    final fitre = _num(_fitre);
+    Widget head(String t) => Text(trUpper(t),
+        style: TextStyle(color: _pal.gold, fontSize: 11.5, fontWeight: FontWeight.w700, letterSpacing: 0.6));
+    Widget note(String t) => Padding(
+          padding: const EdgeInsets.only(top: 6),
+          child: Text(t, style: TextStyle(color: _pal.ink2, fontSize: 12, height: 1.45)),
+        );
+    Widget result(String label, String value) => Container(
+          margin: const EdgeInsets.only(top: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: BoxDecoration(
+            color: _pal.paper2,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: _pal.line),
+          ),
+          child: Row(
+            children: [
+              Expanded(child: Text(label, style: TextStyle(color: _pal.ink, fontSize: 13.5))),
+              Text(value, style: TextStyle(color: _pal.ink, fontSize: 15, fontWeight: FontWeight.w800)),
+            ],
+          ),
+        );
+    Widget card(List<Widget> children) => PaperBox(
+          pal: _pal,
+          padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: children),
+        );
+
+    // zekât
+    final price = _num(_gold);
+    final total = (_num(_cash) ?? 0) +
+        (_num(_goldGr) ?? 0) * (price ?? 0) +
+        (_num(_other) ?? 0) +
+        (_num(_trade) ?? 0) -
+        (_num(_debt) ?? 0);
+    final nisap = price == null ? null : _nisapGram * price;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        card([
+          head('Fitre (Sadaka-i Fıtır)'),
+          note("Diyanet'in ${d.year} yılı fitre miktarı: açıklanması bekleniyor. Açıklanan tutarı aşağıya "
+              'yazarak hesaplayabilirsiniz.'),
+          const SizedBox(height: 8),
+          _numField('Kişi başı fitre (TL)', _fitre),
+          _stepper('Kişi sayısı', _people, (v) => setState(() => _people = v)),
+          if (fitre != null) result('Toplam fitre', _tl(fitre * _people)),
+          note('Temel ihtiyaçları ve borcu dışında nisap miktarı (80,18 gr altın değerinde) malı olan müslüman; '
+              'kendisi ve ergenlik çağına girmemiş çocukları için verir. Bayram namazından önce verilmesi '
+              "müstehaptır, Ramazan'ın başında da verilebilir. Anne-baba, dede-nine, çocuk-torun ve eşe verilmez."),
+        ]),
+        const SizedBox(height: 10),
+        card([
+          head('Oruç Fidyesi'),
+          note('Yaşlılık ya da iyileşme ümidi olmayan hastalık sebebiyle oruç tutamayan, tutamadığı her gün için '
+              'bir fitre miktarı fidye verir.'),
+          const SizedBox(height: 4),
+          _stepper('Gün sayısı', _fidyeDays, (v) => setState(() => _fidyeDays = v), max: 30),
+          result('Toplam fidye', fitre == null ? 'Fitre tutarını yazın' : _tl(fitre * _fidyeDays)),
+        ]),
+        const SizedBox(height: 10),
+        card([
+          head('Zekât'),
+          note('Temel ihtiyaçlar ve bir yıllık borç dışında, üzerinden bir kamerî yıl geçmiş nisap miktarı '
+              'mala sahip olan kırkta bir (%2,5) zekât verir. Oturulan ev, kullanılan araç ve ev eşyası hesaba '
+              'katılmaz; altın ziynet eşyası Hanefîlere göre katılır.'),
+          const SizedBox(height: 8),
+          _numField('Gram altın fiyatı (TL)', _gold),
+          _numField('Nakit ve banka (TL)', _cash),
+          _numField('Altın (gram)', _goldGr),
+          _numField('Döviz, hisse vb. (TL karşılığı)', _other),
+          _numField('Ticaret malı (TL)', _trade),
+          _numField('Bir yıllık borçlar (TL)', _debt),
+          if (nisap == null)
+            note('Nisabı hesaplamak için gram altın fiyatını yazın.')
+          else ...[
+            result('Nisap (80,18 gr altın)', _tl(nisap)),
+            result('Zekâta tâbi varlık', _tl(math.max(0, total))),
+            result('Zekât (kırkta bir)', total >= nisap ? _tl(total / 40) : 'Nisaba ulaşmıyor'),
+          ],
+        ]),
+      ],
+    );
+  }
+
+  Widget _numField(String label, TextEditingController c) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: TextField(
+        controller: c,
+        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+        inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]'))],
+        onChanged: (_) => setState(() {}),
+        style: TextStyle(color: _pal.ink, fontSize: 15, fontWeight: FontWeight.w600),
+        cursorColor: _pal.gold,
+        decoration: InputDecoration(
+          labelText: label,
+          labelStyle: TextStyle(color: _pal.ink2, fontSize: 13),
+          isDense: true,
+          filled: true,
+          fillColor: _pal.paper2,
+          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(color: _pal.line),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(color: _pal.gold, width: 1.5),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _stepper(String label, int value, ValueChanged<int> onChanged, {int max = 20}) {
+    Widget btn(IconData icon, String tip, int to) => Semantics(
+          button: true,
+          label: tip,
+          child: InkResponse(
+            onTap: to < 1 || to > max ? null : () => onChanged(to),
+            radius: 20,
+            child: Padding(
+              padding: const EdgeInsets.all(6),
+              child: Icon(icon, size: 22, color: to < 1 || to > max ? _pal.line : _pal.gold),
+            ),
+          ),
+        );
+    return Row(
+      children: [
+        Expanded(child: Text(label, style: TextStyle(color: _pal.ink, fontSize: 13.5))),
+        btn(Icons.remove_circle_outline, '$label azalt', value - 1),
+        SizedBox(
+          width: 34,
+          child: Text('$value',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: _pal.ink, fontSize: 16, fontWeight: FontWeight.w800)),
+        ),
+        btn(Icons.add_circle_outline, '$label artır', value + 1),
+      ],
     );
   }
 }
