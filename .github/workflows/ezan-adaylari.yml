@@ -1,7 +1,7 @@
 name: Ezan sesi adayları (geçici)
 
-# Geçici: lisansı temiz görünen adayların açıklama sayfalarını alır; kesim noktalarını belirlemek için ses zarfı ve
-# spektrogram görsellerini .ezan_adaylari/analiz/ klasörüne ekler. Seçimden sonra klasör ve bu dosya silinecek.
+# Geçici: lisansı temiz ezan kayıtlarının baştaki/sondaki yabancı seslerini keser; her biri için kısa ve tam sürüm
+# (Android için ogg, dinlemek için mp3) hazırlayıp .ezan_adaylari/kesim/ klasörüne ekler. Seçimden sonra silinecek.
 on:
   push:
     branches: [claude/charming-davinci-6c5fkr]
@@ -11,7 +11,7 @@ permissions:
   contents: write
 
 jobs:
-  analiz:
+  kes:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -21,22 +21,22 @@ jobs:
       - name: Araçlar
         run: |
           which ffmpeg || (sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg)
-          pip install -q numpy pillow
-      - name: Sayfalar ve analiz
+          pip install -q numpy
+      - name: Kes ve hazırla
         shell: python
         run: |
           import json, subprocess, urllib.request, urllib.parse, os, time, wave
           import numpy as np
-          from PIL import Image, ImageDraw
           UA = {'User-Agent': 'EzanSaati/1.0 (github.com/ersinsonmez026-glitch/EzanSaati; ezan bildirimi icin ses secimi)'}
-          out = '.ezan_adaylari/analiz'
-          os.makedirs(out, exist_ok=True)
-          for f in os.listdir(out):
-              if f.endswith('.wav'): os.remove(os.path.join(out, f))
-          files = {'3': 'File:Beautiful adhan.ogg', '4': 'File:The Adhan - Muslim Call to Prayer - Aaqib Azeez.mp3',
-                   '5': 'File:Call to prayer.ogg', '7': 'File:Adhan.ogg', '8': 'File:Athan during Ramadan 2.wav',
-                   '9': 'File:Athan in Ramadan.wav', '10': 'File:Azan.ogg', '12': 'File:Islamic call to worship.oga',
-                   '13': 'File:Llamada a oración Mezquita Hassan II.wav'}
+          out = '.ezan_adaylari/kesim'
+          os.makedirs(out + '/raw', exist_ok=True)
+          # Uygulamadaki ad -> (aday no, Commons dosyası)
+          files = {'ezan1': ('3', 'File:Beautiful adhan.ogg'),
+                   'ezan2': ('4', 'File:The Adhan - Muslim Call to Prayer - Aaqib Azeez.mp3'),
+                   'ezan3': ('5', 'File:Call to prayer.ogg'),
+                   'ezan4': ('10', 'File:Azan.ogg'),
+                   'ezan5': ('7', 'File:Adhan.ogg'),
+                   'ezan6': ('8', 'File:Athan during Ramadan 2.wav')}
           def get(url):
               for wait in (0, 20, 45, 90):
                   time.sleep(wait)
@@ -45,42 +45,64 @@ jobs:
                   except urllib.error.HTTPError as e:
                       if e.code != 429: raise
               raise RuntimeError('çok istek')
-          q = ('https://commons.wikimedia.org/w/api.php?format=json&action=query&prop=revisions|imageinfo'
-               '&rvprop=content&rvslots=main&iiprop=url&titles=' + urllib.parse.quote('|'.join(files.values())))
-          pages = {p['title']: p for p in json.loads(get(q))['query']['pages'].values()}
-          def spec(x, sr, a, b, path, w=1600):
-              x = x[int(a * sr):int(b * sr)]; N = 512; hop = max(80, len(x) // (w * 2))
-              fr = np.array([np.abs(np.fft.rfft(x[i:i + N] * np.hanning(N)))[:200] for i in range(0, len(x) - N, hop)])
-              db = np.clip((20 * np.log10(fr + 1e-6) + 80) / 80, 0, 1)
-              im = Image.fromarray((255 * db.T[::-1]).astype(np.uint8)).resize((w, 220)).convert('RGB')
-              d = ImageDraw.Draw(im); step = 1 if b - a <= 20 else 5
-              for t in range(int(a), int(b) + 1, step):
-                  X = (t - a) / (b - a) * w; d.line([(X, 205), (X, 220)], fill=(255, 0, 0)); d.text((X + 2, 206), str(t), fill=(255, 90, 90))
-              im.save(path)
-          for n, t in files.items():
-              p = pages[t]
-              open(f'{out}/{n}_sayfa.txt', 'w').write(p['revisions'][0]['slots']['main']['*'])
+          q = ('https://commons.wikimedia.org/w/api.php?format=json&action=query&prop=imageinfo&iiprop=url&titles='
+               + urllib.parse.quote('|'.join(t for _, t in files.values())))
+          urls = {p['title']: p['imageinfo'][0]['url'] for p in json.loads(get(q))['query']['pages'].values()}
+          rapor = []
+          for ad, (no, t) in files.items():
               time.sleep(6)
-              url = p['imageinfo'][0]['url']; ext = url.rsplit('.', 1)[1]
-              open('k.' + ext, 'wb').write(get(url))
-              subprocess.run(['ffmpeg', '-v', 'error', '-y', '-i', 'k.' + ext, '-ac', '1', '-ar', '16000', '-c:a', 'pcm_s16le', 'k.wav'], check=True)
-              w = wave.open('k.wav'); sr = w.getframerate()
+              ext = urls[t].rsplit('.', 1)[1]
+              src = 'k.' + ext
+              open(src, 'wb').write(get(urls[t]))
+              # Hafif temizlik: uğultu (80 Hz altı) ve sabit hışırtı
+              subprocess.run(['ffmpeg', '-v', 'error', '-y', '-i', src, '-ac', '1', '-ar', '32000',
+                              '-af', 'highpass=f=80,afftdn=nf=-28', '-c:a', 'pcm_s16le', 'temiz.wav'], check=True)
+              w = wave.open('temiz.wav'); sr = w.getframerate()
               x = np.frombuffer(w.readframes(w.getnframes()), np.int16).astype(float) / 32768; L = len(x) / sr
-              hop = sr // 4
-              rms = [20 * np.log10(np.sqrt(np.mean(x[i:i + hop] ** 2)) + 1e-9) for i in range(0, len(x), hop)]
-              s = ''.join(' ' if r < -50 else '.' if r < -35 else ':' if r < -25 else '|' for r in rms)
-              env = [f'{i / 4:6.1f}s {s[i:i + 80]}' for i in range(0, len(s), 80)]
-              open(f'{out}/{n}_zarf.txt', 'w').write(f'süre {L:.2f} sn\n' + '\n'.join(env) + '\n')
-              spec(x, sr, 0, L, f'{out}/{n}_tum.png')
-              spec(x, sr, 0, min(16, L), f'{out}/{n}_bas.png')
-              spec(x, sr, max(0, L - 16), L, f'{out}/{n}_son.png')
-              print(n, t, round(L, 1))
+              f = int(sr * 0.05)
+              db = np.array([20 * np.log10(np.sqrt(np.mean(x[i:i + f] ** 2)) + 1e-9) for i in range(0, len(x) - f, f)])
+              floor = np.percentile(db, 10); peak = np.percentile(db, 98)
+              thr = max(peak - 28, floor + 10)
+              on = db > thr
+              # Sesli bölümler: 0,3 sn'den kısa tek tük sesler (tıkırtı vb.) sayılmaz; 0,25 sn'den kısa boşluklar birleşir
+              runs, i = [], 0
+              while i < len(on):
+                  if on[i]:
+                      j = i
+                      while j < len(on) and on[j]: j += 1
+                      runs.append([i, j]); i = j
+                  else: i += 1
+              merged = []
+              for r in runs:
+                  if merged and r[0] - merged[-1][1] <= 5: merged[-1][1] = r[1]
+                  else: merged.append(r)
+              runs = [r for r in merged if r[1] - r[0] >= 6]
+              start = max(0, runs[0][0] * 0.05 - 0.15)
+              end = min(L, runs[-1][1] * 0.05 + 0.6)
+              # Kısa sürüm: 11. saniyeden sonraki ilk duraklamada biter (ilk tekbirler)
+              kisa = None
+              for a, b in zip(runs, runs[1:]):
+                  gap_s = a[1] * 0.05
+                  if gap_s - start >= 11 and (b[0] - a[1]) * 0.05 >= 0.35:
+                      kisa = gap_s + 0.35; break
+              if kisa is None or kisa - start > 30: kisa = start + 20
+              def enc(a, b, fade, name):
+                  af = f'atrim={a:.2f}:{b:.2f},asetpts=PTS-STARTPTS,afade=t=in:d=0.08,afade=t=out:st={b - a - fade:.2f}:d={fade},loudnorm=I=-16:TP=-1.5:LRA=11'
+                  subprocess.run(['ffmpeg', '-v', 'error', '-y', '-i', 'temiz.wav', '-af', af, '-ar', '32000', '-c:a', 'libvorbis', '-q:a', '1',
+                                  f'{out}/raw/{name}.ogg'], check=True)
+                  subprocess.run(['ffmpeg', '-v', 'error', '-y', '-i', 'temiz.wav', '-af', af, '-ar', '44100', '-c:a', 'libmp3lame', '-b:a', '64k',
+                                  f'{out}/{name}_dinle.mp3'], check=True)
+              enc(start, end, 0.6, f'{ad}_tam')
+              enc(start, kisa, 0.8, f'{ad}_kisa')
+              s = lambda p: os.path.getsize(p) // 1024
+              line = (f'{ad} (aday {no}, {t}): orijinal {L:.1f} sn; kesim {start:.2f}-{end:.2f} sn (tam {end - start:.1f} sn), '
+                      f'kısa {kisa - start:.1f} sn; ogg {s(f"{out}/raw/{ad}_tam.ogg")}+{s(f"{out}/raw/{ad}_kisa.ogg")} KB')
+              print(line); rapor.append(line)
+          open(f'{out}/RAPOR.txt', 'w').write('\n'.join(rapor) + '\n')
       - name: Dala ekle
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git rm -q -r --cached --ignore-unmatch .ezan_adaylari/analiz/*.wav .ezan_adaylari/kaynak
-          rm -rf .ezan_adaylari/kaynak
           git add -A .ezan_adaylari
-          git commit -m "Geçici: temiz ezan adaylarının analizi"
+          git commit -m "Geçici: kesilmiş ezan sesleri (dinleme için)"
           git push origin HEAD:claude/charming-davinci-6c5fkr
