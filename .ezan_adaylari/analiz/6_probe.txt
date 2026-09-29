@@ -1,0 +1,10 @@
+Input #0, ogg, from 'kaynak_6.ogg':
+  Duration: 00:03:06.55, start: 0.000000, bitrate: 127 kb/s
+  Stream #0:0: Audio: vorbis, 44100 Hz, stereo, fltp, 128 kb/s
+    Metadata:
+      encoder         : Lavc56.1.101 libvorbis
+      artist          : ãÄÐäæ  ÇáãÓÌÏ ÇáäÈæí
+      genre           : Blues
+      title           : ÓÇãí Ïíæáí1
+      track           : 00
+      TLEN            : 000000186505

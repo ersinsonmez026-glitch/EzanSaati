@@ -1,0 +1,92 @@
+=={{int:filedesc}}==
+{{Information
+|description={{en|1=Islamic call to prayer from the prophet mosque,}}
+|date=2014-10-18 15:24:57
+|source=http://www.freesound.org/people/ejaz215/sounds/33937/
+|author=ejaz215
+|permission=
+|other versions=
+}}
+
+=={{int:license-header}}==
+{{cc-by-3.0}}
+
+[[Category:Audio files about Islam]]
+[[Category:Muezzins]]
+
+---- extmetadata ----
+{
+ "DateTime": {
+  "value": "2014-10-18 13:29:42",
+  "source": "mediawiki-metadata",
+  "hidden": ""
+ },
+ "ObjectName": {
+  "value": "33937 ejaz215 call-to-prayer-from-the-prophet-s-mo",
+  "source": "mediawiki-metadata"
+ },
+ "CommonsMetadataExtension": {
+  "value": 1.2,
+  "source": "extension",
+  "hidden": ""
+ },
+ "Categories": {
+  "value": "Muezzins|Audio files about Islam",
+  "source": "commons-categories",
+  "hidden": ""
+ },
+ "Assessments": {
+  "value": "",
+  "source": "commons-categories",
+  "hidden": ""
+ },
+ "ImageDescription": {
+  "value": "Islamic call to prayer from the prophet mosque,",
+  "source": "commons-desc-page"
+ },
+ "DateTimeOriginal": {
+  "value": "2014-10-18 15:24:57",
+  "source": "commons-desc-page"
+ },
+ "Credit": {
+  "value": "<a rel=\"nofollow\" class=\"external free\" href=\"http://www.freesound.org/people/ejaz215/sounds/33937/\">http://www.freesound.org/people/ejaz215/sounds/33937/</a>",
+  "source": "commons-desc-page"
+ },
+ "Artist": {
+  "value": "ejaz215",
+  "source": "commons-desc-page"
+ },
+ "LicenseShortName": {
+  "value": "CC BY 3.0",
+  "source": "commons-desc-page",
+  "hidden": ""
+ },
+ "UsageTerms": {
+  "value": "Creative Commons Attribution 3.0",
+  "source": "commons-desc-page"
+ },
+ "AttributionRequired": {
+  "value": "true",
+  "source": "commons-desc-page",
+  "hidden": ""
+ },
+ "LicenseUrl": {
+  "value": "https://creativecommons.org/licenses/by/3.0",
+  "source": "commons-desc-page"
+ },
+ "Copyrighted": {
+  "value": "True",
+  "source": "commons-desc-page",
+  "hidden": ""
+ },
+ "Restrictions": {
+  "value": "",
+  "source": "commons-desc-page",
+  "hidden": ""
+ },
+ "License": {
+  "value": "cc-by-3.0",
+  "source": "commons-templates",
+  "hidden": ""
+ }
+}

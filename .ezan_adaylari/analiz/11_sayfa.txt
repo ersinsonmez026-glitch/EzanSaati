@@ -1,0 +1,99 @@
+== {{int:filedesc}} ==
+{{Artwork
+|object type = voice recording
+|description={{ar|1=تسجيل للأذان  بصوت [[:ar:صباح فخري|صباح فخري]]}}
+{{en|1=Call to prayer (Adhan) by Sabah Fakhry.}}
+|date=1985
+|source={{From Youtube|GkB_lMQAQrU}}
+|author={{creator|wikidata=Q984486}}
+|permission= Adhan has been in effect since c.622 A.D.
+|other versions=
+}}
+
+=={{int:license-header}}==
+{{PD-Old}}
+
+
+
+[[Category:Adhan]]
+[[Category:Ṣabāḥ Faḵrī]]
+== {{int:license-header}} ==
+{{PD-US-expired}}
+
+---- extmetadata ----
+{
+ "DateTime": {
+  "value": "2025-09-12 09:32:51",
+  "source": "mediawiki-metadata",
+  "hidden": ""
+ },
+ "ObjectName": {
+  "value": "Call to prayer by Sabah Fakhry",
+  "source": "mediawiki-metadata"
+ },
+ "CommonsMetadataExtension": {
+  "value": 1.2,
+  "source": "extension",
+  "hidden": ""
+ },
+ "Categories": {
+  "value": "Ṣabāḥ Faḵrī|Media from YouTube|Adhan|Artworks without Wikidata item|PD Old|PD US expired|CC-PD-Mark",
+  "source": "commons-categories",
+  "hidden": ""
+ },
+ "Assessments": {
+  "value": "",
+  "source": "commons-categories",
+  "hidden": ""
+ },
+ "Artist": {
+  "value": "<bdi><a href=\"https://en.wikipedia.org/wiki/en:Sabah_Fakhri\" class=\"extiw\" title=\"w:en:Sabah Fakhri\"><span title=\"Syrian singer (1934–2021)\">Sabah Fakhri</span></a></bdi>",
+  "source": "commons-desc-page"
+ },
+ "ImageDescription": {
+  "value": "Call to prayer (Adhan) by Sabah Fakhry.",
+  "source": "commons-desc-page"
+ },
+ "DateTimeOriginal": {
+  "value": "1985<div style=\"display: none;\">date QS:P571,+1985-00-00T00:00:00Z/9</div>",
+  "source": "commons-desc-page"
+ },
+ "Credit": {
+  "value": "<bdi lang=\"en\" dir=\"ltr\"><a rel=\"nofollow\" class=\"external text\" href=\"https://www.youtube.com/watch?v=GkB_lMQAQrU\">YouTube</a> – View/save archived versions on <a rel=\"nofollow\" class=\"external text\" href=\"https://web.archive.org/web/*/https://www.youtube.com/watch?v=GkB_lMQAQrU\">archive.org</a></bdi>",
+  "source": "commons-desc-page"
+ },
+ "Permission": {
+  "value": "Adhan has been in effect since c.622 A.D.",
+  "source": "commons-desc-page",
+  "hidden": ""
+ },
+ "LicenseShortName": {
+  "value": "Public domain",
+  "source": "commons-desc-page",
+  "hidden": ""
+ },
+ "UsageTerms": {
+  "value": "Public domain",
+  "source": "commons-desc-page"
+ },
+ "AttributionRequired": {
+  "value": "false",
+  "source": "commons-desc-page",
+  "hidden": ""
+ },
+ "Copyrighted": {
+  "value": "False",
+  "source": "commons-desc-page",
+  "hidden": ""
+ },
+ "Restrictions": {
+  "value": "",
+  "source": "commons-desc-page",
+  "hidden": ""
+ },
+ "License": {
+  "value": "pd",
+  "source": "commons-templates",
+  "hidden": ""
+ }
+}
