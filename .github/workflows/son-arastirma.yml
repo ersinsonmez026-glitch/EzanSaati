@@ -39,21 +39,28 @@ jobs:
                       for m in list(re.finditer(k,t))[:3]:
                           print('--[',k,']--',t[max(0,m.start()-300):m.start()+1500].replace('\n',' / '))
               else: print(t[:maxc])
-          def bing(q):
-              print('\n##### BING:',q)
+          def links(u,pat):
+              print('\n##### LİNK:',u)
+              try: h=get(u)
+              except Exception as e: print('HATA',e); return []
+              print('uzunluk',len(h))
+              out=[]
+              for href,t in re.findall(r'<a[^>]+href="([^"]+)"[^>]*>(.*?)</a>',h,re.S):
+                  t=re.sub(r'\s+',' ',re.sub('<[^>]+>','',H.unescape(t))).strip()
+                  if re.search(pat,href+' '+t,re.I):
+                      full=urllib.parse.urljoin(u,H.unescape(href)); out.append(full); print('  ',full,'|',t[:90])
+              return out
+          links('https://kurul.diyanet.gov.tr/','.')
+          links('https://vakithesaplama.diyanet.gov.tr/','dini|gun|gün')
+          for y in (2027,2028):
               try:
-                  h=get('https://www.bing.com/search?setlang=tr&cc=TR&q='+urllib.parse.quote(q))
-                  for u,t in re.findall(r'<h2[^>]*><a[^>]*href="(http[^"]+)"[^>]*>(.*?)</a>',h)[:8]:
-                      print('  ',H.unescape(u),'|',re.sub('<[^>]+>','',H.unescape(t))[:100])
-              except Exception as e: print('HATA',e)
-              time.sleep(2)
-          for q in ['site:kurul.diyanet.gov.tr orucu bozan',
-                    'site:kurul.diyanet.gov.tr orucu bozmayan',
-                    'site:diyanet.gov.tr orucu bozan ve bozmayan şeyler',
-                    'Diyanet 2026 yılı fitre miktarı',
-                    'site:kurul.diyanet.gov.tr zekât nisap',
-                    'site:diyanet.gov.tr esmâ-i hüsnâ anlamları',
-                    'Diyanet esma ül hüsna 99 isim anlamları pdf']: bing(q)
-          page('https://vakithesaplama.diyanet.gov.tr/dinigunler.php?yil=2028',['Ramazan','Kadir','Regaip|Regaib','Berat','Mira'])
-          page('https://vakithesaplama.diyanet.gov.tr/dinigunler.php?yil=2027',['Ramazan','Kadir'])
-          page('https://islamansiklopedisi.org.tr/esma-i-husna',['Tirmizî rivayetinde','Tirmizî’nin rivayet'],3000)
+                  h=get(f'https://vakithesaplama.diyanet.gov.tr/dinigunler.php?yil={y}')
+                  print('\n##### HAM',y,len(h)); t=text(h); t=re.sub(r'\n\s*\n+','\n',t); print(t[:4000])
+              except Exception as e: print('HATA',y,e)
+          page('https://islamansiklopedisi.org.tr/oruc',['bozan','bozmaz','bozmayan','kazâ','keffâret'],0)
+          page('https://islamansiklopedisi.org.tr/zekat',['nisap','nisâb','kırkta','80'],0)
+          page('https://islamansiklopedisi.org.tr/sadaka-i-fitr',['miktar','buğday','hurma','yarım sâ'],0)
+          try:
+              h=get('https://islamansiklopedisi.org.tr/esma-i-husna'); t=re.sub(r'\n\s*\n+','\n',text(h))
+              i=t.find('Tirmizî’nin es-Sünen'); print('\n##### ESMA TAM'); print(t[i:i+30000])
+          except Exception as e: print('HATA',e)
