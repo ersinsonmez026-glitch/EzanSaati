@@ -1,0 +1,9 @@
+== {{int:filedesc}} ==
+{{Information
+|Description=Adhan.
+|Source={{own}}
+|Date=2022-04-29
+|Author=Adam-synagda
+}}
+== {{int:license-header}} ==
+{{self|Cc-zero}}

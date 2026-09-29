@@ -1,0 +1,21 @@
+=={{int:filedesc}}==
+{{Information
+|description={{en|1=Muslim call to prayer}}{{ig| Akpọmoku ekpere ndị Muslim}}{{Wiki Loves Africa 2026 country|NG}}
+|date=2026-04-29
+|source={{own}}
+|author=[[User:Isaacayodele32|Isaacayodele32]]
+|permission=
+|other versions=
+}}
+
+=={{int:license-header}}==
+{{self|cc-by-sa-4.0}}
+
+{{Wiki Loves Africa 2026}}
+[[Category:Images from Wiki Loves Africa 2026 to check]]
+
+[[Category:Audios from Wiki Loves Africa 2026]]
+[[Category:Audios from Wiki Loves Africa 2026 for Creatives in Nigeria]]
+[[Category:Uploaded via Campaign:wlafrica]]
+[[Category:Audios from Wiki Loves Africa 2026 in Nigeria]]
+[[Category:Islamic prayers in Nigeria]]

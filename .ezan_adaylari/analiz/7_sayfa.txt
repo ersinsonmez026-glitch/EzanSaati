@@ -1,0 +1,14 @@
+=={{int:filedesc}}==
+{{Information
+|description={{en|1=Adhan announcement that prayer is about to start}}
+|date=2026-07-15
+|source={{own}}
+|author=[[User:Aishatu98|Aishatu98]]
+|permission=
+|other versions=
+}}
+
+=={{int:license-header}}==
+{{self|cc-zero}}
+
+{{Uncategorized|year=2026|month=July|day=15}}
