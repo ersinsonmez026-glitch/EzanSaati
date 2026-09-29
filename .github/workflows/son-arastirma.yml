@@ -1,0 +1,81 @@
+name: Ramazan kaynak araştırması (geçici)
+
+# Geçici: Ramazan ve Esmâ içerikleri için kaynak sayfalarını çeker, metni yazdırır. Silinecek.
+on:
+  push:
+    branches: [claude/charming-davinci-6c5fkr]
+    paths: [.github/workflows/son-arastirma.yml]
+
+jobs:
+  kaynak:
+    runs-on: ubuntu-latest
+    steps:
+      - shell: python
+        run: |
+          import json, re, urllib.request, urllib.parse, time, html as H
+          UA={'User-Agent':'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/124 Safari/537.36','Accept-Language':'tr-TR,tr;q=0.9'}
+          def get(u):
+              return urllib.request.urlopen(urllib.request.Request(u,headers=UA),timeout=40).read().decode('utf-8','ignore')
+          def text(h):
+              h=re.sub(r'(?s)<(script|style)[^>]*>.*?</\1>',' ',h)
+              h=re.sub(r'<br\s*/?>|</p>|</li>|</tr>|</h\d>','\n',h)
+              return re.sub(r'[ \t]+',' ',H.unescape(re.sub(r'<[^>]+>',' ',h)))
+          def ddg(q):
+              print('\n##### ARA:',q)
+              try:
+                  h=get('https://html.duckduckgo.com/html/?q='+urllib.parse.quote(q))
+                  for u,t in re.findall(r'class="result__a" href="([^"]+)"[^>]*>(.*?)</a>',h)[:8]:
+                      m=re.search(r'uddg=([^&]+)',u); u=urllib.parse.unquote(m.group(1)) if m else u
+                      print('  ',u,'|',re.sub('<[^>]+>','',H.unescape(t))[:100])
+              except Exception as e: print('HATA',e)
+              time.sleep(2)
+          def page(u,keys=None,maxc=6000):
+              print('\n##### SAYFA:',u)
+              try: t=text(get(u))
+              except Exception as e: print('HATA',e); return
+              t=re.sub(r'\n\s*\n+','\n',t)
+              if keys:
+                  for k in keys:
+                      for m in list(re.finditer(k,t))[:3]:
+                          print('--[',k,']--',t[max(0,m.start()-300):m.start()+1500].replace('\n',' / '))
+              else: print(t[:maxc])
+          for q in ['Diyanet 2028 dini günler takvimi Ramazan başlangıcı Kadir Gecesi',
+                    'vakithesaplama.diyanet.gov.tr dini günler 2028',
+                    'Din İşleri Yüksek Kurulu orucu bozan ve bozmayan durumlar',
+                    'kurul.diyanet.gov.tr orucu bozmayan şeyler',
+                    'Diyanet 2026 fitre miktarı açıklandı',
+                    'Din İşleri Yüksek Kurulu zekât nisap miktarı 80,18 gram altın',
+                    'islamansiklopedisi esmâ-i hüsnâ',
+                    'Diyanet esmaül hüsna anlamları listesi 99']: ddg(q)
+          for y in (2027,2028):
+              page(f'https://vakithesaplama.diyanet.gov.tr/dini_gunler.php?yil={y}',['Ramazan','Kadir'])
+          page('https://sunnah.com/abudawud:2357',None,3000)
+          page('https://sunnah.com/abudawud:2358',None,3000)
+          page('https://islamansiklopedisi.org.tr/esma-i-husna',['Tirmizî','er-Rahmân'],8000)
+          print('\n##### TANZIL juz')
+          try:
+              t=get('https://tanzil.net/res/text/metadata/quran-data.js')
+              m=re.search(r'(?s)QuranData\.Juz = \[(.*?)\];',t); print(re.sub(r'\s+',' ',m.group(1)) if m else t[:500])
+          except Exception as e: print('HATA',e)
+          # Esmâ videoları
+          def walk(o):
+              if isinstance(o,dict):
+                  if 'videoRenderer' in o: yield o['videoRenderer']
+                  for v in o.values(): yield from walk(v)
+              elif isinstance(o,list):
+                  for v in o: yield from walk(v)
+          for q in ['DiyanetTV esmaül hüsna','esmaül hüsna okunuşu','esmaül hüsna ilahi ritmik','esmaül hüsna zikri toplu','esmaül hüsna anlamları ile sesli']:
+              print('\n##### YT:',q)
+              try: h=get('https://www.youtube.com/results?search_query='+urllib.parse.quote(q))
+              except Exception as e: print('HATA',e); continue
+              m=re.search(r'var ytInitialData = (\{.*?\});</script>',h)
+              if not m: print('veri yok'); continue
+              n=0
+              for v in walk(json.loads(m.group(1))):
+                  vid=v.get('videoId'); t=''.join(r.get('text','') for r in v.get('title',{}).get('runs',[]))
+                  ch=''.join(r.get('text','') for r in v.get('ownerText',{}).get('runs',[]))
+                  ln=v.get('lengthText',{}).get('simpleText',''); vc=v.get('viewCountText',{}).get('simpleText','')
+                  if not vid or not ln: continue
+                  print(f'  {vid} | {ch} | {ln} | {vc} | {t[:90]}'); n+=1
+                  if n>=8: break
+              time.sleep(1)
