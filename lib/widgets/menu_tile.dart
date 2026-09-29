@@ -11,6 +11,7 @@ class MenuTile extends StatelessWidget {
   final TileStyle style;
   final bool hasPhoto; // görseli henüz yoksa simgeli gösterilir
   final VoidCallback onTap;
+  final double labelSize; // tüm tuşlarda aynı; en uzun isim levhaya sığacak şekilde [fitLabelSize] ile bulunur
 
   const MenuTile({
     super.key,
@@ -20,7 +21,28 @@ class MenuTile extends StatelessWidget {
     required this.style,
     required this.onTap,
     this.hasPhoto = true,
+    this.labelSize = 17.5,
   });
+
+  /// Levhada, uçlardaki motiflerin arasında yazıya kalan genişlik oranı.
+  static const _textArea = 0.8;
+
+  /// Verilen tuş genişliğinde, isimlerin hepsinin levhaya sığdığı en büyük yazı boyutu (en çok 20).
+  static double fitLabelSize(Iterable<String> titles, double tileWidth) {
+    const probe = 20.0;
+    final avail = (tileWidth - 8) * _textArea;
+    var widest = 0.0;
+    for (final t in titles) {
+      final p = TextPainter(
+        text: TextSpan(
+            text: t, style: const TextStyle(fontFamily: 'EBGaramond', fontWeight: FontWeight.w600, fontSize: probe)),
+        textDirection: TextDirection.ltr,
+        maxLines: 1,
+      )..layout();
+      if (p.width > widest) widest = p.width;
+    }
+    return widest == 0 ? probe : (probe * avail / widest * 0.92).clamp(10.0, probe);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -48,7 +70,7 @@ class MenuTile extends StatelessWidget {
             image: DecorationImage(image: AssetImage('assets/images/levha.webp'), fit: BoxFit.fill),
           ),
           child: FractionallySizedBox(
-            widthFactor: 0.7,
+            widthFactor: _textArea,
             child: Center(
               child: FittedBox(
                 fit: BoxFit.scaleDown,
@@ -57,8 +79,8 @@ class MenuTile extends StatelessWidget {
                   maxLines: 1,
                   textAlign: TextAlign.center,
                   tone: GoldTone.onDark,
-                  style: const TextStyle(
-                      fontFamily: 'EBGaramond', fontWeight: FontWeight.w600, fontSize: 17.5, letterSpacing: 0),
+                  style: TextStyle(
+                      fontFamily: 'EBGaramond', fontWeight: FontWeight.w600, fontSize: labelSize, letterSpacing: 0),
                 ),
               ),
             ),

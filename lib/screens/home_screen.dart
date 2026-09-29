@@ -143,6 +143,7 @@ class _HomeScreenState extends State<HomeScreen> {
               tileH = math.min(tileW / 0.95, (h - maxHero - (_rows - 1) * gap - 2 * pad) / _rows);
             }
             final gridH = gridFor(tileH);
+            final labelSize = MenuTile.fitLabelSize(_items.map((e) => e.title), tileW);
             final heroH = math.max(minHero, h - gridH);
             // Çok kısa ekranlarda (ör. yatay) sığmazsa kaydırılabilir; normalde kaydırma yok.
             final scrolls = heroH + gridH > h + 0.5;
@@ -174,6 +175,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           title: item.title,
                           icon: item.icon,
                           style: AppPrefs.instance.tileStyle,
+                          labelSize: labelSize,
                           onTap: () => _onTap(item),
                         );
                       },
@@ -301,29 +303,33 @@ class _HomeScreenState extends State<HomeScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Padding(
-                padding: EdgeInsets.only(left: 14, bottom: 6 * k),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      '“Şüphesiz\nnamaz, müminler\nüzerine vakitleri\nbelirlenmiş bir farzdır.”',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontFamily: 'serif', // ayet eski yazı tipiyle, kalın italik
-                        fontSize: 12.5 * k,
-                        fontWeight: FontWeight.w600,
-                        height: 1.3,
-                        fontStyle: FontStyle.italic,
-                        shadows: shadow,
+              Transform.translate(
+                // Panelin sol kutusu ortadaki kemerden daha aşağıdan başlar; ayet o boşluğa iner.
+                offset: Offset(0, 18 * k),
+                child: Padding(
+                  padding: EdgeInsets.only(left: 14, bottom: 6 * k),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '“Şüphesiz\nnamaz, müminler\nüzerine vakitleri\nbelirlenmiş bir farzdır.”',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontFamily: 'serif', // ayet eski yazı tipiyle, kalın italik
+                          fontSize: 12.5 * k,
+                          fontWeight: FontWeight.w600,
+                          height: 1.3,
+                          fontStyle: FontStyle.italic,
+                          shadows: shadow,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 2),
-                    GoldText(
-                      'Nisâ, 103',
-                      style: TextStyle(fontFamily: 'serif', fontSize: 10.5 * k, fontWeight: FontWeight.w600),
-                    ),
-                  ],
+                      const SizedBox(height: 2),
+                      GoldText(
+                        'Nisâ, 103',
+                        style: TextStyle(fontFamily: 'serif', fontSize: 10.5 * k, fontWeight: FontWeight.w600),
+                      ),
+                    ],
+                  ),
                 ),
               ),
               Padding(
@@ -384,15 +390,12 @@ class _DayNightButton extends StatelessWidget {
                 : '${toDay ? 'Gündüz' : 'Gece'} görünümü seçildi. Ayarlar\'dan Otomatik\'e alabilirsiniz.',
           );
         },
-        child: Container(
+        // Diğer sayfaların başlığındaki gibi şeffaf altın simge: gündüzde ay (geceye geç), gecede güneş.
+        child: Image.asset(
+          day ? 'assets/images/ikon/imsak.webp' : 'assets/images/ikon/ikindi.webp',
           width: size,
           height: size,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: const Color(0x66000000),
-            border: Border.all(color: const Color(0xB3EBB63B), width: 1.2),
-          ),
-          child: Center(child: GoldIcon(day ? Icons.nightlight_round : Icons.wb_sunny, size: size * 0.52)),
+          fit: BoxFit.contain,
         ),
       ),
     );
