@@ -56,7 +56,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return PageShell(
       title: 'Ayarlar',
       background: _pal.background,
-      showSettings: false,
       padding: const EdgeInsets.fromLTRB(12, 12, 12, 24),
       children: [
         GroupCard(
