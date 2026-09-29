@@ -1,5 +1,5 @@
 {
-  "_kaynak": "Tarihler: Diyanet İşleri Başkanlığı 2027 dini günler takvimi (onizleme/11-ramazan.html). Metinler: onaylı Ramazan önizlemesi. KONTROL_LISTESI.md 6. madde: din görevlisi kontrolü bekliyor. Gün sayısı 29: 8 Şubat - 8 Mart (arefe); önizlemedeki 30, bayramın ilk günü 9 Mart ile çelişiyordu.",
+  "_kaynak": "Tarihler: Diyanet İşleri Başkanlığı 2027 dini günler takvimi (onizleme/11-ramazan.html). Metinler: onaylı Ramazan önizlemesi. KONTROL_LISTESI.md 6. madde: din görevlisi kontrolü bekliyor. Gün sayısı 29: 8 Şubat - 8 Mart (arefe); önizlemedeki 30, bayramın ilk günü 9 Mart ile çelişiyordu. İftar duaları: Ebû Dâvûd, Savm 22 (2357, 2358; sunnah.com). Niyet notu ve Oruç Rehberi: Din İşleri Yüksek Kurulu, Oruç Sıkça Sorulanlar. Fitre, fidye ve zekât: Din İşleri Yüksek Kurulu, Zekât Sıkça Sorulanlar (nisap 80,18 gr altın, oran kırkta bir).",
   "yil": 2027,
   "baslangic": "2027-02-08",
   "gunSayisi": 29,
@@ -17,7 +17,7 @@
   "niyet": {
     "baslik": "ORUÇ NİYETİ",
     "metin": "Niyet ettim Allah rızası için bugünkü Ramazan orucunu tutmaya.",
-    "not": "Niyet kalben yapılır; dil ile söylemek güzeldir. Sahura kalkmak da niyet yerine geçer."
+    "not": "Niyet kalben yapılır; dil ile söylemek menduptur. Sahura kalkmak da niyet sayılır. (Din İşleri Yüksek Kurulu, Oruç Sıkça Sorulanlar, 6)"
   },
   "dualar": [
     {
@@ -25,7 +25,14 @@
       "ar": "اَللّٰهُمَّ لَكَ صُمْتُ وَبِكَ اٰمَنْتُ وَعَلَيْكَ تَوَكَّلْتُ وَعَلٰى رِزْقِكَ اَفْطَرْتُ",
       "ok": "Allâhümme leke sumtü ve bike âmentü ve aleyke tevekkeltü ve alâ rızkıke eftartü.",
       "an": "Allah'ım! Senin rızan için oruç tuttum, sana inandım, sana güvendim ve senin verdiğin rızıkla orucumu açtım.",
-      "kaynak": ""
+      "kaynak": "Ebû Dâvûd, Savm 22'deki rivayette dua “Allâhümme leke sumtü ve alâ rızkıke eftartü” şeklindedir; “ve bike âmentü ve aleyke tevekkeltü” kısmı bu rivayette yer almaz."
+    },
+    {
+      "baslik": "İFTAR EDİNCE",
+      "ar": "ذَهَبَ الظَّمَأُ وَابْتَلَّتِ الْعُرُوقُ وَثَبَتَ الْأَجْرُ إِنْ شَاءَ اللّٰهُ",
+      "ok": "Zehebe'z-zameü vebtelleti'l-urûku ve sebete'l-ecru inşâallah.",
+      "an": "Susuzluk gitti, damarlar ıslandı; Allah dilerse sevap da kesinleşti.",
+      "kaynak": "Ebû Dâvûd, Savm 22"
     },
     {
       "baslik": "KADİR GECESİ DUASI",
@@ -33,6 +40,48 @@
       "ok": "Allâhümme inneke afüvvün tühibbü'l-afve fa'fu annî.",
       "an": "Allah'ım! Sen affedicisin, affetmeyi seversin; beni de affet.",
       "kaynak": "Tirmizî, Deavât"
+    }
+  ],
+  "oruc": [
+    {
+      "baslik": "Orucu bozan ve kaza gerektirenler",
+      "tur": "bozar",
+      "maddeler": [
+        ["Yemek, içmek ve cinsel ilişki; sigara, nargile gibi tütün ürünleri; ağızdan alınan ilaçlar.", "28"],
+        ["Abdest alırken, yıkanırken ya da yüzerken istemeden boğaza su kaçması.", "20, 29"],
+        ["İsteyerek ağız dolusu kusmak.", "29, 34"],
+        ["İmsak girmemiş sanıp yemeye devam etmek; güneş batmadan battı sanıp iftar etmek.", "29"],
+        ["Gıda ve vitamin iğnesi, damardan serum, vücuda kan almak.", "49, 51"],
+        ["Bölgesel ve genel anestezi (serum verildiği için).", "47"],
+        ["İçinden su verilen endoskopi ve kolonoskopi.", "44"],
+        ["Tükürüğe eşit ya da fazla olan diş kanamasını yutmak.", "57"]
+      ]
+    },
+    {
+      "baslik": "Orucu bozmayanlar",
+      "tur": "bozmaz",
+      "maddeler": [
+        ["Unutarak yemek içmek; hatırlayınca hemen bırakılır.", "32"],
+        ["Kendiliğinden gelen kusma.", "34"],
+        ["Boğaza kaçırmadan ağzı çalkalamak ve diş fırçalamak (macunsuz fırçalamak daha uygundur).", "33"],
+        ["Ağız ve burundan su kaçırmadan yıkanmak, denize girmek.", "21"],
+        ["Cünüp olarak sabahlamak; gusül geciktirilmemelidir.", "22"],
+        ["Göz, burun ve kulak damlası.", "38-40"],
+        ["Ağza püskürtülen astım spreyi ve dilaltı hapı.", "37, 42"],
+        ["Aşı, tedavi iğnesi ve insülin.", "49, 50"],
+        ["Kan vermek, biyopsi, anjiyo, akupunktur.", "45, 51, 53, 54"],
+        ["Merhem, ilaçlı bant, lokal anestezi ve diş tedavisi (boğaza bir şey kaçmazsa).", "47, 55, 56"]
+      ]
+    },
+    {
+      "baslik": "Kaza, keffâret ve fidye",
+      "tur": "bilgi",
+      "maddeler": [
+        ["Kaza: Mazeretle ya da hata ile bozulan oruç için sonradan gününe gün oruç tutmaktır.", "29"],
+        ["Keffâret: Ramazan orucunu mazeretsiz, bilerek bozan; kaza ve tövbeye ek olarak 60 gün ara vermeden oruç tutar, gücü yetmezse 60 fakiri doyurur.", "31"],
+        ["Fidye: Yaşlılık ya da iyileşme ümidi olmayan hastalık sebebiyle oruç tutamayan, her gün için bir fitre miktarı fidye verir.", "5, 25"],
+        ["Hasta, yolcu (en az 90 km), gebe ve emzikli olanlar oruç tutmayabilir; tutamadıkları günleri sonra kaza ederler.", "3"]
+      ]
     }
   ]
 }

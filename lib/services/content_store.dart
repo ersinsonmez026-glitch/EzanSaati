@@ -158,6 +158,30 @@ class DuaData {
 }
 
 // ---------------------------------------------------------------------------
+// Esmâü'l-Hüsnâ: assets/data/esma.json (99 isim)
+// Liste ve sıra Tirmizî, Deavât 82 (sunnah.com, Tirmizî 3507) rivayetine göredir. Anlamlar TDV İslâm
+// Ansiklopedisi'nin ilgili maddelerinden kısaltılmıştır; KONTROL_LISTESI.md'ye göre hoca kontrolü bekler.
+// ---------------------------------------------------------------------------
+
+class EsmaName {
+  final String arabic;
+  final String reading;
+  final String meaning;
+
+  const EsmaName(this.arabic, this.reading, this.meaning);
+
+  static Future<List<EsmaName>>? _all;
+
+  static Future<List<EsmaName>> all() => _all ??= () async {
+        final list = jsonDecode(await rootBundle.loadString('assets/data/esma.json')) as List<dynamic>;
+        return [
+          for (final e in list)
+            EsmaName((e as Map)['ar'] as String, e['ok'] as String, e['an'] as String),
+        ];
+      }();
+}
+
+// ---------------------------------------------------------------------------
 // Dini Mesajlar: assets/data/mesajlar.json (96 hazır mesaj)
 // Ayetli mesajlarda meal Ruvvâd Tercüme Merkezi (QuranEnc.com) mealidir; uzun ayetlerden birebir
 // alıntı yapılır, atlanan yerler "…" ile gösterilir. Kaynak: "Talâk Sûresi, 2-3" gibi.

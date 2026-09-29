@@ -60,16 +60,24 @@ jobs:
                   r=PdfReader(io.BytesIO(b)); t='\n'.join((pg.extract_text() or '') for pg in r.pages)
                   print('sayfa',len(r.pages),'karakter',len(t)); return t
               except Exception as e: print('HATA',e); return ''
-          def show(tag,h):
-              t=re.sub(r'\s+',' ',text(h)); ms=[m.start() for m in re.finditer('(?i)ramazan|kadir',t)]
-              print('\n',tag,len(h),len(ms))
-              if ms: print(t[max(0,ms[0]-2500):ms[0]+3500])
-          show('GET2026',get('https://vakithesaplama.diyanet.gov.tr/dinigunler.php?yil=2026'))
-          show('GET2028',get('https://vakithesaplama.diyanet.gov.tr/dinigunler.php?yil=2028'))
-          for y in ('2027','2028'):
-              for form in ({'hicriay':y},{'hicriay':y,'hicriyil':'2019'}):
-                  try:
-                      data=urllib.parse.urlencode(form).encode()
-                      h=urllib.request.urlopen(urllib.request.Request('https://vakithesaplama.diyanet.gov.tr/dini_gunler.php',data=data,headers=UA),timeout=40).read().decode('utf-8','ignore')
-                      show('POST'+str(form),h)
-                  except Exception as e: print('POST HATA',y,e)
+          U='https://vakithesaplama.diyanet.gov.tr/dini_gunler.php'
+          h=get(U)
+          f=re.findall(r'<form.*?</form>',h,re.S)[0]
+          sels=re.findall(r'<select[^>]*name="([^"]+)"[^>]*>(.*?)</select>',f,re.S)
+          for n,body in sels: print('SELECT',n,[v for v in re.findall(r'value="([^"]*)"',body)][-12:])
+          for m in re.findall(r'<(?:input|button)[^>]*>',f): print('INPUT',m)
+          gun=[(n,body) for n,body in sels if 'RAMAZAN' in body.upper()]
+          if gun:
+              gname,gbody=gun[0]
+              opts=re.findall(r'<option[^>]*value="([^"]*)"[^>]*>(.*?)</option>',gbody,re.S)
+              yname=[n for n,body in sels if '2028' in body and n!=gname][-1]
+              extra={}
+              for m in re.findall(r'<(?:input|button)[^>]*name="([^"]+)"[^>]*value="([^"]*)"',f): extra[m[0]]=m[1]
+              for val,lab in opts:
+                  for y in ('2027','2028'):
+                      form={yname:y,gname:val,**extra}
+                      try:
+                          r=urllib.request.urlopen(urllib.request.Request(U,data=urllib.parse.urlencode(form).encode(),headers=UA),timeout=40).read().decode('utf-8','ignore')
+                          t=re.sub(r'\s+',' ',text(r)); i=t.find('AÇIKLAMA')
+                          print('SONUC',y,lab.strip(),'|',t[i:i+400])
+                      except Exception as e: print('HATA',y,lab,e)
