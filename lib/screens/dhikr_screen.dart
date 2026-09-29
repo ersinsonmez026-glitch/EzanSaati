@@ -238,7 +238,7 @@ class _DhikrScreenState extends State<DhikrScreen> with SingleTickerProviderStat
                         child: _fitWord(
                           label,
                           TextStyle(
-                            color: on ? RC.bronzeText : (dashed ? const Color(0xFFE9C96A) : RC.cream),
+                            color: on ? RC.bronzeText : (dashed ? const Color(0xFFF2C24F) : RC.cream),
                             fontSize: 11.5,
                             height: 1.2,
                             fontWeight: FontWeight.w700,

@@ -175,7 +175,7 @@ class _HeaderDelegate extends SliverPersistentHeaderDelegate {
     return DecoratedBox(
       decoration: const BoxDecoration(
         color: AppColors.darkGreen,
-        border: Border(bottom: BorderSide(color: Color(0x99D4AF37), width: 1.5)),
+        border: Border(bottom: BorderSide(color: Color(0x99EBB63B), width: 1.5)),
       ),
       child: ClipRect(
         child: Stack(
@@ -307,7 +307,7 @@ class _HeaderDelegate extends SliverPersistentHeaderDelegate {
                             const SizedBox(height: 3),
                             Text(
                               '($source)',
-                              style: const TextStyle(color: Color(0xFFE7DDC4), fontSize: 8, shadows: _shadow),
+                              style: const TextStyle(color: Color(0xFFF2DDA8), fontSize: 8, shadows: _shadow),
                             ),
                           ],
                         ),
@@ -329,7 +329,7 @@ class _HeaderDelegate extends SliverPersistentHeaderDelegate {
                           child: Text(
                             subtitle!,
                             maxLines: 1,
-                            style: const TextStyle(color: Color(0xFFE6D3A0), fontSize: 11, shadows: _shadow),
+                            style: const TextStyle(color: Color(0xFFF3CF78), fontSize: 11, shadows: _shadow),
                           ),
                         ),
                         const SizedBox(height: 4),
@@ -426,7 +426,7 @@ class _LocationPill extends StatelessWidget {
             decoration: BoxDecoration(
               color: const Color(0x8C021C12),
               borderRadius: BorderRadius.circular(99),
-              border: Border.all(color: const Color(0xCCD4AF37), width: 1.2),
+              border: Border.all(color: const Color(0xCCEBB63B), width: 1.2),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
@@ -438,11 +438,11 @@ class _LocationPill extends StatelessWidget {
                     store.current?.name ?? 'Konum Seç',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(color: Color(0xFFF8EED2), fontSize: 11.5, fontWeight: FontWeight.w500),
+                    style: const TextStyle(color: Color(0xFFFBE2A6), fontSize: 11.5, fontWeight: FontWeight.w500),
                   ),
                 ),
                 const SizedBox(width: 1),
-                const Icon(Icons.chevron_right, size: 14, color: Color(0xFFE9C96A)),
+                const Icon(Icons.chevron_right, size: 14, color: Color(0xFFF2C24F)),
               ],
             ),
           ),
@@ -464,7 +464,7 @@ class _Ornament extends StatelessWidget {
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors:
-                  left ? const [Color(0x00D4AF37), Color(0xFFD4AF37)] : const [Color(0xFFD4AF37), Color(0x00D4AF37)],
+                  left ? const [Color(0x00EBB63B), Color(0xFFEBB63B)] : const [Color(0xFFEBB63B), Color(0x00EBB63B)],
             ),
           ),
         );
@@ -478,7 +478,7 @@ class _Ornament extends StatelessWidget {
           child: Container(
             width: 6,
             height: 6,
-            decoration: BoxDecoration(border: Border.all(color: const Color(0xFFE9C96A), width: 1.2)),
+            decoration: BoxDecoration(border: Border.all(color: const Color(0xFFF2C24F), width: 1.2)),
           ),
         ),
         const SizedBox(width: 4),

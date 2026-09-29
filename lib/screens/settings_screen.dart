@@ -61,19 +61,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
       children: [
         GroupCard(
           pal: _pal,
-          icon: Icons.place_outlined,
+          art: 'cami_bulucu',
           title: 'Konum',
           children: [
             GroupItem(
               pal: _pal,
-              icon: Icons.location_city,
+              art: 'konum',
               title: 'Şehir',
               subtitle: loc == null ? 'Seçilmedi' : '${loc.name}${loc.fromGps ? ' (GPS)' : ''}',
               onTap: () => _open(const CityPickerScreen()),
             ),
             GroupItem(
               pal: _pal,
-              icon: Icons.my_location,
+              art: 'kible_bulucu',
               title: 'Konumumu güncelle',
               subtitle: 'GPS ile bulunduğunuz yeri yeniden bulur',
               trailing: _busy
@@ -86,12 +86,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
         gap,
         GroupCard(
           pal: _pal,
-          icon: Icons.grid_view,
+          art: 'ayarlar',
           title: 'Görünüm',
           children: [
             GroupItem(
               pal: _pal,
-              icon: Icons.dashboard_outlined,
+              art: 'gorunum',
               title: 'Ana ekran tuşları',
               subtitle: 'Görselli, yeşil ya da krem tuşlar',
               below: ChoiceRow<TileStyle>(
@@ -108,7 +108,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
             GroupItem(
               pal: _pal,
-              icon: Icons.brightness_6_outlined,
+              art: 'imsak',
               title: 'Gündüz / gece görünümü',
               subtitle: 'Otomatik: imsakten akşama krem, akşamdan sonra yeşil görünüm ve gece manzarası',
               below: ChoiceRow<DayMode>(
@@ -126,12 +126,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
         gap,
         GroupCard(
           pal: _pal,
-          icon: Icons.notifications_active,
+          art: 'fener',
           title: 'Bildirimler',
           children: [
             GroupItem(
               pal: _pal,
-              icon: Icons.notifications_none,
+              art: 'ses',
               title: 'Ezan bildirimleri',
               subtitle: EzanNotifications.instance.settings.enabled
                   ? '${EzanNotifications.instance.settings.activeCount} vakitte açık'
@@ -143,12 +143,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
         gap,
         GroupCard(
           pal: _pal,
-          icon: Icons.calculate_outlined,
+          art: 'namaz_vakitleri',
           title: 'Hesaplama',
           children: [
             GroupItem(
               pal: _pal,
-              icon: Icons.schedule,
+              art: 'takvim',
               title: 'Hesaplama yöntemi',
               subtitle: 'Diyanet İşleri Başkanlığı (Türkiye). Vakitler internetsiz hesaplanır.',
             ),
@@ -157,19 +157,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
         gap,
         GroupCard(
           pal: _pal,
-          icon: Icons.info_outline,
+          art: 'dini_mesajlar',
           title: 'Hakkında',
           children: [
             GroupItem(
               pal: _pal,
-              icon: Icons.privacy_tip_outlined,
+              art: 'hadisler',
               title: 'Gizlilik ve kaynaklar',
               subtitle: 'Verileriniz nerede tutulur, içerikler nereden alınır',
               onTap: () => _open(const AboutScreen()),
             ),
             GroupItem(
               pal: _pal,
-              icon: Icons.verified_outlined,
+              art: 'cami',
               title: 'Ezan Saati',
               subtitle: 'Sürüm ${AboutScreen.version}',
             ),

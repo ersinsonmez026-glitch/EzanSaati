@@ -228,7 +228,7 @@ class _DuaCircleScreenState extends State<DuaCircleScreen> {
           _GoldTitle(title, size: 18),
           if (sub != null) ...[
             const SizedBox(height: 3),
-            Text(sub, textAlign: TextAlign.center, style: const TextStyle(color: Color(0xFFE7DDC4), fontSize: 12)),
+            Text(sub, textAlign: TextAlign.center, style: const TextStyle(color: Color(0xFFF2DDA8), fontSize: 12)),
           ],
         ],
       ),
@@ -592,7 +592,7 @@ class _DuaCircleScreenState extends State<DuaCircleScreen> {
                       ? (!c.remote && _sync.ready ? 'Sizin zinciriniz · yalnız bu telefonda' : 'Sizin zinciriniz')
                       : '${c.ownerName} oluşturdu',
                   textAlign: TextAlign.center,
-                  style: const TextStyle(color: Color(0xFFE7DDC4), fontSize: 12.5)),
+                  style: const TextStyle(color: Color(0xFFF2DDA8), fontSize: 12.5)),
               if (c.intent.isNotEmpty) ...[
                 const SizedBox(height: 3),
                 Text('“${c.intent}”',
@@ -1098,7 +1098,7 @@ class _RailButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final fg = selected ? const Color(0xFFFBE7A8) : RC.cream;
-    final accent = selected ? RC.bronzeText : const Color(0xFFE9C96A);
+    final accent = selected ? RC.bronzeText : const Color(0xFFF2C24F);
     return Semantics(
       button: true,
       selected: selected,
@@ -1219,7 +1219,7 @@ class _CornerPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final s = size.width / 40;
     final p = Paint()
-      ..color = const Color(0xE6D4AF37)
+      ..color = const Color(0xE6EBB63B)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.6 * s;
     canvas.drawPath(
@@ -1238,7 +1238,7 @@ class _CornerPainter extends CustomPainter {
         ..lineTo(24 * s, 8 * s),
       p,
     );
-    canvas.drawCircle(Offset(9 * s, 9 * s), 2.4 * s, Paint()..color = const Color(0xE6D4AF37));
+    canvas.drawCircle(Offset(9 * s, 9 * s), 2.4 * s, Paint()..color = const Color(0xE6EBB63B));
   }
 
   @override
@@ -1257,7 +1257,7 @@ class _GoldTitle extends StatelessWidget {
       shaderCallback: (r) => const LinearGradient(
         begin: Alignment.topCenter,
         end: Alignment.bottomCenter,
-        colors: [Color(0xFFFFF1C4), Color(0xFFE6C35A), Color(0xFFB78A26)],
+        colors: [Color(0xFFFFE7A0), Color(0xFFF2C241), Color(0xFFC88A18)],
         stops: [0, 0.55, 1],
       ).createShader(r),
       child: Text(
@@ -1299,7 +1299,7 @@ class _StatusChip extends StatelessWidget {
           ),
           const SizedBox(width: 5),
           Text(done ? 'Tamamlandı' : 'Devam Ediyor',
-              style: const TextStyle(color: Color(0xFFE7DDC4), fontSize: 11, fontWeight: FontWeight.w700)),
+              style: const TextStyle(color: Color(0xFFF2DDA8), fontSize: 11, fontWeight: FontWeight.w700)),
         ],
       ),
     );

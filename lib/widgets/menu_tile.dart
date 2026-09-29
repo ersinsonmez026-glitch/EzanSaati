@@ -35,7 +35,36 @@ class MenuTile extends StatelessWidget {
         TileStyle.krem => GoldTone.onLight,
         TileStyle.yesil => GoldTone.onDark,
       },
-      style: const TextStyle(fontFamily: 'serif', fontWeight: FontWeight.w700, fontSize: 12.5, letterSpacing: 0.2),
+      style: const TextStyle(fontFamily: 'EBGaramond', fontWeight: FontWeight.w600, fontSize: 16.5, letterSpacing: 0.1),
+    );
+    // Görselli tuşta isim, çift altın çizgili koyu yeşil levhanın içinde.
+    // Görselli tuşta isim, altın kenarlı yeşil kartuş levhanın içinde (assets/images/levha.webp).
+    final plate = Padding(
+      padding: const EdgeInsets.fromLTRB(4, 0, 4, 6),
+      child: AspectRatio(
+        aspectRatio: 600 / 142,
+        child: DecoratedBox(
+          decoration: const BoxDecoration(
+            image: DecorationImage(image: AssetImage('assets/images/levha.webp'), fit: BoxFit.fill),
+          ),
+          child: FractionallySizedBox(
+            widthFactor: 0.7,
+            child: Center(
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: GoldText(
+                  title,
+                  maxLines: 1,
+                  textAlign: TextAlign.center,
+                  tone: GoldTone.onDark,
+                  style: const TextStyle(
+                      fontFamily: 'EBGaramond', fontWeight: FontWeight.w600, fontSize: 17.5, letterSpacing: 0),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
     );
 
     Widget child;
@@ -54,14 +83,11 @@ class MenuTile extends StatelessWidget {
             gradient: const LinearGradient(
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
-              colors: [Color(0x001C160E), Color(0xD11C160E)],
-              stops: [0.4, 0.82],
+              colors: [Color(0x001C160E), Color(0x801C160E)],
+              stops: [0.5, 1],
             ),
           ),
-          child: Align(
-            alignment: Alignment.bottomCenter,
-            child: Padding(padding: const EdgeInsets.fromLTRB(4, 0, 4, 9), child: FittedBox(child: label)),
-          ),
+          child: Align(alignment: Alignment.bottomCenter, child: plate),
         );
       case TileStyle.krem:
       case TileStyle.yesil:
@@ -73,7 +99,7 @@ class MenuTile extends StatelessWidget {
             end: Alignment.bottomRight,
             colors: krem ? const [Color(0xFFEADBB8), Color(0xFFDCC9A0)] : const [Color(0xFF0D4630), Color(0xFF05281B)],
           ),
-          border: Border.all(color: krem ? const Color(0x8C8A6414) : const Color(0x8CD4AF37)),
+          border: Border.all(color: krem ? const Color(0x8C8A6414) : const Color(0x8CEBB63B)),
           boxShadow: const [BoxShadow(color: Color(0x333C280A), blurRadius: 4, offset: Offset(0, 2))],
         );
         child = Column(

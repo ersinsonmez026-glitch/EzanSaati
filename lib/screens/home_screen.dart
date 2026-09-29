@@ -120,8 +120,8 @@ class _HomeScreenState extends State<HomeScreen> {
     final theme = Theme.of(context);
     return Theme(
       data: theme.copyWith(
-        textTheme: theme.textTheme.apply(fontFamily: 'serif'),
-        primaryTextTheme: theme.primaryTextTheme.apply(fontFamily: 'serif'),
+        textTheme: theme.textTheme.apply(fontFamily: 'EBGaramond'),
+        primaryTextTheme: theme.primaryTextTheme.apply(fontFamily: 'EBGaramond'),
       ),
       child: Scaffold(
         backgroundColor: isDaytime() ? const Color(0xFFD8C59C) : const Color(0xFF03170F), // koyu krem / gece yeşili
@@ -242,7 +242,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   maxLines: 1,
                                   style: TextStyle(
                                     color: Colors.white,
-                                    fontSize: 15 * k,
+                                    fontSize: 17 * k,
                                     fontWeight: FontWeight.w700,
                                     shadows: shadow,
                                   ),
@@ -259,7 +259,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             maxLines: 1,
                             style: TextStyle(
                               color: Colors.white,
-                              fontSize: 11 * k,
+                              fontSize: 13.5 * k,
                               fontWeight: FontWeight.w600,
                               shadows: shadow,
                             ),
@@ -269,12 +269,12 @@ class _HomeScreenState extends State<HomeScreen> {
                         Text(
                           '${two(now.hour)}:${two(now.minute)}:${two(now.second)}',
                           style: TextStyle(
-                            color: AppColors.goldLight,
-                            fontSize: 14 * k,
-                            fontWeight: FontWeight.w800,
+                            color: const Color(0xFFF7C746), // başlıklarla aynı sıcak altın; açık gökte gölgeyle okunur
+                            shadows: shadow,
+                            fontSize: 19 * k,
+                            fontWeight: FontWeight.w600,
                             letterSpacing: 1,
                             fontFeatures: const [FontFeature.tabularFigures()],
-                            shadows: shadow,
                           ),
                         ),
                       ],
@@ -310,7 +310,8 @@ class _HomeScreenState extends State<HomeScreen> {
                       '“Şüphesiz\nnamaz, müminler\nüzerine vakitleri\nbelirlenmiş bir farzdır.”',
                       style: TextStyle(
                         color: Colors.white,
-                        fontSize: 11.5 * k,
+                        fontFamily: 'serif', // ayet eski yazı tipiyle, kalın italik
+                        fontSize: 12.5 * k,
                         fontWeight: FontWeight.w600,
                         height: 1.3,
                         fontStyle: FontStyle.italic,
@@ -318,14 +319,9 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
                     const SizedBox(height: 2),
-                    Text(
+                    GoldText(
                       'Nisâ, 103',
-                      style: TextStyle(
-                        color: AppColors.goldLight,
-                        fontSize: 9.5 * k,
-                        fontWeight: FontWeight.w600,
-                        shadows: shadow,
-                      ),
+                      style: TextStyle(fontFamily: 'serif', fontSize: 10.5 * k, fontWeight: FontWeight.w600),
                     ),
                   ],
                 ),
@@ -394,7 +390,7 @@ class _DayNightButton extends StatelessWidget {
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             color: const Color(0x66000000),
-            border: Border.all(color: const Color(0xB3D4AF37), width: 1.2),
+            border: Border.all(color: const Color(0xB3EBB63B), width: 1.2),
           ),
           child: Center(child: GoldIcon(day ? Icons.nightlight_round : Icons.wb_sunny, size: size * 0.52)),
         ),
@@ -476,7 +472,7 @@ class _LocationSheetState extends State<_LocationSheet> {
               color: AppColors.gold,
               fontSize: 24,
               fontWeight: FontWeight.w700,
-              fontFamily: 'serif',
+              fontFamily: 'EBGaramond',
             ),
           ),
           const SizedBox(height: 8),

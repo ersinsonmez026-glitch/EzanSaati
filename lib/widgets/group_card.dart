@@ -6,7 +6,8 @@ import 'reading_ui.dart';
 /// Koyu başlıklı, kâğıt zeminli ayar/bilgi grubu (onizleme/02 "Bildirim Ayarları" kartı).
 class GroupCard extends StatelessWidget {
   final PagePalette pal;
-  final IconData icon;
+  final IconData? icon;
+  final String? art;
   final String title;
   final Widget? trailing;
   final List<Widget> children;
@@ -14,7 +15,8 @@ class GroupCard extends StatelessWidget {
   const GroupCard({
     super.key,
     required this.pal,
-    required this.icon,
+    this.icon,
+    this.art,
     required this.title,
     required this.children,
     this.trailing,
@@ -27,7 +29,7 @@ class GroupCard extends StatelessWidget {
       decoration: BoxDecoration(
         gradient: pal.paperGradient,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: pal.line),
+        border: Border.all(color: pal.line, width: pal.night ? 1 : 1.4),
         boxShadow: const [BoxShadow(color: Color(0x1F3C280A), blurRadius: 6, offset: Offset(0, 2))],
       ),
       child: Column(
@@ -41,11 +43,11 @@ class GroupCard extends StatelessWidget {
             ),
             child: Row(
               children: [
-                GoldIcon(icon, size: 22),
+                art != null ? ArtIcon(art!, size: 30) : GoldIcon(icon!, size: 22),
                 const SizedBox(width: 10),
                 Expanded(
                   child:
-                      GoldText(title, maxLines: 1, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+                      GoldText(title, maxLines: 1, style: const TextStyle(fontSize: 19, fontWeight: FontWeight.w600)),
                 ),
                 if (trailing != null) trailing!,
               ],
@@ -88,18 +90,18 @@ class GroupItem extends StatelessWidget {
     final row = Row(
       children: [
         Container(
-          width: 36,
-          height: 36,
+          width: 42,
+          height: 42,
           decoration: BoxDecoration(color: pal.pill, borderRadius: BorderRadius.circular(10)),
-          child: Center(child: art != null ? ArtIcon(art!, size: 30) : GoldIcon(icon!, size: 20, light: !pal.night)),
+          child: Center(child: art != null ? ArtIcon(art!, size: 36) : GoldIcon(icon!, size: 20, light: !pal.night)),
         ),
         const SizedBox(width: 10),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(title, style: TextStyle(color: pal.ink, fontSize: 14.5, fontWeight: FontWeight.w700)),
-              if (subtitle != null) Text(subtitle!, style: TextStyle(color: pal.ink2, fontSize: 11.5, height: 1.35)),
+              Text(title, style: TextStyle(color: pal.ink, fontSize: 17, fontWeight: FontWeight.w600)),
+              if (subtitle != null) Text(subtitle!, style: TextStyle(color: pal.ink2, fontSize: 13.5, height: 1.3)),
             ],
           ),
         ),
@@ -190,8 +192,8 @@ class ChoiceRow<T> extends StatelessWidget {
                 options[i].$2,
                 style: TextStyle(
                   color: options[i].$1 == value ? RC.bronzeText : pal.ink,
-                  fontSize: 12.5,
-                  fontWeight: FontWeight.w700,
+                  fontSize: 14.5,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
             ),

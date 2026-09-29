@@ -41,12 +41,12 @@ class PagePalette {
     page: Color(0xFFEFE4C9),
     paper: Color(0xFFF8EFDA),
     paper2: Color(0xFFF1E5C8),
-    line: Color(0x59966E1E),
-    ink: Color(0xFF2A1F10),
-    ink2: Color(0xFF6F5A3A),
-    gold: Color(0xFFB8892A),
+    line: Color(0xD9A57A22),
+    ink: Color(0xFF3A2708),
+    ink2: Color(0xFF6B4C12),
+    gold: Color(0xFFB07F10),
     chip: Color(0xFFF3E8CF),
-    pill: Color(0xFFEADCB9),
+    pill: Color(0xFFE6D3A5),
     verseCard: [Color(0xFFFBF3E0), Color(0xFFF1E4C5)],
   );
 
@@ -55,10 +55,10 @@ class PagePalette {
     page: Color(0xFF000E09),
     paper: Color(0xFF021A12),
     paper2: Color(0xFF00120C),
-    line: Color(0x73D4AF37),
-    ink: Color(0xFFF3ECD9),
-    ink2: Color(0xFFD9CCA9),
-    gold: Color(0xFFD4AF37),
+    line: Color(0x99EBB63B),
+    ink: Color(0xFFF5DB9E),
+    ink2: Color(0xFFE9C77C),
+    gold: Color(0xFFEBB63B),
     chip: Color(0xFF00140E),
     pill: Color(0xFF021A12),
     verseCard: [Color(0xFFE9DCBC), Color(0xFFDCCB9F)],
@@ -88,11 +88,11 @@ class PagePalette {
 
 /// Ortak sabit renkler ve geçişler.
 class RC {
-  static const cream = Color(0xFFF3ECD9);
+  static const cream = Color(0xFFF6DFA6);
   static const creamSoft = Color(0xFFB9CDC2);
-  static const goldText = Color(0xFFF3DC97);
-  static const goldIcon = Color(0xFFE2C26E);
-  static const goldBorder = Color(0xFFD4AF37);
+  static const goldText = Color(0xFFF7D06A);
+  static const goldIcon = Color(0xFFEEBF52);
+  static const goldBorder = Color(0xFFEBB63B);
   static const verseInk = Color(0xFF2A1F10);
   static const verseInk2 = Color(0xFF6F5A3A);
   static const verseGold = Color(0xFFB8892A);
