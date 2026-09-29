@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../data/sayfa_basliklari.dart';
 import '../screens/city_picker_screen.dart';
+import '../screens/settings_screen.dart';
 import '../services/app_prefs.dart';
 import '../services/location_store.dart';
 import '../services/prayer_calc.dart';
@@ -25,6 +26,7 @@ class PageShell extends StatelessWidget {
   final String? heading;
   final List<Widget> children;
   final EdgeInsets padding;
+  final bool showSettings;
 
   /// Sayfa zemini. Verilmezse koyu yeşil düz renk kullanılır.
   final Decoration? background;
@@ -39,6 +41,7 @@ class PageShell extends StatelessWidget {
     this.heading,
     required this.children,
     this.padding = const EdgeInsets.fromLTRB(10, 10, 10, 24),
+    this.showSettings = true,
     this.background,
     this.controller,
   });
@@ -61,6 +64,7 @@ class PageShell extends StatelessWidget {
             verse: h?.verse,
             source: h?.source,
             topInset: top,
+            showSettings: showSettings,
           ),
         ),
         SliverPadding(
@@ -71,7 +75,9 @@ class PageShell extends StatelessWidget {
     );
     return Scaffold(
       backgroundColor: AppColors.darkGreen,
-      body: background == null ? scroll : DecoratedBox(decoration: background!, child: scroll),
+      body: background == null
+          ? scroll
+          : DecoratedBox(decoration: background!, child: scroll),
     );
   }
 }
@@ -99,6 +105,7 @@ class _HeaderDelegate extends SliverPersistentHeaderDelegate {
   final String? verse;
   final String? source;
   final double topInset;
+  final bool showSettings;
 
   _HeaderDelegate({
     required this.title,
@@ -106,9 +113,12 @@ class _HeaderDelegate extends SliverPersistentHeaderDelegate {
     required this.verse,
     required this.source,
     required this.topInset,
+    required this.showSettings,
   });
 
-  static const _shadow = [Shadow(color: Color(0xCC000000), blurRadius: 6, offset: Offset(0, 1))];
+  static const _shadow = [
+    Shadow(color: Color(0xCC000000), blurRadius: 6, offset: Offset(0, 1))
+  ];
 
   /// Yerleşimin dayandığı üst hiza: durum çubuğu (en az 24; logo bu çubuğun hizasından başlar).
   double get _base => math.max(topInset, 24);
@@ -121,10 +131,15 @@ class _HeaderDelegate extends SliverPersistentHeaderDelegate {
 
   @override
   bool shouldRebuild(covariant _HeaderDelegate old) =>
-      old.title != title || old.subtitle != subtitle || old.verse != verse || old.topInset != topInset;
+      old.title != title ||
+      old.subtitle != subtitle ||
+      old.verse != verse ||
+      old.topInset != topInset ||
+      old.showSettings != showSettings;
 
   @override
-  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
+  Widget build(
+      BuildContext context, double shrinkOffset, bool overlapsContent) {
     final range = maxExtent - minExtent;
     final p = (shrinkOffset / range).clamp(0.0, 1.0); // 0 açık, 1 kapalı
     // Logo, konum, alt yazı ve ayet ilk kaydırmada kaybolur.
@@ -139,7 +154,8 @@ class _HeaderDelegate extends SliverPersistentHeaderDelegate {
     return DecoratedBox(
       decoration: const BoxDecoration(
         color: AppColors.darkGreen,
-        border: Border(bottom: BorderSide(color: Color(0x99D4AF37), width: 1.5)),
+        border:
+            Border(bottom: BorderSide(color: Color(0x99D4AF37), width: 1.5)),
       ),
       child: ClipRect(
         child: Stack(
@@ -151,21 +167,71 @@ class _HeaderDelegate extends SliverPersistentHeaderDelegate {
               right: 0,
               top: -shrinkOffset,
               child: Image.asset(
-                isDaytime() ? 'assets/images/header_gunduz.jpg' : 'assets/images/header_gece.jpg',
+                isDaytime()
+                    ? 'assets/images/header_gunduz.jpg'
+                    : 'assets/images/header_gece.jpg',
                 fit: BoxFit.fitWidth,
                 alignment: Alignment.topCenter,
               ),
             ),
-            const DecoratedBox(
+            // Gündüz göğü aydınlık: yazılar okunsun diye biraz daha koyulaştırılır.
+            DecoratedBox(
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
-                  colors: [Color(0x40000000), Color(0x00000000), Color(0x00021C12), Color(0xB3021C12)],
-                  stops: [0, 0.25, 0.55, 1],
+                  colors: isDaytime()
+                      ? const [
+                          Color(0x66000000),
+                          Color(0x26000000),
+                          Color(0x1A021C12),
+                          Color(0xB3021C12)
+                        ]
+                      : const [
+                          Color(0x40000000),
+                          Color(0x00000000),
+                          Color(0x00021C12),
+                          Color(0xB3021C12)
+                        ],
+                  stops: const [0, 0.25, 0.55, 1],
                 ),
               ),
             ),
+            // Logo ve ayetin arkasında yumuşak gölge
+            Positioned(
+              top: base - 30 - shrinkOffset,
+              left: 0,
+              right: 0,
+              height: 110,
+              child: Opacity(
+                opacity: fade,
+                child: const DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: RadialGradient(
+                      radius: 0.42,
+                      colors: [Color(0x59000000), Color(0x00000000)],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            if (verse != null)
+              Positioned(
+                top: base + 20 - shrinkOffset,
+                right: 0,
+                width: 130,
+                height: 100,
+                child: Opacity(
+                  opacity: fade,
+                  child: const DecoratedBox(
+                    decoration: BoxDecoration(
+                      gradient: RadialGradient(
+                        colors: [Color(0x66000000), Color(0x00000000)],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
 
             if (fade > 0) ...[
               // Logo: durum çubuğu hizasından başlar, ortada
@@ -176,16 +242,38 @@ class _HeaderDelegate extends SliverPersistentHeaderDelegate {
                 child: Opacity(
                   opacity: fade,
                   child: Center(
-                    child: Image.asset('assets/images/logo_ezan_saati.png', height: 53, fit: BoxFit.contain),
+                    child: Image.asset('assets/images/logo_ezan_saati.png',
+                        height: 53, fit: BoxFit.contain),
                   ),
                 ),
               ),
               // Konum: minareleri kesmesin diye en üstte
               Positioned(
-                top: base + 2 - shrinkOffset,
+                top: base - 4 - shrinkOffset,
                 left: 10,
                 child: Opacity(opacity: fade, child: const _LocationPill()),
               ),
+              if (showSettings)
+                Positioned(
+                  top: base - 4 - shrinkOffset,
+                  right: 8,
+                  child: Opacity(
+                    opacity: fade,
+                    child: Semantics(
+                      button: true,
+                      label: 'Ayarlar',
+                      excludeSemantics: true,
+                      child: GestureDetector(
+                        onTap: () => Navigator.of(context).push(
+                          MaterialPageRoute(
+                              builder: (_) => const SettingsScreen()),
+                        ),
+                        child: Image.asset('assets/images/ikon/ayarlar.webp',
+                            width: 28.5, height: 28.5),
+                      ),
+                    ),
+                  ),
+                ),
               if (hasVerse)
                 Positioned(
                   top: base + 36 - shrinkOffset,
@@ -214,7 +302,10 @@ class _HeaderDelegate extends SliverPersistentHeaderDelegate {
                             const SizedBox(height: 3),
                             Text(
                               '($source)',
-                              style: const TextStyle(color: Color(0xFFE7DDC4), fontSize: 8, shadows: _shadow),
+                              style: const TextStyle(
+                                  color: Color(0xFFE7DDC4),
+                                  fontSize: 8,
+                                  shadows: _shadow),
                             ),
                           ],
                         ),
@@ -236,7 +327,10 @@ class _HeaderDelegate extends SliverPersistentHeaderDelegate {
                           child: Text(
                             subtitle!,
                             maxLines: 1,
-                            style: const TextStyle(color: Color(0xFFF3E6C4), fontSize: 11, shadows: _shadow),
+                            style: const TextStyle(
+                                color: Color(0xFFE6D3A0),
+                                fontSize: 11,
+                                shadows: _shadow),
                           ),
                         ),
                         const SizedBox(height: 4),
@@ -247,6 +341,24 @@ class _HeaderDelegate extends SliverPersistentHeaderDelegate {
                 ),
             ],
 
+            // Görselin altında gece/gündüz simgesi: gecede güneş, gündüzde ay (geçiş için kullanılacak).
+            if (fade > 0)
+              Positioned(
+                top: base + 74 - shrinkOffset,
+                left: 10,
+                width: 31,
+                height: 31,
+                child: Opacity(
+                  opacity: fade,
+                  child: Image.asset(
+                    isDaytime()
+                        ? 'assets/images/ikon/imsak.webp'
+                        : 'assets/images/ikon/ikindi.webp',
+                    fit: BoxFit.contain,
+                  ),
+                ),
+              ),
+
             // Sayfa adı: açıkken logonun altında ortada, kapanınca şeritte kalır.
             Positioned(
               top: titleTop,
@@ -256,17 +368,15 @@ class _HeaderDelegate extends SliverPersistentHeaderDelegate {
               child: Center(
                 child: FittedBox(
                   fit: BoxFit.scaleDown,
-                  child: Text(
+                  child: GoldText(
                     title,
                     maxLines: 1,
                     textAlign: TextAlign.center,
+                    tone: GoldTone.onPhoto,
                     style: TextStyle(
-                      color: const Color(0xFFF7ECCD),
-                      fontSize: 26 - 6 * p,
-                      fontWeight: FontWeight.w600,
-                      fontFamily: 'serif',
-                      shadows: _shadow,
-                    ),
+                        fontSize: 26 - 6 * p,
+                        fontWeight: FontWeight.w600,
+                        fontFamily: 'EBGaramond'),
                   ),
                 ),
               ),
@@ -306,7 +416,8 @@ class _LocationPill extends StatelessWidget {
         label: 'Konum: ${store.current?.name ?? 'seçilmedi'}',
         excludeSemantics: true,
         child: GestureDetector(
-          onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const CityPickerScreen())),
+          onTap: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const CityPickerScreen())),
           child: Container(
             constraints: const BoxConstraints(maxWidth: 118),
             padding: const EdgeInsets.fromLTRB(7, 4, 4, 4),
@@ -325,11 +436,15 @@ class _LocationPill extends StatelessWidget {
                     store.current?.name ?? 'Konum Seç',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(color: Color(0xFFF8EED2), fontSize: 11.5, fontWeight: FontWeight.w500),
+                    style: const TextStyle(
+                        color: Color(0xFFF8EED2),
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.w500),
                   ),
                 ),
                 const SizedBox(width: 1),
-                const Icon(Icons.chevron_right, size: 14, color: Color(0xFFE9C96A)),
+                const Icon(Icons.chevron_right,
+                    size: 14, color: Color(0xFFE9C96A)),
               ],
             ),
           ),
@@ -366,7 +481,8 @@ class _Ornament extends StatelessWidget {
           child: Container(
             width: 6,
             height: 6,
-            decoration: BoxDecoration(border: Border.all(color: const Color(0xFFE9C96A), width: 1.2)),
+            decoration: BoxDecoration(
+                border: Border.all(color: const Color(0xFFE9C96A), width: 1.2)),
           ),
         ),
         const SizedBox(width: 4),

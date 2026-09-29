@@ -57,7 +57,7 @@ class PagePalette {
     paper2: Color(0xFF00120C),
     line: Color(0x73D4AF37),
     ink: Color(0xFFF3ECD9),
-    ink2: Color(0xFFA9BFB3),
+    ink2: Color(0xFFD9CCA9),
     gold: Color(0xFFD4AF37),
     chip: Color(0xFF00140E),
     pill: Color(0xFF021A12),

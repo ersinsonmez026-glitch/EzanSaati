@@ -57,6 +57,7 @@ class AboutScreen extends StatelessWidget {
               ('Hadisler', 'HadeethEnc.com (Nebevi Hadisler Ansiklopedisi Tercümesi), metinler değiştirilmeden'),
               ('Harita verisi', '© OpenStreetMap katkıcıları (ODbL)'),
               ('Arapça yazı tipi', 'Amiri (SIL Open Font License)'),
+              ('Yazı tipi', 'EB Garamond (SIL Open Font License)'),
             ])
               Padding(
                 padding: const EdgeInsets.fromLTRB(14, 9, 14, 9),

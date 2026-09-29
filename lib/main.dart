@@ -52,7 +52,7 @@ class EzanSaatiApp extends StatelessWidget {
           secondary: AppColors.green,
           surface: AppColors.greenSurface,
         ),
-        fontFamily: 'serif',
+        fontFamily: 'EBGaramond',
         snackBarTheme: const SnackBarThemeData(
           backgroundColor: AppColors.green,
           contentTextStyle: TextStyle(color: Colors.white),
