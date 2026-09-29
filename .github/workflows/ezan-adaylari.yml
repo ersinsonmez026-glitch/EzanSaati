@@ -1,7 +1,7 @@
 name: Ezan sesi adayları (geçici)
 
-# Geçici: Wikimedia Commons'ta Türkiye'de kaydedilmiş ezanları arar; lisansı ve kaynağı (yükleyenin kendi kaydı mı)
-# denetler, uygun olanları dinlenebilir mp3 olarak .ezan_adaylari/turk/ klasörüne ekler. Seçimden sonra silinecek.
+# Geçici: lisansı temiz görünen adayların açıklama sayfalarını alır; kesim noktalarını belirlemek için ses zarfı ve
+# spektrogram görsellerini .ezan_adaylari/analiz/ klasörüne ekler. Seçimden sonra klasör ve bu dosya silinecek.
 on:
   push:
     branches: [claude/charming-davinci-6c5fkr]
@@ -11,128 +11,76 @@ permissions:
   contents: write
 
 jobs:
-  ara:
+  analiz:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
         with:
           ref: claude/charming-davinci-6c5fkr
-      - name: ffmpeg
-        run: which ffmpeg || (sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg)
-      - name: Türkiye ezanlarını ara ve denetle
+      - name: Araçlar
+        run: |
+          which ffmpeg || (sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg)
+          pip install -q numpy pillow
+      - name: Sayfalar ve analiz
         shell: python
         run: |
-          import json, re, subprocess, urllib.request, urllib.parse, os, time
+          import json, subprocess, urllib.request, urllib.parse, os, time, wave
+          import numpy as np
+          from PIL import Image, ImageDraw
           UA = {'User-Agent': 'EzanSaati/1.0 (github.com/ersinsonmez026-glitch/EzanSaati; ezan bildirimi icin ses secimi)'}
-          API = 'https://commons.wikimedia.org/w/api.php?format=json&'
-          out = '.ezan_adaylari/turk'
+          out = '.ezan_adaylari/analiz'
           os.makedirs(out, exist_ok=True)
+          for f in os.listdir(out):
+              if f.endswith('.wav'): os.remove(os.path.join(out, f))
+          files = {'3': 'File:Beautiful adhan.ogg', '4': 'File:The Adhan - Muslim Call to Prayer - Aaqib Azeez.mp3',
+                   '5': 'File:Call to prayer.ogg', '7': 'File:Adhan.ogg', '8': 'File:Athan during Ramadan 2.wav',
+                   '9': 'File:Athan in Ramadan.wav', '10': 'File:Azan.ogg', '12': 'File:Islamic call to worship.oga',
+                   '13': 'File:Llamada a oración Mezquita Hassan II.wav'}
           def get(url):
-              for wait in (0, 20, 45, 90, 120):
+              for wait in (0, 20, 45, 90):
                   time.sleep(wait)
                   try:
                       return urllib.request.urlopen(urllib.request.Request(url, headers=UA), timeout=120).read()
                   except urllib.error.HTTPError as e:
-                      if e.code != 429:
-                          raise
+                      if e.code != 429: raise
               raise RuntimeError('çok istek')
-          def api(params):
-              time.sleep(1.5)
-              return json.loads(get(API + urllib.parse.urlencode(params)))
-          AUDIO = re.compile(r'\.(ogg|oga|opus|mp3|wav|flac|webm)$', re.I)
-          found = set()
-          # 1) Kategoriler (alt kategorilerle, 2 kat)
-          seen_cats = set()
-          def walk(cat, depth):
-              if cat in seen_cats: return
-              seen_cats.add(cat)
-              cont = {}
-              while True:
-                  d = api({'action': 'query', 'list': 'categorymembers', 'cmtitle': cat, 'cmlimit': 500, 'cmtype': 'file|subcat', **cont})
-                  for m in d['query']['categorymembers']:
-                      if m['ns'] == 6 and AUDIO.search(m['title']): found.add(m['title'])
-                      elif m['ns'] == 14 and depth > 0: walk(m['title'], depth - 1)
-                  if 'continue' not in d: break
-                  cont = d['continue']
-          for c in ['Category:Adhan', 'Category:Adhan in Turkey', 'Category:Ezan', 'Category:Muezzins',
-                    'Category:Audio files of Turkey', 'Category:Sounds of Istanbul', 'Category:Audio files of Istanbul',
-                    'Category:Sounds of Turkey', 'Category:Audio files about Islam']:
-              try: walk(c, 2)
-              except Exception as e: print('kategori hatası', c, e)
-          # 2) Arama
-          for q in ['ezan', 'ezan istanbul', 'ezanı', 'adhan istanbul', 'adhan turkey', 'call to prayer istanbul',
-                    'call to prayer turkey', 'azan istanbul', 'minaret istanbul', 'camii ezan', 'mosque istanbul sound',
-                    'call to prayer mosque', 'adhan', 'müezzin', 'muezzin']:
-              try:
-                  d = api({'action': 'query', 'list': 'search', 'srsearch': q + ' filetype:audio', 'srnamespace': 6, 'srlimit': 100})
-                  for m in d['query']['search']:
-                      if AUDIO.search(m['title']): found.add(m['title'])
-              except Exception as e: print('arama hatası', q, e)
-          found = sorted(found)
-          print(len(found), 'ses dosyası bulundu')
-          # 3) Ayrıntılar
-          info = {}
-          for i in range(0, len(found), 40):
-              d = api({'action': 'query', 'prop': 'revisions|imageinfo|categories', 'rvprop': 'content', 'rvslots': 'main',
-                       'iiprop': 'url|size|extmetadata|mediatype', 'cllimit': 500, 'titles': '|'.join(found[i:i + 40])})
-              for p in d['query']['pages'].values():
-                  if 'imageinfo' in p: info[p['title']] = p
-          TR = re.compile(r'turk|türk|istanbul|İstanbul|ankara|izmir|bursa|konya|antalya|edirne|trabzon|kapadokya|cappadocia|'
-                          r'göreme|goreme|sultanahmet|süleymaniye|suleymaniye|eyüp|eyup|üsküdar|uskudar|fatih|kadıköy|kadikoy|'
-                          r'beyoğlu|beyoglu|ezan|camii|cami\b|selimiye|mardin|diyarbak|şanlıurfa|sanliurfa|kayseri|safranbolu|'
-                          r'bodrum|fethiye|alanya|side\b|kas\b|kaş|marmaris|pamukkale|selçuk|selcuk|efes|ephesus|bosphorus|boğaz', re.I)
-          ok_lic = ('cc0', 'cc-by', 'cc by', 'public domain', 'pd')
-          rows, dl = [], []
-          for t, p in info.items():
-              ii = p['imageinfo'][0]; m = ii.get('extmetadata', {})
-              v = lambda k: re.sub('<[^>]+>', '', str((m.get(k) or {}).get('value', ''))).strip()
-              text = p['revisions'][0]['slots']['main']['*'] if 'revisions' in p else ''
-              cats = ' '.join(c['title'] for c in p.get('categories', []))
-              hay = t + ' ' + text + ' ' + cats
-              tr = bool(TR.search(hay))
-              src = re.search(r'\|\s*source\s*=([^\n|]*(\{\{[^}]*\}\})?[^\n|]*)', text, re.I)
-              src = src.group(1).strip() if src else ''
-              own = bool(re.search(r'\{\{\s*own', src, re.I)) or bool(re.search(r'\{\{\s*self\s*\|', text, re.I))
-              lic = v('LicenseShortName')
-              licok = lic.lower().startswith(ok_lic) and not re.search(r'PD-Old|PD-US|PD-because|PD-ineligible|PD-textlogo', text, re.I)
-              row = {'title': t, 'tr': tr, 'own': own, 'lic': lic, 'licok': licok, 'source': src[:200], 'artist': v('Artist')[:100],
-                     'desc': v('ImageDescription')[:300], 'dur': ii.get('duration'), 'url': ii['url'].split('?')[0], 'cats': cats[:400]}
-              rows.append(row)
-              if tr and own and licok:
-                  dl.append((row, text))
-          json.dump(rows, open(f'{out}/TUM_SONUCLAR.json', 'w'), ensure_ascii=False, indent=1)
-          print(len(rows), 'kayıt;', sum(r['tr'] for r in rows), 'Türkiye ile ilgili;', len(dl), 'Türkiye + kendi kaydı + temiz lisans')
-          # 4) Uygun olanları indir
-          n = 0; liste = []
-          for row, text in sorted(dl, key=lambda x: x[0]['title']):
-              if n >= 16: break
-              time.sleep(8)
-              try: data = get(row['url'])
-              except Exception as e: print('İNDİRİLEMEDİ', row['title'], e); continue
-              ext = row['url'].rsplit('.', 1)[1]
-              open('kaynak.' + ext, 'wb').write(data)
-              dur = subprocess.run(['ffprobe', '-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0', 'kaynak.' + ext],
-                                   capture_output=True, text=True).stdout.strip()
-              try: dur = float(dur)
-              except ValueError: print('okunamadı', row['title']); continue
-              if not 25 <= dur <= 600: print('süre uygun değil', round(dur), row['title']); continue
-              n += 1
-              ad = re.sub(r'[^A-Za-z0-9]+', '_', row['title'].split(':', 1)[1].rsplit('.', 1)[0]).strip('_')[:40]
-              subprocess.run(['ffmpeg', '-v', 'error', '-y', '-i', 'kaynak.' + ext, '-af', 'loudnorm=I=-16:TP=-1.5:LRA=11',
-                              '-ac', '1', '-ar', '44100', '-c:a', 'libmp3lame', '-b:a', '64k', f'{out}/T{n:02d}_{ad}.mp3'], check=True)
-              open(f'{out}/T{n:02d}_sayfa.txt', 'w').write(text)
-              liste.append(f"T{n:02d}. {row['title']}\n   Süre: {int(dur // 60)} dk {int(dur % 60)} sn · Lisans: {row['lic']} · "
-                           f"Yazar: {row['artist']}\n   Kaynak: {row['source']}\n   Açıklama: {row['desc']}\n   {row['url']}\n")
-          open(f'{out}/LISTE.txt', 'w').write('\n'.join(liste))
-          print('\n'.join(liste))
-          # İncelenecek diğer Türkiye kayıtları (kendi kaydı değil ya da lisans şüpheli)
-          for r in rows:
-              if r['tr'] and not (r['own'] and r['licok']):
-                  print('ELENDİ:', r['title'], '|', r['lic'], '| kaynak:', r['source'][:80])
+          q = ('https://commons.wikimedia.org/w/api.php?format=json&action=query&prop=revisions|imageinfo'
+               '&rvprop=content&rvslots=main&iiprop=url&titles=' + urllib.parse.quote('|'.join(files.values())))
+          pages = {p['title']: p for p in json.loads(get(q))['query']['pages'].values()}
+          def spec(x, sr, a, b, path, w=1600):
+              x = x[int(a * sr):int(b * sr)]; N = 512; hop = max(80, len(x) // (w * 2))
+              fr = np.array([np.abs(np.fft.rfft(x[i:i + N] * np.hanning(N)))[:200] for i in range(0, len(x) - N, hop)])
+              db = np.clip((20 * np.log10(fr + 1e-6) + 80) / 80, 0, 1)
+              im = Image.fromarray((255 * db.T[::-1]).astype(np.uint8)).resize((w, 220)).convert('RGB')
+              d = ImageDraw.Draw(im); step = 1 if b - a <= 20 else 5
+              for t in range(int(a), int(b) + 1, step):
+                  X = (t - a) / (b - a) * w; d.line([(X, 205), (X, 220)], fill=(255, 0, 0)); d.text((X + 2, 206), str(t), fill=(255, 90, 90))
+              im.save(path)
+          for n, t in files.items():
+              p = pages[t]
+              open(f'{out}/{n}_sayfa.txt', 'w').write(p['revisions'][0]['slots']['main']['*'])
+              time.sleep(6)
+              url = p['imageinfo'][0]['url']; ext = url.rsplit('.', 1)[1]
+              open('k.' + ext, 'wb').write(get(url))
+              subprocess.run(['ffmpeg', '-v', 'error', '-y', '-i', 'k.' + ext, '-ac', '1', '-ar', '16000', '-c:a', 'pcm_s16le', 'k.wav'], check=True)
+              w = wave.open('k.wav'); sr = w.getframerate()
+              x = np.frombuffer(w.readframes(w.getnframes()), np.int16).astype(float) / 32768; L = len(x) / sr
+              hop = sr // 4
+              rms = [20 * np.log10(np.sqrt(np.mean(x[i:i + hop] ** 2)) + 1e-9) for i in range(0, len(x), hop)]
+              s = ''.join(' ' if r < -50 else '.' if r < -35 else ':' if r < -25 else '|' for r in rms)
+              env = [f'{i / 4:6.1f}s {s[i:i + 80]}' for i in range(0, len(s), 80)]
+              open(f'{out}/{n}_zarf.txt', 'w').write(f'süre {L:.2f} sn\n' + '\n'.join(env) + '\n')
+              spec(x, sr, 0, L, f'{out}/{n}_tum.png')
+              spec(x, sr, 0, min(16, L), f'{out}/{n}_bas.png')
+              spec(x, sr, max(0, L - 16), L, f'{out}/{n}_son.png')
+              print(n, t, round(L, 1))
       - name: Dala ekle
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm -q -r --cached --ignore-unmatch .ezan_adaylari/analiz/*.wav .ezan_adaylari/kaynak
+          rm -rf .ezan_adaylari/kaynak
           git add -A .ezan_adaylari
-          git commit -m "Geçici: Türkiye ezanı adayları"
+          git commit -m "Geçici: temiz ezan adaylarının analizi"
           git push origin HEAD:claude/charming-davinci-6c5fkr
