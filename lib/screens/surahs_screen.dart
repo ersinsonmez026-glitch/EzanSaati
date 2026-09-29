@@ -20,12 +20,6 @@ enum _Filter { all, meccan, medinan, fav }
 class _SurahsScreenState extends State<SurahsScreen> {
   static const _favKey = 'sure_fav';
 
-  // Günün ayeti için seçili kısa ayetler (sure, ayet)
-  static const _daily = [
-    (13, 28), (94, 6), (2, 152), (20, 114), (39, 53), (2, 186), (3, 139),
-    (65, 3), (21, 87), (2, 286), (29, 69), (3, 173), (9, 51), (2, 153),
-  ];
-
   // Sık okunanlar
   static const _popular = [1, 36, 67, 18, 55, 78, 56, 112, 113, 114];
 
@@ -34,7 +28,6 @@ class _SurahsScreenState extends State<SurahsScreen> {
   ReadingPrefs? _prefs;
   String _query = '';
   _Filter _filter = _Filter.all;
-  int _dayIdx = dayOfYear(DateTime.now()) % _daily.length;
 
   @override
   void initState() {
@@ -93,8 +86,6 @@ class _SurahsScreenState extends State<SurahsScreen> {
       gap,
       _chips(),
       if (last != null && last.$1 >= 1 && last.$1 <= 114) ...[gap, _resume(data, last.$1, last.$2)],
-      gap,
-      _dailyCard(data),
       gap,
       SectionHead(
         pal: _pal,
@@ -181,44 +172,6 @@ class _SurahsScreenState extends State<SurahsScreen> {
           ),
         ),
       ),
-    );
-  }
-
-  Widget _dailyCard(QuranData data) {
-    final (s, a) = _daily[_dayIdx];
-    final ayah = data.verses[s - 1][a - 1];
-    final surah = data.surahs[s - 1];
-    final favId = 'a$s:$a';
-    final meal = ayah.plainMeal;
-    return DailyCard(
-      pal: _pal,
-      title: 'Günün Ayeti',
-      subtitle: '${surah.name} · $a',
-      favorite: _favs.contains(favId),
-      onFavorite: () => _toggleFav(favId, message: 'Ayet favorilere eklendi'),
-      onPrev: () => setState(() => _dayIdx = (_dayIdx + _daily.length - 1) % _daily.length),
-      onNext: () => setState(() => _dayIdx = (_dayIdx + 1) % _daily.length),
-      body: [
-        const OrnamentStar(),
-        Text(
-          ayah.arabic,
-          textDirection: TextDirection.rtl,
-          style: const TextStyle(fontFamily: kQuranFont, fontSize: 24, height: 2.1),
-        ),
-        const OrnamentStar(),
-        const SizedBox(height: 4),
-        Text('“$meal”', style: const TextStyle(fontSize: 15, height: 1.55, fontStyle: FontStyle.italic)),
-        const SizedBox(height: 6),
-        Text('(${surah.name} Sûresi, $a. ayet)', style: const TextStyle(fontSize: 12, color: RC.verseInk2)),
-      ],
-      actions: [
-        ActionItem(Icons.volume_up, 'Dinle', () => _open(s, a, true)),
-        ActionItem(Icons.copy_outlined, 'Kopyala',
-            () => copyToClipboard(context, '${ayah.arabic}\n\n$meal\n(${surah.name}, $a)')),
-        ActionItem(Icons.ios_share, 'Paylaş',
-            () => shareText(context, '${ayah.arabic}\n\n$meal\n(${surah.name}, $a)')),
-        ActionItem(Icons.menu_book_outlined, 'Sureye git', () => _open(s, a)),
-      ],
     );
   }
 

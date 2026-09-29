@@ -25,10 +25,6 @@ class _PrayersScreenState extends State<PrayersScreen> {
   String _group = 'namaz';
   bool _onlyFav = false;
 
-  // Günün duası: "Diğer Dualar"daki kısa dualar arasından sırayla
-  List<int> _short = const [];
-  int _shortIdx = 0;
-
   @override
   void initState() {
     super.initState();
@@ -38,15 +34,9 @@ class _PrayersScreenState extends State<PrayersScreen> {
     Future.wait([DuaData.all(), ReadingPrefs.get()]).then((r) {
       if (!mounted) return;
       final duas = r[0] as List<Dua>;
-      final short = [
-        for (var i = 0; i < duas.length; i++)
-          if (duas[i].group == 'diger' && duas[i].arabic.length < 140) i,
-      ];
       setState(() {
         _duas = duas;
         _prefs = r[1] as ReadingPrefs;
-        _short = short;
-        _shortIdx = short.isEmpty ? 0 : dayOfYear(DateTime.now()) % short.length;
       });
     });
   }
@@ -93,7 +83,6 @@ class _PrayersScreenState extends State<PrayersScreen> {
         hint: 'Dua ara (ör. yemek, yolculuk, anne)',
         onChanged: (v) => setState(() => _query = v),
       ),
-      if (_short.isNotEmpty) ...[gap, _dailyCard(duas)],
       gap,
       _tabs(duas),
       gap,
@@ -179,40 +168,6 @@ class _PrayersScreenState extends State<PrayersScreen> {
           ),
         ],
       ),
-    );
-  }
-
-  Widget _dailyCard(List<Dua> duas) {
-    final i = _short[_shortIdx];
-    final d = duas[i];
-    return DailyCard(
-      pal: _pal,
-      title: 'Günün Duası',
-      subtitle: d.title,
-      favorite: _favs.contains(d.title),
-      onFavorite: () => _toggleFav(d),
-      onPrev: () => setState(() => _shortIdx = (_shortIdx + _short.length - 1) % _short.length),
-      onNext: () => setState(() => _shortIdx = (_shortIdx + 1) % _short.length),
-      body: [
-        const OrnamentStar(),
-        Text(
-          d.arabic,
-          textDirection: TextDirection.rtl,
-          style: const TextStyle(fontFamily: kQuranFont, fontSize: 24, height: 2.1),
-        ),
-        Text(d.reading, style: const TextStyle(fontSize: 13.5, height: 1.55, color: RC.verseInk2)),
-        const SizedBox(height: 4),
-        const OrnamentStar(),
-        const SizedBox(height: 4),
-        Text('“${d.meaning}”', style: const TextStyle(fontSize: 15, height: 1.55, fontStyle: FontStyle.italic)),
-        const SizedBox(height: 6),
-        Text('(${d.source})', style: const TextStyle(fontSize: 12, color: RC.verseInk2)),
-      ],
-      actions: [
-        ActionItem(Icons.copy_outlined, 'Kopyala', () => copyToClipboard(context, d.shareText)),
-        ActionItem(Icons.ios_share, 'Paylaş', () => shareText(context, d.shareText)),
-        ActionItem(Icons.menu_book_outlined, 'Aç', () => _open(i)),
-      ],
     );
   }
 

@@ -140,7 +140,7 @@ void main() {
     expect(find.byType(SurahAudioBar), findsNothing);
   });
 
-  testWidgets('Günün ayetindeki Dinle o ayetten başlar; ayet ve sûre kontrolleri var, ±10 sn yok', (t) async {
+  testWidgets('Belirli ayetten Dinle o ayetten başlar; ayet ve sûre kontrolleri var, ±10 sn yok', (t) async {
     await open(t, surah: 2, startAyah: 255, listen: true, settle: false);
     expect(find.byType(SurahAudioBar), findsOneWidget);
     expect(bar(t).startAyah, 255);

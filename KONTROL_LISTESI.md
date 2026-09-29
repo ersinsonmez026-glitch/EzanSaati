@@ -71,6 +71,5 @@ kaynak (HadeethEnc.com) ve sürüm belirtilerek kullanılmalı. Uygulama metinle
 Bu bölümler 28 Eylül 2026'da uygulamadan kaldırıldı; kontrol gerekmiyor.
 
 ## 9. Diğer
-- [ ] Sureler sayfası "Günün Ayeti" listesi (ayet seçimi uygun mu)
 - [ ] Hicri Takvim: dinî gün tarihleri (Diyanet takvimiyle son kontrol)
 - [ ] Ana ekrandaki ayet: Nisâ 103 meali

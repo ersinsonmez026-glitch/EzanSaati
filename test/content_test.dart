@@ -127,8 +127,7 @@ void main() {
   });
 
   group('Sayfalar', () {
-    // Günün ayeti/duası her gün değişir; uzun olduğu günlerde liste aşağı kayar. Bu yüzden
-    // listeye bakan testlerde uzun ekran kullanılır.
+    // Listeye bakan testlerde uzun ekran kullanılır.
     Future<void> pump(WidgetTester t, Widget page, {double height = 844}) async {
       t.view.physicalSize = Size(390, height);
       t.view.devicePixelRatio = 1;
@@ -152,7 +151,7 @@ void main() {
 
     testWidgets('Sureler açılır ve sure okunur', (t) async {
       await pump(t, const SurahsScreen(), height: 2400);
-      expect(find.text('Günün Ayeti'), findsOneWidget);
+      expect(find.text('Günün Ayeti'), findsNothing); // kaldırıldı
       await t.scrollUntilVisible(find.text('Bakara'), 300, scrollable: find.byType(Scrollable).first);
       expect(find.text('Tüm Sureler'), findsOneWidget);
       await t.tap(find.text('Bakara'));
@@ -164,7 +163,7 @@ void main() {
 
     testWidgets('Dualar açılır, sekme değişir', (t) async {
       await pump(t, const PrayersScreen(), height: 2400);
-      expect(find.text('Günün Duası'), findsOneWidget);
+      expect(find.text('Günün Duası'), findsNothing); // kaldırıldı
       expect(find.text('Sübhâneke'), findsWidgets);
       await t.tap(find.text('Diğer Dualar').first);
       await t.pumpAndSettle();
