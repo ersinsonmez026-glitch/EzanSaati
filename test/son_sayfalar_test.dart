@@ -191,12 +191,12 @@ void main() {
     test('ezan sesi seçimi saklanır; bilinmeyen değer varsayılana döner', () {
       expect(EzanSettings().ezanSound, 'kisa');
       expect(EzanSettings().ezanVoice, EzanSettings.defaultVoice);
-      expect(EzanSettings().ezanFile, 'ezan1_kisa');
-      final kayit = EzanSettings.fromJson(EzanSettings(ezanSound: 'tam', ezanVoice: 'ezan3').toJson());
-      expect((kayit.ezanSound, kayit.ezanVoice, kayit.ezanFile), ('tam', 'ezan3', 'ezan3_tam'));
+      expect(EzanSettings().ezanFile, 'ezan3_kisa');
+      final kayit = EzanSettings.fromJson(EzanSettings(ezanSound: 'tam', ezanVoice: 'ezan2').toJson());
+      expect((kayit.ezanSound, kayit.ezanVoice, kayit.ezanFile), ('tam', 'ezan2', 'ezan2_tam'));
       expect(EzanSettings(ezanSound: 'telefon').ezanFile, isNull);
-      expect(EzanSettings.fromJson({'ezan': 'yok', 'ezanSes': 'yok'}).ezanFile, 'ezan1_kisa');
-      expect(EzanSettings.fromJson(const {}).ezanFile, 'ezan1_kisa'); // eski kayıtlar
+      expect(EzanSettings.fromJson({'ezan': 'yok', 'ezanSes': 'yok'}).ezanFile, 'ezan3_kisa');
+      expect(EzanSettings.fromJson(const {}).ezanFile, 'ezan3_kisa'); // eski kayıtlar
     });
 
     test('her ezan sesinin kısa ve tam dosyası var, küçültmede korunuyor', () {

@@ -39,7 +39,7 @@ class EzanSettings {
 
   /// Ezan kayıtları (res/raw içinde <anahtar>_kisa ve <anahtar>_tam). Kaynakları Hakkında sayfasında.
   static const ezanVoiceOptions = {'ezan1': 'Ses 1', 'ezan2': 'Ses 2', 'ezan3': 'Ses 3', 'ezan4': 'Ses 4'};
-  static const defaultVoice = 'ezan1';
+  static const defaultVoice = 'ezan3';
 
   /// Seçili kaydın ve sürenin ses dosyası adı; telefon sesi seçiliyse null.
   String? get ezanFile => ezanSound == 'telefon' ? null : '${ezanVoice}_$ezanSound';
