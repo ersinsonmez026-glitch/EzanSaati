@@ -1,7 +1,7 @@
 name: Ezan sesi adayları (geçici)
 
-# Geçici: Wikimedia Commons'ta serbest lisanslı (CC0 / CC-BY / CC-BY-SA) ezan kayıtlarını arar, en fazla 6
-# tanesini dinlenebilir mp3'e çevirip .ezan_adaylari/ klasörüne ekler. Seçimden sonra klasör ve bu dosya silinecek.
+# Geçici: seçilen 4, 6, 11 numaralı kayıtların orijinallerini ve açıklama sayfalarını indirir, analiz için
+# 16 kHz mono WAV'a çevirip .ezan_adaylari/analiz/ klasörüne ekler. İş bitince klasör ve bu dosya silinecek.
 on:
   push:
     branches: [claude/charming-davinci-6c5fkr]
@@ -11,7 +11,7 @@ permissions:
   contents: write
 
 jobs:
-  adaylar:
+  analiz:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -19,23 +19,15 @@ jobs:
           ref: claude/charming-davinci-6c5fkr
       - name: ffmpeg
         run: which ffmpeg || (sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg)
-      - name: İkinci tur - belirli ezan kayıtları (yavaş indirme)
+      - name: Orijinalleri ve lisans sayfalarını indir
         shell: python
         run: |
-          import json, re, subprocess, urllib.request, urllib.parse, os, html, time, glob
+          import json, subprocess, urllib.request, urllib.parse, os, time
           UA = {'User-Agent': 'EzanSaati/1.0 (github.com/ersinsonmez026-glitch/EzanSaati; ezan bildirimi icin ses secimi)'}
-          # Ezan olmayan (haber) kayıtları kaldır
-          for f in glob.glob('.ezan_adaylari/1_*') + glob.glob('.ezan_adaylari/2_*'):
-              os.remove(f)
-          titles = ['File:Azan.ogg', 'File:Athan in Ramadan.wav', 'File:Athan during Ramadan 2.wav',
-                    'File:Call to prayer by Sabah Fakhry.mp3', 'File:Islamic call to worship.oga',
-                    'File:Llamada a oración Mezquita Hassan II.wav',
-                    'File:33937 ejaz215 call-to-prayer-from-the-prophet-s-mo.ogg', 'File:Adhan.ogg']
-          q = ('https://commons.wikimedia.org/w/api.php?format=json&action=query&prop=imageinfo'
-               '&iiprop=url|size|extmetadata&titles=' + urllib.parse.quote('|'.join(titles)))
-          d = json.load(urllib.request.urlopen(urllib.request.Request(q, headers=UA), timeout=60))
-          rows = [open('.ezan_adaylari/LISTE.txt').read().split('\n\n', 2)[-1]] if os.path.exists('.ezan_adaylari/LISTE.txt') else []
-          n = 5
+          os.makedirs('.ezan_adaylari/analiz', exist_ok=True)
+          files = {'4': 'File:The Adhan - Muslim Call to Prayer - Aaqib Azeez.mp3',
+                   '6': 'File:33937 ejaz215 call-to-prayer-from-the-prophet-s-mo.ogg',
+                   '11': 'File:Call to prayer by Sabah Fakhry.mp3'}
           def get(url):
               for wait in (0, 20, 45, 90):
                   time.sleep(wait)
@@ -44,45 +36,28 @@ jobs:
                   except urllib.error.HTTPError as e:
                       if e.code != 429:
                           raise
-                      print('  429, bekleniyor...')
               raise RuntimeError('çok istek')
-          for p in d['query']['pages'].values():
-              if 'imageinfo' not in p:
-                  print('YOK', p.get('title')); continue
-              ii = p['imageinfo'][0]; m = ii.get('extmetadata', {})
-              v = lambda k: html.unescape(re.sub('<[^>]+>', '', str((m.get(k) or {}).get('value', '')))).strip()
-              lic = v('License').lower()
-              print(p['title'], '|', v('LicenseShortName'), '|', v('Artist')[:70], '|', v('ImageDescription')[:200])
-              if not (lic.startswith('cc0') or lic.startswith('pd') or lic.startswith('cc-by')):
-                  print('  lisans uygun değil'); continue
+          for n, t in files.items():
+              q = ('https://commons.wikimedia.org/w/api.php?format=json&action=query&prop=revisions|imageinfo'
+                   '&rvprop=content&rvslots=main&iiprop=url|extmetadata&titles=' + urllib.parse.quote(t))
+              d = json.loads(get(q))
+              p = next(iter(d['query']['pages'].values()))
+              text = p['revisions'][0]['slots']['main']['*']
+              open(f'.ezan_adaylari/analiz/{n}_sayfa.txt', 'w').write(
+                  text + '\n\n---- extmetadata ----\n' + json.dumps(p['imageinfo'][0].get('extmetadata', {}), ensure_ascii=False, indent=1))
               time.sleep(8)
-              try:
-                  data = get(ii['url'])
-              except Exception as e:
-                  print('  İNDİRİLEMEDİ', e); continue
-              open('kaynak', 'wb').write(data)
-              dur = subprocess.run(['ffprobe', '-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0', 'kaynak'],
-                                   capture_output=True, text=True).stdout.strip()
-              try:
-                  dur = float(dur)
-              except ValueError:
-                  print('  okunamadı'); continue
-              if not 30 <= dur <= 420:
-                  print('  süre uygun değil', round(dur)); continue
-              n += 1
-              ad = re.sub(r'[^A-Za-z0-9]+', '_', p['title'].split(':', 1)[1].rsplit('.', 1)[0]).strip('_')[:40]
-              out = f'.ezan_adaylari/{n}_{ad}.mp3'
-              subprocess.run(['ffmpeg', '-v', 'error', '-y', '-i', 'kaynak', '-af', 'loudnorm=I=-16:TP=-1.5:LRA=11',
-                              '-ac', '1', '-ar', '44100', '-c:a', 'libmp3lame', '-b:a', '56k', out], check=True)
-              rows.append(f"{n}. {p['title']}\n   Süre: {int(dur // 60)} dk {int(dur % 60)} sn · Lisans: {v('LicenseShortName')} · "
-                          f"Kaynak: {v('Artist')[:80]}\n   Açıklama: {v('ImageDescription')[:200]}\n   {ii['url'].split('?')[0]}\n")
-              print('  HAZIR', out, round(dur), 'sn', os.path.getsize(out), 'bayt')
-          open('.ezan_adaylari/LISTE2.txt', 'w').write('\n'.join(rows[1:] if rows and not rows[0].startswith(str(6)) else rows))
-          print(open('.ezan_adaylari/LISTE2.txt').read())
+              ext = t.rsplit('.', 1)[1]
+              open(f'kaynak_{n}.{ext}', 'wb').write(get(p['imageinfo'][0]['url']))
+              subprocess.run(['ffprobe', '-hide_banner', f'kaynak_{n}.{ext}'], stderr=open(f'.ezan_adaylari/analiz/{n}_probe.txt', 'w'))
+              subprocess.run(['ffmpeg', '-v', 'error', '-y', '-i', f'kaynak_{n}.{ext}', '-ac', '1', '-ar', '16000',
+                              '-c:a', 'pcm_s16le', f'.ezan_adaylari/analiz/{n}.wav'], check=True)
+              os.makedirs('.ezan_adaylari/kaynak', exist_ok=True)
+              os.replace(f'kaynak_{n}.{ext}', f'.ezan_adaylari/kaynak/{n}.{ext}')
+              time.sleep(8)
       - name: Dala ekle
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A .ezan_adaylari
-          git commit -m "Geçici: ezan sesi adayları, ikinci tur"
+          git commit -m "Geçici: seçilen ezan kayıtları, analiz için"
           git push origin HEAD:claude/charming-davinci-6c5fkr
