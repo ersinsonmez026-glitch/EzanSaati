@@ -9,6 +9,7 @@ import 'services/app_prefs.dart';
 import 'services/ezan_notifications.dart';
 import 'services/location_store.dart';
 import 'theme.dart';
+import 'widgets/page_shell.dart' show DesignScale, kAppPageTransitions;
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -53,11 +54,14 @@ class EzanSaatiApp extends StatelessWidget {
           surface: AppColors.greenSurface,
         ),
         fontFamily: 'EBGaramond',
+        pageTransitionsTheme: kAppPageTransitions,
         snackBarTheme: const SnackBarThemeData(
           backgroundColor: AppColors.green,
           contentTextStyle: TextStyle(color: Colors.white),
         ),
       ),
+      // Her ekran aynı tasarımı orantılı gösterir (bkz. DesignScale).
+      builder: (context, child) => DesignScale(child: child!),
       home: const HomeScreen(),
     );
   }

@@ -54,19 +54,20 @@ void main() {
       final scroll = t.widget<SingleChildScrollView>(find.byType(SingleChildScrollView));
       expect(scroll.physics, isA<NeverScrollableScrollPhysics>());
 
-      // Geri sayım ortada, ekranın %90'ı; ayet her ekranda görünür ve panelle çakışmaz
+      // Geri sayım ortada, ekranın %92'si; ayet her ekranda görünür ve panelle çakışmaz
       final banner = t.getRect(find.byType(CountdownBanner));
       expect(banner.center.dx, moreOrLessEquals(size.width / 2, epsilon: 0.5));
-      expect(banner.width, lessThanOrEqualTo(size.width * 0.9 + 0.5));
+      expect(banner.width, lessThanOrEqualTo(size.width * 0.92 + 0.5));
       expect(banner.bottom, lessThanOrEqualTo(rects.first.top));
-      final verse = find.textContaining('Şüphesiz namaz');
+      final verse = find.textContaining('bir farzdır');
       expect(verse, findsOneWidget);
       expect(t.getRect(verse).bottom, lessThanOrEqualTo(banner.top));
 
       // Gece/gündüz tuşu panelin altında kalmaz: basınca görünüm değişir, Namaz Vakitleri açılmaz
-      final toggle = find.bySemanticsLabel(RegExp('görünümüne geç'));
-      expect(t.getRect(toggle).bottom, lessThanOrEqualTo(banner.top));
       final wasDay = isDaytime();
+      // İki taraflı düğme: seçili olmayan tarafa basılır
+      final toggle = find.bySemanticsLabel(wasDay ? 'Gece görünümüne geç' : 'Gündüz görünümüne geç');
+      expect(t.getRect(toggle).bottom, lessThanOrEqualTo(banner.top + banner.height * CountdownBanner.sideTop + 0.5));
       await t.tap(toggle);
       await t.pump();
       await t.pump(const Duration(seconds: 1));

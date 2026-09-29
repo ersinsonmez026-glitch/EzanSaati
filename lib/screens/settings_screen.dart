@@ -55,7 +55,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
     const gap = SizedBox(height: 10);
     return PageShell(
       title: 'Ayarlar',
-      showSettings: false,
       background: _pal.background,
       padding: const EdgeInsets.fromLTRB(12, 12, 12, 24),
       children: [

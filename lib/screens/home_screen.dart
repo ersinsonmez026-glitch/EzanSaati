@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:math' as math;
-import 'dart:ui' show ImageFilter;
 
 import 'package:flutter/material.dart';
 
@@ -11,7 +10,6 @@ import '../theme.dart';
 import '../widgets/countdown_banner.dart';
 import '../widgets/menu_tile.dart';
 import '../widgets/page_shell.dart';
-import '../widgets/reading_ui.dart';
 import 'city_picker_screen.dart';
 import 'dhikr_screen.dart';
 import 'dua_circle_screen.dart';
@@ -132,21 +130,14 @@ class _HomeScreenState extends State<HomeScreen> {
             final k = (w / 390).clamp(0.8, 1.4); // yazı ve levha ölçeği (iPhone 390 genişlik esas)
             const gap = 6.0, pad = 6.0;
             final tileW = (w - 2 * pad - 2 * gap) / 3;
-            double gridFor(double tileH) => _rows * tileH + (_rows - 1) * gap + 2 * pad;
+            double gridFor(double tileH) => _rows * tileH + (_rows - 1) * gap + pad + 2;
 
-            // Üst alan içeriği (üstten alta): levhalar ve şehir/tarih/saat, ayet ve gece/gündüz tuşu,
-            // geri sayım paneli. Ölçüler ekran genişliğinden hesaplanır; yükseklik bunların toplamı kadardır,
-            // hiçbir şey üst üste binmez. Sığmazsa tuşlar basıklaşır.
-            final minHero = math.max(math.max(250.0, h * 0.36), _heroContent(w, k));            final maxHero = math.max(h * 0.56, minHero);
-            var tileH = tileW / 1.2;
-            if (h - gridFor(tileH) < minHero) {
-              tileH = math.max(tileW / 1.75, (h - minHero - (_rows - 1) * gap - 2 * pad) / _rows);
-            } else if (h - gridFor(tileH) > maxHero) {
-              tileH = math.min(tileW / 0.95, (h - maxHero - (_rows - 1) * gap - 2 * pad) / _rows);
-            }
+            // Tuşlar her ekranda resimleriyle aynı oranda (600 x 508): resimler hiç kesilmez. Kalan yükseklik
+            // üst alana (fotoğraf, ayet, konum/saat, geri sayım) verilir; fotoğraf gerekirse üstten kesilir.
+            final tileH = tileW * MenuTile.photoAspect;
             final gridH = gridFor(tileH);
             final labelSize = MenuTile.fitLabelSize(_items.map((e) => e.title), tileW);
-            final heroH = math.max(minHero, h - gridH);
+            final heroH = math.max(_heroMin(w, k), h - gridH);
             // Çok kısa ekranlarda (ör. yatay) sığmazsa kaydırılabilir; normalde kaydırma yok.
             final scrolls = heroH + gridH > h + 0.5;
 
@@ -161,7 +152,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   SizedBox(
                     height: gridH,
                     child: GridView.builder(
-                      padding: const EdgeInsets.all(pad),
+                      padding: const EdgeInsets.fromLTRB(pad, 2, pad, pad),
                       physics: const NeverScrollableScrollPhysics(),
                       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                         crossAxisCount: 3,
@@ -196,75 +187,74 @@ class _HomeScreenState extends State<HomeScreen> {
   // ÜST YARI - ANA GÖRSEL, LEVHALAR, KONUM/TARİH, AYET, GERİ SAYIM
   // ============================================================
   // Üst alanın ölçüleri (k: ekran genişliği ölçeği)
-  static double _medal(double k) => 80 * k;
-  static double _verseH(double k) => 46 * k;
-  static double _bannerW(double w) => math.min(w * 0.9, 500);
-  static double _heroContent(double w, double k) =>
-      6 + _medal(k) + 4 + _verseH(k) + 6 + _bannerW(w) / CountdownBanner.aspect + 8;
+  static double _bannerW(double w) => math.min(w * 0.92, 520);
+  // En az: geri sayım paneli ve üstünde ayet/konum yazıları kadar; daha kısa ekranda sayfa kayar.
+  static double _heroMin(double w, double k) => _bannerW(w) / CountdownBanner.aspect + 2 + 70 * k;
 
   Widget _hero(DateTime now, AppLocation? loc, double k, List<Shadow> shadow) {
-    final medal = _medal(k);
-    return Stack(
-      children: [
-        // Arka plan: cami her ekran boyunda ortada dursun (gece ve gündüz aynı kadraj)
-        Positioned.fill(
-          child: LayoutBuilder(
-            builder: (context, box) => Image.asset(
-              isDaytime() ? 'assets/images/home_hero.jpg' : 'assets/images/home_hero_gece.jpg',
-              fit: BoxFit.cover,
-              alignment: _alignOn(box.biggest, 1536, 1024, 0.54, 0.52),
-            ),
+    return LayoutBuilder(builder: (context, box) {
+      final bannerH = _bannerW(box.maxWidth) / CountdownBanner.aspect;
+      // Caminin tabanı geri sayım panelinin hemen üstüne oturur; fotoğraf gerekirse üstten kesilir.
+      final mosqueBase = box.maxHeight - bannerH + 4 * k;
+      return Stack(
+        children: [
+          _heroPhoto(box.biggest, mosqueBase),
+          // Ayet sol üstte, konum/tarih/saat sağ üstte; caminin iki yanında fotoğrafın üstünde durur.
+          Positioned(
+            left: 12,
+            top: 2,
+            child: _verse(k, shadow),
           ),
-        ),
-        Positioned.fill(
-          child: LayoutBuilder(
-            builder: (context, box) => Column(
-              children: [
-                const SizedBox(height: 6),
-                // 1. sıra: Allah · şehir / tarih / saat · Muhammed
-                SizedBox(
-                  height: medal,
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const SizedBox(width: 6),
-                      _Medallion('assets/images/hat_allah.webp', size: medal),
-                      Expanded(child: _cityDate(now, loc, k, shadow)),
-                      _Medallion('assets/images/hat_muhammed.webp', size: medal),
-                      const SizedBox(width: 6),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 4),
-                // 2. sıra: ayet (ortada) · gece/gündüz tuşu (sağda)
-                SizedBox(
-                  height: _verseH(k),
-                  child: Row(
-                    children: [
-                      SizedBox(width: 40 * k),
-                      Expanded(child: _verse(k, shadow)),
-                      SizedBox(width: 40 * k, child: Center(child: _DayNightButton(size: 32 * k))),
-                      const SizedBox(width: 4),
-                    ],
-                  ),
-                ),
-                const Spacer(),
-                // 3. sıra: geri sayım paneli (ekranın %90'ı, ortada)
-                Center(
-                  child: SizedBox(
-                    width: _bannerW(box.maxWidth),
-                    child: GestureDetector(
-                      onTap: () => _onTap(_items.first),
-                      child: CountdownBanner(status: _status),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 8),
-              ],
-            ),
+          Positioned(
+            right: 10,
+            top: 2,
+            child: _cityDate(now, loc, k, shadow),
           ),
-        ),
-      ],
+          Column(
+            children: [
+              const Spacer(),
+              // Geri sayım paneli (ekranın %92'si, ortada, tuşlara yaslı)
+              Center(
+                child: SizedBox(
+                  width: _bannerW(box.maxWidth),
+                  child: GestureDetector(
+                    onTap: () => _onTap(_items.first),
+                    child: CountdownBanner(status: _status),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 2),
+            ],
+          ),
+          // Gündüz/gece düğmesi sağda, geri sayım panelinin kenarının üstünde
+          Positioned(
+            right: 10,
+            bottom: 2 + bannerH * (1 - CountdownBanner.sideTop) + 4 * k,
+            child: DayNightSwitch(height: 26 * k),
+          ),
+        ],
+      );
+    });
+  }
+
+  /// Arka plan fotoğrafı: caminin tabanı (görselde %54, %64) kutuda [mosqueY] yüksekliğine gelir;
+  /// fotoğraf kutuyu her zaman tamamen kaplar (gece ve gündüz aynı kadraj).
+  Widget _heroPhoto(Size box, double mosqueY) {
+    const imgW = 1536.0, imgH = 1024.0, fx = 0.54, fy = 0.64;
+    final scale = [box.width / imgW, box.height / imgH, mosqueY / (fy * imgH), (box.height - mosqueY) / ((1 - fy) * imgH)]
+        .reduce(math.max);
+    final w = imgW * scale, h = imgH * scale;
+    final left = (box.width / 2 - fx * w).clamp(box.width - w, 0.0);
+    final top = (mosqueY - fy * h).clamp(box.height - h, 0.0);
+    return Positioned(
+      left: left,
+      top: top,
+      width: w,
+      height: h,
+      child: Image.asset(
+        isDaytime() ? 'assets/images/home_hero.jpg' : 'assets/images/home_hero_gece.jpg',
+        fit: BoxFit.fill,
+      ),
     );
   }
 
@@ -275,20 +265,21 @@ class _HomeScreenState extends State<HomeScreen> {
       child: FittedBox(
         fit: BoxFit.scaleDown,
         child: Padding(
-          padding: EdgeInsets.fromLTRB(2, 4 * k, 2, 2),
+          padding: const EdgeInsets.fromLTRB(2, 0, 2, 2),
           child: Column(
             mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  GoldIcon(Icons.location_on, size: 13 * k),
+                  GoldIcon(Icons.location_on, size: 11 * k),
                   const SizedBox(width: 2),
                   Text(
                     loc?.name ?? 'Konum Seç',
                     maxLines: 1,
                     style:
-                        TextStyle(color: Colors.white, fontSize: 14.5 * k, fontWeight: FontWeight.w700, shadows: shadow),
+                        TextStyle(color: Colors.white, fontSize: 12.5 * k, fontWeight: FontWeight.w700, shadows: shadow),
                   ),
                 ],
               ),
@@ -296,7 +287,7 @@ class _HomeScreenState extends State<HomeScreen> {
               Text(
                 '${formatDateTr(now)} · ${weekdayTr(now)}',
                 maxLines: 1,
-                style: TextStyle(color: Colors.white, fontSize: 11.5 * k, fontWeight: FontWeight.w600, shadows: shadow),
+                style: TextStyle(color: Colors.white, fontSize: 10 * k, fontWeight: FontWeight.w600, shadows: shadow),
               ),
               SizedBox(height: 2 * k),
               Text(
@@ -304,7 +295,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 style: TextStyle(
                   color: const Color(0xFFE8C88A),
                   shadows: shadow,
-                  fontSize: 16 * k,
+                  fontSize: 13.5 * k,
                   fontWeight: FontWeight.w600,
                   letterSpacing: 1,
                   fontFeatures: const [FontFeature.tabularFigures()],
@@ -321,108 +312,25 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _verse(double k, List<Shadow> shadow) {
     return FittedBox(
       fit: BoxFit.scaleDown,
+      alignment: Alignment.topLeft,
       child: Column(
         mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Satırlar aşağı doğru uzar
           Text(
-            '“Şüphesiz namaz, müminler üzerine\nvakitleri belirlenmiş bir farzdır.”',
-            textAlign: TextAlign.center,
+            '“Şüphesiz namaz,\nmüminler üzerine\nvakitleri belirlenmiş\nbir farzdır.”',
             style: TextStyle(
               color: Colors.white,
               fontFamily: 'serif',
-              fontSize: 12.5 * k,
+              fontSize: 9.5 * k,
               fontWeight: FontWeight.w600,
               height: 1.25,
               fontStyle: FontStyle.italic,
               shadows: shadow,
             ),
           ),
-          GoldText('Nisâ, 103', style: TextStyle(fontFamily: 'serif', fontSize: 10.5 * k, fontWeight: FontWeight.w600)),
-        ],
-      ),
-    );
-  }
-
-  /// Arka plan fotoğrafını, caminin kutunun ortasına geleceği şekilde hizalar.
-  static Alignment _alignOn(Size box, double imgW, double imgH, double mosqueX, double mosqueY) {
-    final scale = math.max(box.width / imgW, box.height / imgH);
-    double axis(double frac, double scaled, double view) {
-      final extra = scaled - view;
-      if (extra <= 0.5) return 0;
-      final offset = (frac * scaled - view / 2).clamp(0.0, extra);
-      return offset / extra * 2 - 1;
-    }
-
-    return Alignment(axis(mosqueX, imgW * scale, box.width), axis(mosqueY, imgH * scale, box.height));
-  }
-}
-
-/// Gündüz/gece geçiş tuşu. Vakte göre olan görünümün tersine geçer; yeniden basınca otomatiğe döner.
-class _DayNightButton extends StatelessWidget {
-  final double size;
-
-  const _DayNightButton({required this.size});
-
-  @override
-  Widget build(BuildContext context) {
-    final day = isDaytime();
-    return Semantics(
-      button: true,
-      label: day ? 'Gece görünümüne geç' : 'Gündüz görünümüne geç',
-      excludeSemantics: true,
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque, // simgenin saydam yerleri de tuşa sayılır
-        onTap: () {
-          final toDay = !day;
-          final mode = toDay == isDaytimeByClock() ? DayMode.otomatik : (toDay ? DayMode.gunduz : DayMode.gece);
-          AppPrefs.instance.setDayMode(mode);
-          showNote(
-            context,
-            mode == DayMode.otomatik
-                ? 'Görünüm yine vakte göre değişecek'
-                : '${toDay ? 'Gündüz' : 'Gece'} görünümü seçildi. Ayarlar\'dan Otomatik\'e alabilirsiniz.',
-          );
-        },
-        // Diğer sayfaların başlığındaki gibi şeffaf altın simge: gündüzde ay (geceye geç), gecede güneş.
-        child: Image.asset(
-          day ? 'assets/images/ikon/imsak.webp' : 'assets/images/ikon/ikindi.webp',
-          width: size,
-          height: size,
-          fit: BoxFit.contain,
-        ),
-      ),
-    );
-  }
-}
-
-/// Üst köşelerdeki hat levhası.
-class _Medallion extends StatelessWidget {
-  final String asset;
-  final double size;
-
-  const _Medallion(this.asset, {required this.size});
-
-  @override
-  Widget build(BuildContext context) {
-    final image = Image.asset(asset, fit: BoxFit.contain);
-    // Altın hat, açık gökyüzünde de seçilsin: arkasında hattın bulanık koyu gölgesi.
-    return SizedBox(
-      width: size,
-      height: size,
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          Transform.translate(
-            offset: const Offset(0, 1.5),
-            child: ImageFiltered(
-              imageFilter: ImageFilter.blur(sigmaX: 3, sigmaY: 3),
-              child: ColorFiltered(
-                colorFilter: const ColorFilter.mode(Color(0xB3000000), BlendMode.srcIn),
-                child: image,
-              ),
-            ),
-          ),
-          image,
+          GoldText('Nisâ, 103', style: TextStyle(fontFamily: 'serif', fontSize: 8.5 * k, fontWeight: FontWeight.w600)),
         ],
       ),
     );

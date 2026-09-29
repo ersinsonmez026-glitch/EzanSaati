@@ -3,8 +3,6 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import '../data/sayfa_basliklari.dart';
-import '../screens/city_picker_screen.dart';
-import '../screens/settings_screen.dart';
 import '../services/app_prefs.dart';
 import '../services/location_store.dart';
 import '../services/prayer_calc.dart';
@@ -22,11 +20,10 @@ class PageShell extends StatelessWidget {
   /// Alt yazı; verilmezse [heading] anahtarıyla [kSayfaBasliklari]'ndan alınır.
   final String? subtitle;
 
-  /// Alt yazı ve ayetin alınacağı sayfa anahtarı (varsayılan: [title]).
+  /// Alt yazının alınacağı sayfa anahtarı (varsayılan: [title]).
   final String? heading;
   final List<Widget> children;
   final EdgeInsets padding;
-  final bool showSettings;
 
   /// Sayfa zemini. Verilmezse koyu yeşil düz renk kullanılır.
   final Decoration? background;
@@ -41,7 +38,6 @@ class PageShell extends StatelessWidget {
     this.heading,
     required this.children,
     this.padding = const EdgeInsets.fromLTRB(10, 10, 10, 24),
-    this.showSettings = true,
     this.background,
     this.controller,
   });
@@ -52,7 +48,6 @@ class PageShell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final top = MediaQuery.paddingOf(context).top;
-    final h = kSayfaBasliklari[heading ?? title];
     final scroll = CustomScrollView(
       controller: controller,
       slivers: [
@@ -60,11 +55,8 @@ class PageShell extends StatelessWidget {
           pinned: true,
           delegate: _HeaderDelegate(
             title: title,
-            subtitle: subtitle ?? h?.subtitle,
-            verse: h?.verse,
-            source: h?.source,
+            subtitle: subtitle ?? kSayfaBasliklari[heading ?? title],
             topInset: top,
-            showSettings: showSettings,
             day: isDaytime(),
           ),
         ),
@@ -74,9 +66,40 @@ class PageShell extends StatelessWidget {
         ),
       ],
     );
+    final body = background == null ? scroll : DecoratedBox(decoration: background!, child: scroll);
     return Scaffold(
       backgroundColor: AppColors.darkGreen,
-      body: background == null ? scroll : DecoratedBox(decoration: background!, child: scroll),
+      body: _SwipeBack(child: body),
+    );
+  }
+}
+
+/// Sayfa yana doğru kaydırılınca (sağdan sola ya da soldan sağa) bir önceki sayfaya döner.
+/// Sayfanın içindeki yatay kaydırılan şeritler kendi hareketini önce alır.
+class _SwipeBack extends StatefulWidget {
+  final Widget child;
+
+  const _SwipeBack({required this.child});
+
+  @override
+  State<_SwipeBack> createState() => _SwipeBackState();
+}
+
+class _SwipeBackState extends State<_SwipeBack> {
+  double _dx = 0;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onHorizontalDragStart: (_) => _dx = 0,
+      onHorizontalDragUpdate: (d) => _dx += d.delta.dx,
+      onHorizontalDragEnd: (d) {
+        final v = d.primaryVelocity ?? 0;
+        if ((_dx.abs() > 80 || v.abs() > 600) && Navigator.of(context).canPop()) {
+          Navigator.of(context).maybePop();
+        }
+      },
+      child: widget.child,
     );
   }
 }
@@ -111,6 +134,59 @@ void toggleDayMode(BuildContext context) {
   ));
 }
 
+/// İki taraflı gündüz/gece düğmesi: solda güneş, sağda ay. Seçili taraf koyu zeminde parlak,
+/// diğeri soluk; soluk tarafa dokununca görünüm değişir. Ana ekranda ve sayfa başlıklarında kullanılır.
+class DayNightSwitch extends StatelessWidget {
+  final double height;
+
+  const DayNightSwitch({super.key, required this.height});
+
+  @override
+  Widget build(BuildContext context) {
+    final day = isDaytime();
+    Widget side(bool isDay) {
+      final on = day == isDay;
+      final d = height - 4;
+      return Semantics(
+        button: true,
+        selected: on,
+        label: isDay ? 'Gündüz görünümüne geç' : 'Gece görünümüne geç',
+        excludeSemantics: true,
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: on ? null : () => toggleDayMode(context),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            width: d,
+            height: d,
+            padding: EdgeInsets.all(d * 0.1),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: on ? const Color(0xFF062A1C) : null,
+              border: on ? Border.all(color: const Color(0xE6CFAE68)) : null,
+            ),
+            child: Opacity(
+              opacity: on ? 1 : 0.55,
+              child: Image.asset(isDay ? 'assets/images/ikon/gunduz.webp' : 'assets/images/ikon/gece.webp'),
+            ),
+          ),
+        ),
+      );
+    }
+
+    return Container(
+      height: height,
+      padding: const EdgeInsets.all(1.5),
+      decoration: BoxDecoration(
+        color: const Color(0x8C000000),
+        borderRadius: BorderRadius.circular(99),
+        border: Border.all(color: const Color(0xB3CFAE68)),
+      ),
+      child: Row(mainAxisSize: MainAxisSize.min, children: [side(true), SizedBox(width: height * 0.08), side(false)]),
+    );
+  }
+}
+
 /// Gündüz (imsak ile akşam arası) mı? Seçili konum yoksa 06:00-19:00 kabul edilir.
 bool isDaytimeByClock() {
   final now = DateTime.now();
@@ -123,19 +199,13 @@ bool isDaytimeByClock() {
 class _HeaderDelegate extends SliverPersistentHeaderDelegate {
   final String title;
   final String? subtitle;
-  final String? verse;
-  final String? source;
   final double topInset;
-  final bool showSettings;
   final bool day; // gündüz görünümü mü; değişince başlık yeniden çizilir
 
   _HeaderDelegate({
     required this.title,
     required this.subtitle,
-    required this.verse,
-    required this.source,
     required this.topInset,
-    required this.showSettings,
     required this.day,
   });
 
@@ -154,23 +224,22 @@ class _HeaderDelegate extends SliverPersistentHeaderDelegate {
   bool shouldRebuild(covariant _HeaderDelegate old) =>
       old.title != title ||
       old.subtitle != subtitle ||
-      old.verse != verse ||
       old.topInset != topInset ||
-      old.showSettings != showSettings ||
       old.day != day;
 
   @override
   Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
     final range = maxExtent - minExtent;
     final p = (shrinkOffset / range).clamp(0.0, 1.0); // 0 açık, 1 kapalı
-    // Logo, konum, alt yazı ve ayet ilk kaydırmada kaybolur.
+    // Logo ve alt yazı ilk kaydırmada kaybolur.
     final fade = (1 - shrinkOffset / 40).clamp(0.0, 1.0);
     final canPop = Navigator.of(context).canPop();
-    final hasVerse = verse != null;
-    // Sayfa adı ortada; ayetli sayfalarda iki yandan ayet kadar boşluk bırakılır.
-    final side = hasVerse ? 100 - 52 * p : 48.0;
+    // Sayfa adı ortada; solda geri oku, sağda gündüz/gece düğmesi kadar boşluk.
+    const side = 72.0;
     final base = _base;
     final titleTop = base + 38 - (base + 36 - topInset) * p;
+    // Geri oku ve gündüz/gece düğmesi aynı hizada: açıkken alt yazı hizasında, kapanınca şeritte.
+    final rowTop = titleTop + 2 + (base + 70 - titleTop - 2) * (1 - p);
 
     return DecoratedBox(
       decoration: const BoxDecoration(
@@ -205,7 +274,7 @@ class _HeaderDelegate extends SliverPersistentHeaderDelegate {
                 ),
               ),
             ),
-            // Logo ve ayetin arkasında yumuşak gölge
+            // Logonun arkasında yumuşak gölge
             Positioned(
               top: base - 30 - shrinkOffset,
               left: 0,
@@ -223,23 +292,6 @@ class _HeaderDelegate extends SliverPersistentHeaderDelegate {
                 ),
               ),
             ),
-            if (verse != null)
-              Positioned(
-                top: base + 20 - shrinkOffset,
-                right: 0,
-                width: 130,
-                height: 100,
-                child: Opacity(
-                  opacity: fade,
-                  child: const DecoratedBox(
-                    decoration: BoxDecoration(
-                      gradient: RadialGradient(
-                        colors: [Color(0x66000000), Color(0x00000000)],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
 
             if (fade > 0) ...[
               // Logo: durum çubuğu hizasından başlar, ortada
@@ -254,72 +306,11 @@ class _HeaderDelegate extends SliverPersistentHeaderDelegate {
                   ),
                 ),
               ),
-              // Konum: minareleri kesmesin diye en üstte
-              Positioned(
-                top: base - 4 - shrinkOffset,
-                left: 10,
-                child: Opacity(opacity: fade, child: const _LocationPill()),
-              ),
-              if (showSettings)
-                Positioned(
-                  top: base - 4 - shrinkOffset,
-                  right: 8,
-                  child: Opacity(
-                    opacity: fade,
-                    child: Semantics(
-                      button: true,
-                      label: 'Ayarlar',
-                      excludeSemantics: true,
-                      child: GestureDetector(
-                        onTap: () => Navigator.of(context).push(
-                          AppRoute(builder: (_) => const SettingsScreen()),
-                        ),
-                        child: Image.asset('assets/images/ikon/ayarlar.webp', width: 28.5, height: 28.5),
-                      ),
-                    ),
-                  ),
-                ),
-              if (hasVerse)
-                Positioned(
-                  top: base + 36 - shrinkOffset,
-                  right: 12,
-                  width: 84,
-                  height: 64,
-                  child: Opacity(
-                    opacity: fade,
-                    child: FittedBox(
-                      fit: BoxFit.scaleDown,
-                      alignment: Alignment.topLeft,
-                      child: SizedBox(
-                        width: 84,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              verse!,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 9.5,
-                                height: 1.3,
-                                shadows: _shadow,
-                              ),
-                            ),
-                            const SizedBox(height: 3),
-                            Text(
-                              '($source)',
-                              style: const TextStyle(color: Color(0xFFF2DDA8), fontSize: 8, shadows: _shadow),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
               if (subtitle != null)
                 Positioned(
                   top: base + 72 - shrinkOffset,
-                  left: hasVerse ? 100 : 48,
-                  right: hasVerse ? 100 : 48,
+                  left: 76,
+                  right: 76,
                   child: Opacity(
                     opacity: fade,
                     child: Column(
@@ -339,31 +330,6 @@ class _HeaderDelegate extends SliverPersistentHeaderDelegate {
                   ),
                 ),
             ],
-
-            // Görselin altında gece/gündüz düğmesi: gecede güneş, gündüzde ay; dokununca görünüm değişir.
-            if (fade > 0)
-              Positioned(
-                top: base + 74 - shrinkOffset,
-                left: 10,
-                width: 31,
-                height: 31,
-                child: Opacity(
-                  opacity: fade,
-                  child: Semantics(
-                    button: true,
-                    label: isDaytime() ? 'Gece görünümüne geç' : 'Gündüz görünümüne geç',
-                    excludeSemantics: true,
-                    child: GestureDetector(
-                      behavior: HitTestBehavior.opaque,
-                      onTap: () => toggleDayMode(context),
-                      child: Image.asset(
-                        isDaytime() ? 'assets/images/ikon/imsak.webp' : 'assets/images/ikon/ikindi.webp',
-                        fit: BoxFit.contain,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
 
             // Sayfa adı: açıkken logonun altında ortada, kapanınca şeritte kalır.
             Positioned(
@@ -385,67 +351,33 @@ class _HeaderDelegate extends SliverPersistentHeaderDelegate {
               ),
             ),
 
-            // Geri düğmesi hep şeritte
+            // Solda geri oku, sağda gündüz/gece düğmesi; ikisi de hep görünür.
             if (canPop)
               Positioned(
-                top: titleTop + 2 - 2 * p,
-                left: 2,
-                width: 44,
-                height: 40,
-                child: IconButton(
-                  tooltip: 'Geri',
-                  icon: const GoldIcon(Icons.arrow_back_ios_new, size: 20),
-                  onPressed: () => Navigator.of(context).maybePop(),
-                ),
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-/// Başlıktaki konum düğmesi: şehir adı, dokununca şehir seçimi.
-class _LocationPill extends StatelessWidget {
-  const _LocationPill();
-
-  @override
-  Widget build(BuildContext context) {
-    final store = LocationStore.instance;
-    return ListenableBuilder(
-      listenable: store,
-      builder: (context, _) => Semantics(
-        button: true,
-        label: 'Konum: ${store.current?.name ?? 'seçilmedi'}',
-        excludeSemantics: true,
-        child: GestureDetector(
-          onTap: () => Navigator.of(context).push(AppRoute(builder: (_) => const CityPickerScreen())),
-          child: Container(
-            constraints: const BoxConstraints(maxWidth: 118),
-            padding: const EdgeInsets.fromLTRB(7, 4, 4, 4),
-            decoration: BoxDecoration(
-              color: const Color(0x8C021C12),
-              borderRadius: BorderRadius.circular(99),
-              border: Border.all(color: const Color(0xCCCFAE68), width: 1.2),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const GoldIcon(Icons.location_on, size: 14),
-                const SizedBox(width: 3),
-                Flexible(
-                  child: Text(
-                    store.current?.name ?? 'Konum Seç',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(color: Color(0xFFFBE2A6), fontSize: 11.5, fontWeight: FontWeight.w500),
+                top: rowTop - 2,
+                left: 4,
+                width: 52,
+                height: 36,
+                child: Semantics(
+                  button: true,
+                  label: 'Geri',
+                  excludeSemantics: true,
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: () => Navigator.of(context).maybePop(),
+                    child: const Center(
+                      child: Image(image: AssetImage('assets/images/ikon/geri.webp'), width: 34),
+                    ),
                   ),
                 ),
-                const SizedBox(width: 1),
-                const Icon(Icons.chevron_right, size: 14, color: Color(0xFFE2C584)),
-              ],
+              ),
+            Positioned(
+              top: rowTop,
+              right: 8,
+              height: 32,
+              child: const DayNightSwitch(height: 32),
             ),
-          ),
+          ],
         ),
       ),
     );
@@ -488,25 +420,78 @@ class _Ornament extends StatelessWidget {
   }
 }
 
-/// Uygulamadaki sayfa geçişi: varsayılandan biraz yavaş (450 ms), yumuşak kayarak belirme.
+/// Uygulamadaki sayfa geçişi: yeni sayfa sağdan kayarak gelir, alttaki sayfa hafifçe sola çekilir
+/// (saydamlık yok; eski telefonlarda da net görünür). Temada tüm sayfalara (ana ekran dahil) verilir.
+class AppPageTransitions extends PageTransitionsBuilder {
+  const AppPageTransitions();
+
+  @override
+  Widget buildTransitions<T>(PageRoute<T> route, BuildContext context, Animation<double> animation,
+      Animation<double> secondaryAnimation, Widget child) {
+    final inCurve = CurvedAnimation(parent: animation, curve: Curves.easeOutCubic, reverseCurve: Curves.easeInCubic);
+    final outCurve =
+        CurvedAnimation(parent: secondaryAnimation, curve: Curves.easeOutCubic, reverseCurve: Curves.easeInCubic);
+    return SlideTransition(
+      position: Tween(begin: Offset.zero, end: const Offset(-0.25, 0)).animate(outCurve),
+      child: SlideTransition(
+        position: Tween(begin: const Offset(1, 0), end: Offset.zero).animate(inCurve),
+        child: DecoratedBox(
+          decoration: const BoxDecoration(boxShadow: [BoxShadow(color: Color(0x66000000), blurRadius: 16)]),
+          child: child,
+        ),
+      ),
+    );
+  }
+}
+
+/// Tüm platformlarda aynı geçiş.
+const kAppPageTransitions = PageTransitionsTheme(builders: {
+  TargetPlatform.android: AppPageTransitions(),
+  TargetPlatform.iOS: AppPageTransitions(),
+});
+
+/// Sayfa açma: varsayılandan biraz yavaş (400 ms); geçişin şekli temadan (AppPageTransitions).
 class AppRoute<T> extends MaterialPageRoute<T> {
   AppRoute({required super.builder});
 
   @override
-  Duration get transitionDuration => const Duration(milliseconds: 450);
+  Duration get transitionDuration => const Duration(milliseconds: 400);
 
   @override
   Duration get reverseTransitionDuration => const Duration(milliseconds: 350);
+}
+
+/// Tüm uygulama tek bir tasarım genişliğinde (390) kurulur; her ekran bu tasarımı kendi genişliğine
+/// orantılı büyütür ya da küçültür. Böylece yazı, tuş ve görsellerin oranı her telefonda aynı kalır.
+class DesignScale extends StatelessWidget {
+  static const designWidth = 390.0;
+  final Widget child;
+
+  const DesignScale({super.key, required this.child});
 
   @override
-  Widget buildTransitions(
-      BuildContext context, Animation<double> animation, Animation<double> secondaryAnimation, Widget child) {
-    final curved = CurvedAnimation(parent: animation, curve: Curves.easeOutCubic, reverseCurve: Curves.easeInCubic);
-    return FadeTransition(
-      opacity: curved,
-      child: SlideTransition(
-        position: Tween(begin: const Offset(0, 0.04), end: Offset.zero).animate(curved),
-        child: child,
+  Widget build(BuildContext context) {
+    final mq = MediaQuery.of(context);
+    if (mq.size.width <= 0) return child;
+    final s = mq.size.width / designWidth;
+    final size = mq.size / s;
+    return FittedBox(
+      fit: BoxFit.fill,
+      alignment: Alignment.topLeft,
+      child: SizedBox(
+        width: size.width,
+        height: size.height,
+        child: MediaQuery(
+          data: mq.copyWith(
+            size: size,
+            devicePixelRatio: mq.devicePixelRatio * s,
+            padding: mq.padding / s,
+            viewPadding: mq.viewPadding / s,
+            viewInsets: mq.viewInsets / s,
+            systemGestureInsets: mq.systemGestureInsets / s,
+          ),
+          child: child,
+        ),
       ),
     );
   }

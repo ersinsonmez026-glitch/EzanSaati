@@ -4,161 +4,146 @@ import '../services/prayer_calc.dart';
 import 'gold_icon.dart';
 
 /// Ana ekrandaki geri sayım paneli. Çerçeve resimdir (assets/images/geri_sayim.webp); yazılar canlı çizilir.
-/// Üstte solda şu anki vakit, ortada kalan süre, sağda sonraki vakit; altta günün altı vakti.
+/// Üstte tek satırda sonraki vakte kalan süre ("Öğleye Kalan 3 saat 10 dakika"), altta günün altı vakti;
+/// içinde bulunulan vakit altın zeminle vurgulanır.
 class CountdownBanner extends StatelessWidget {
   final PrayerStatus? status;
 
   const CountdownBanner({super.key, required this.status});
 
-  // Görselin özgün ölçüsü (2172 x 724); kutu konumları bu ölçüye göre.
-  static const double _w = 2172, _h = 724;
+  // Kutu konumları çerçevenin 2100 x 607 ölçülü çizimine göre.
+  static const double _w = 2100, _h = 607;
   static const double aspect = _w / _h;
 
-  static const _time = Color(0xFFF6E3B0);
+  /// Çerçevenin sağ ve sol kenarının üstü (ortadaki kemer daha yukarıda), yüksekliğe oranı.
+  static const double sideTop = 114 / _h;
+
+  static const _slotsX = [
+    (45.0, 352.0),
+    (389.0, 696.0),
+    (733.0, 1033.0),
+    (1069.0, 1368.0),
+    (1404.0, 1705.0),
+    (1742.0, 2055.0)
+  ];
+
+  static const _cream = Color(0xFFF6E3B0);
   static const _shadow = [Shadow(color: Color(0xCC000000), blurRadius: 3, offset: Offset(0, 1))];
+
+  /// "Öğleye", "Akşama" gibi yönelme hâli.
+  static const _to = {
+    'İmsak': 'İmsaka',
+    'Güneş': 'Güneşe',
+    'Öğle': 'Öğleye',
+    'İkindi': 'İkindiye',
+    'Akşam': 'Akşama',
+    'Yatsı': 'Yatsıya',
+  };
 
   @override
   Widget build(BuildContext context) {
     final s = status;
     return AspectRatio(
       aspectRatio: aspect,
-      child: LayoutBuilder(
-        builder: (context, box) {
-          final w = box.maxWidth;
-          final k = w / 400; // 400 genişlik esas
-          Widget at(double x0, double y0, double x1, double y1, Widget child) => Positioned(
-                left: x0 / _w * w,
-                top: y0 / _h * box.maxHeight,
-                width: (x1 - x0) / _w * w,
-                height: (y1 - y0) / _h * box.maxHeight,
-                child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 3 * k, vertical: 2 * k),
-                  child: FittedBox(fit: BoxFit.scaleDown, child: child),
-                ),
-              );
-          TextStyle t(double size, Color c, {FontWeight weight = FontWeight.w600}) => TextStyle(
-                fontFamily: 'EBGaramond',
-                fontSize: size * k,
-                fontWeight: weight,
-                color: c,
-                height: 1.1,
-                shadows: _shadow,
-              );
-          Widget gold(String text, double size) => GoldText(
-                text,
-                maxLines: 1,
-                style:
-                    TextStyle(fontFamily: 'EBGaramond', fontSize: size * k, fontWeight: FontWeight.w600, height: 1.1),
-              );
-          int iconOf(PrayerSlot? p) => p == null ? 2 : PrayerCalc.names.indexOf(p.name).clamp(0, 5);
+      child: LayoutBuilder(builder: (context, box) {
+        final w = box.maxWidth, h = box.maxHeight;
+        final k = w / 400; // 400 genişlik esas
+        Rect r(double x0, double y0, double x1, double y1) =>
+            Rect.fromLTRB(x0 / _w * w, y0 / _h * h, x1 / _w * w, y1 / _h * h);
 
-          Widget side(String label, PrayerSlot? p) => Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  gold(label, 10),
-                  SizedBox(height: 2 * k),
-                  gold(p?.name ?? '--', 18),
-                  SizedBox(height: 2 * k),
-                  Text(p == null ? '--:--' : formatHm(p.time), style: t(11.5, _time)),
-                ],
-              );
+        TextStyle gold(double size, {FontWeight weight = FontWeight.w600}) =>
+            TextStyle(fontFamily: 'EBGaramond', fontSize: size * k, fontWeight: weight, height: 1.0);
 
-          final slots = s?.today.slots ?? const <PrayerSlot>[];
-          const bottom = [
-            (41.0, 354.0),
-            (377.0, 712.0),
-            (737.0, 1074.0),
-            (1098.0, 1437.0),
-            (1461.0, 1798.0),
-            (1822.0, 2131.0)
+        // Üst satır: kalan süre (bir saatten azsa dakika ve saniye)
+        final List<(String, bool)> parts;
+        if (s == null) {
+          parts = const [('Konum seçin', false)];
+        } else {
+          final d = s.remaining;
+          final hh = d.inHours, mm = d.inMinutes % 60, ss = d.inSeconds % 60;
+          parts = [
+            ('${_to[s.next.name] ?? s.next.name} Kalan', false),
+            if (hh > 0) ...[('$hh', true), ('saat', false), ('$mm', true), ('dakika', false)]
+            else ...[('$mm', true), ('dakika', false), ('$ss', true), ('saniye', false)],
           ];
-          return Stack(
-            children: [
-              Positioned.fill(child: Image.asset('assets/images/geri_sayim.webp', fit: BoxFit.fill)),
-              at(82, 142, 597, 432, side('Şu Anki Vakit', s?.current)),
-              at(
-                605,
-                95,
-                1568,
-                432,
-                Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    gold(s == null ? 'Kalan Süre' : '${s.next.name} Vaktine Kalan Süre', 10),
-                    gold(s == null ? '--:--:--' : formatDuration(s.remaining), 30),
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        ArtIcon(kVakitIkonlari[iconOf(s?.next)], size: 15 * k),
-                        SizedBox(width: 4 * k),
-                        gold(s?.next.name ?? '--', 13),
-                      ],
+        }
+        final slots = s?.today.slots ?? const <PrayerSlot>[];
+
+        return Stack(
+          children: [
+            Positioned.fill(child: Image.asset('assets/images/geri_sayim.webp', fit: BoxFit.fill)),
+            // Bulunulan vaktin kutusu altın zemin (kutunun içinde, kenarı açıkta)
+            for (var i = 0; i < 6; i++)
+              if (s?.current.name == PrayerCalc.names[i])
+                Positioned.fromRect(
+                  rect: r(_slotsX[i].$1 + 10, 390, _slotsX[i].$2 - 10, 551),
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(8 * k),
+                      gradient: const LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [Color(0xFFF0DCA6), Color(0xFFC9A35E)],
+                      ),
                     ),
-                  ],
-                ),
-              ),
-              at(1577, 142, 2092, 432, side('Sonraki Vakit', s?.next)),
-              for (var i = 0; i < 6; i++)
-                Positioned(
-                  left: bottom[i].$1 / _w * w,
-                  width: (bottom[i].$2 - bottom[i].$1) / _w * w,
-                  top: 456 / _h * box.maxHeight,
-                  height: 208 / _h * box.maxHeight,
-                  child: _SlotBox(
-                    name: PrayerCalc.names[i],
-                    time: i < slots.length ? formatHm(slots[i].time) : '--:--',
-                    current: s?.current.name == PrayerCalc.names[i],
-                    k: k,
-                    style: t,
                   ),
                 ),
-            ],
-          );
-        },
-      ),
+            Positioned.fromRect(
+              rect: r(340, 140, 1760, 330),
+              child: Center(
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Row(
+                    // Küçük kelimeler ve büyük rakamlar dikeyde aynı çizgide ortalanır (süs çizgisi hizası).
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      for (final (i, (text, big)) in parts.indexed) ...[
+                        if (i > 0) SizedBox(width: (big ? 5 : 4) * k),
+                        GoldText(text, maxLines: 1, style: big ? gold(30, weight: FontWeight.w700) : gold(15)),
+                      ],
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            for (var i = 0; i < 6; i++)
+              Positioned.fromRect(
+                rect: r(_slotsX[i].$1, 380, _slotsX[i].$2, 560),
+                child: _slot(PrayerCalc.names[i], i < slots.length ? formatHm(slots[i].time) : '--:--',
+                    s?.current.name == PrayerCalc.names[i], k),
+              ),
+          ],
+        );
+      }),
     );
   }
-}
 
-/// Alttaki küçük vakit kutusu; içinde bulunulan vakit altın ışıkla vurgulanır.
-class _SlotBox extends StatelessWidget {
-  final String name;
-  final String time;
-  final bool current;
-  final double k;
-  final TextStyle Function(double size, Color c, {FontWeight weight}) style;
-
-  const _SlotBox({required this.name, required this.time, required this.current, required this.k, required this.style});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: EdgeInsets.all(2.2 * k),
-      decoration: current
-          ? BoxDecoration(
-              borderRadius: BorderRadius.circular(6 * k),
-              gradient: const LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [Color(0xFFE6CC92), Color(0xFFC4A060)],
-              ),
-              boxShadow: const [BoxShadow(color: Color(0x66E6CC92), blurRadius: 8)],
-            )
-          : null,
+  Widget _slot(String name, String time, bool current, double k) {
+    const dark = Color(0xFF241802);
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: 3 * k, vertical: 2 * k),
       child: FittedBox(
         fit: BoxFit.scaleDown,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             if (current)
-              Text(name, style: style(10, const Color(0xFF2E2004)).copyWith(shadows: const []))
+              Text(name,
+                  style: TextStyle(
+                      fontFamily: 'EBGaramond', fontSize: 11 * k, fontWeight: FontWeight.w600, color: dark, height: 1.1))
             else
-              GoldText(name, style: TextStyle(fontFamily: 'EBGaramond', fontSize: 11 * k, fontWeight: FontWeight.w600)),
+              GoldText(name,
+                  style: TextStyle(fontFamily: 'EBGaramond', fontSize: 11 * k, fontWeight: FontWeight.w600, height: 1.1)),
             Text(
               time,
-              style: current
-                  ? style(12, const Color(0xFF241802), weight: FontWeight.w700).copyWith(shadows: const [])
-                  : style(12, const Color(0xFFF6E3B0), weight: FontWeight.w700),
+              style: TextStyle(
+                fontFamily: 'EBGaramond',
+                fontSize: 13 * k,
+                fontWeight: FontWeight.w700,
+                height: 1.1,
+                color: current ? dark : _cream,
+                shadows: current ? null : _shadow,
+              ),
             ),
           ],
         ),

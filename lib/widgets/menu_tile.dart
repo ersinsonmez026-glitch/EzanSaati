@@ -24,6 +24,9 @@ class MenuTile extends StatelessWidget {
     this.labelSize = 17.5,
   });
 
+  /// Tuş resimlerinin oranı (yükseklik / genişlik; resimler 600 x 508). Görselli tuşlar bu oranda çizilir.
+  static const photoAspect = 508 / 600;
+
   /// Levhada, uçlardaki motiflerin arasında yazıya kalan genişlik oranı.
   static const _textArea = 0.8;
 
@@ -62,7 +65,7 @@ class MenuTile extends StatelessWidget {
     // Görselli tuşta isim, çift altın çizgili koyu yeşil levhanın içinde.
     // Görselli tuşta isim, altın kenarlı yeşil kartuş levhanın içinde (assets/images/levha.webp).
     final plate = Padding(
-      padding: const EdgeInsets.fromLTRB(4, 0, 4, 6),
+      padding: const EdgeInsets.fromLTRB(3, 0, 3, 3),
       child: AspectRatio(
         aspectRatio: 600 / 142,
         child: DecoratedBox(
@@ -93,23 +96,25 @@ class MenuTile extends StatelessWidget {
     BoxDecoration deco;
     switch (effective) {
       case TileStyle.resimli:
+        // Resim tuşun tamamını kaplar ve üstten hizalıdır: sığmazsa yalnızca alttan kesilir (levha da
+        // resmin alt kısmının üstünde durur). Üstü koyulaştırılmaz.
         deco = BoxDecoration(
           borderRadius: radius,
           border: Border.all(color: const Color(0x8CBEA05A)),
-          image: DecorationImage(image: AssetImage('assets/images/tiles/$image.jpg'), fit: BoxFit.cover),
           boxShadow: const [BoxShadow(color: Color(0x403C280A), blurRadius: 4, offset: Offset(0, 2))],
         );
-        child = DecoratedBox(
-          decoration: BoxDecoration(
-            borderRadius: radius,
-            gradient: const LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [Color(0x001C160E), Color(0x801C160E)],
-              stops: [0.5, 1],
+        child = Stack(
+          fit: StackFit.expand,
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(1),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(13),
+                child: Image.asset('assets/images/tiles/$image.jpg', fit: BoxFit.cover, alignment: Alignment.topCenter),
+              ),
             ),
-          ),
-          child: Align(alignment: Alignment.bottomCenter, child: plate),
+            Align(alignment: Alignment.bottomCenter, child: plate),
+          ],
         );
       case TileStyle.krem:
       case TileStyle.yesil:
