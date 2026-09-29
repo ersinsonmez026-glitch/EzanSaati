@@ -26,7 +26,7 @@ class _SurahReadScreenState extends State<SurahReadScreen> {
   static const _fsKey = 'sure_fs';
   static const _besmele = 'بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ';
 
-  final _pal = PagePalette.current();
+  PagePalette get _pal => PagePalette.current(); // Gündüz/Gece değişince hemen yenilensin
   final _scroll = ScrollController();
   QuranData? _data;
   ReadingPrefs? _prefs;

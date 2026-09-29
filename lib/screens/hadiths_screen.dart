@@ -19,7 +19,7 @@ class HadithsScreen extends StatefulWidget {
 }
 
 class _HadithsScreenState extends State<HadithsScreen> {
-  final _pal = PagePalette.current();
+  PagePalette get _pal => PagePalette.current(); // Gündüz/Gece değişince hemen yenilensin
   late final HadithStore _store = widget.store ?? HadithStore();
   List<Hadith>? _items;
   ReadingPrefs? _prefs;

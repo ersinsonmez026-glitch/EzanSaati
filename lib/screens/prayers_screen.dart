@@ -17,7 +17,7 @@ class PrayersScreen extends StatefulWidget {
 }
 
 class _PrayersScreenState extends State<PrayersScreen> {
-  final _pal = PagePalette.current();
+  PagePalette get _pal => PagePalette.current(); // Gündüz/Gece değişince hemen yenilensin
   List<Dua>? _duas;
   List<EsmaName> _esma = const [];
   ReadingPrefs? _prefs;

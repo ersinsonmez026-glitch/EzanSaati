@@ -24,7 +24,7 @@ class PrayerTimesScreen extends StatefulWidget {
 }
 
 class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
-  final _pal = PagePalette.current();
+  PagePalette get _pal => PagePalette.current(); // Gündüz/Gece değişince hemen yenilensin
   final _location = LocationStore.instance;
   final _scroll = ScrollController();
   Timer? _ticker;

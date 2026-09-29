@@ -17,7 +17,7 @@ class DuaCircleInviteScreen extends StatefulWidget {
 }
 
 class _DuaCircleInviteScreenState extends State<DuaCircleInviteScreen> {
-  final _pal = PagePalette.current();
+  PagePalette get _pal => PagePalette.current(); // Gündüz/Gece değişince hemen yenilensin
   final _sent = <CircleMember>{};
 
   Future<void> _send(CircleMember m) async {

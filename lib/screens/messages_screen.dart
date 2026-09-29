@@ -21,7 +21,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
   static const _catKey = 'mesaj_kategori';
   static const _favFilter = 'favori';
 
-  final _pal = PagePalette.current();
+  PagePalette get _pal => PagePalette.current(); // Gündüz/Gece değişince hemen yenilensin
   List<ReligiousMessage>? _all;
   ReadingPrefs? _prefs;
   String _query = '';

@@ -29,7 +29,7 @@ class _SurahsScreenState extends State<SurahsScreen> {
   // Sık okunanlar
   static const _popular = [1, 36, 67, 18, 55, 78, 56, 112, 113, 114];
 
-  final _pal = PagePalette.current();
+  PagePalette get _pal => PagePalette.current(); // Gündüz/Gece değişince hemen yenilensin
   QuranData? _data;
   ReadingPrefs? _prefs;
   String _query = '';

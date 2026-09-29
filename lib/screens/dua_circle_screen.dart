@@ -19,7 +19,7 @@ class DuaCircleScreen extends StatefulWidget {
 }
 
 class _DuaCircleScreenState extends State<DuaCircleScreen> {
-  final _pal = PagePalette.current();
+  PagePalette get _pal => PagePalette.current(); // Gündüz/Gece değişince hemen yenilensin
   final _store = DuaCircleStore.instance;
   final _sync = CircleSync.instance;
   final _nameCtl = TextEditingController();

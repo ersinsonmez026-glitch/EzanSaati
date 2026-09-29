@@ -65,6 +65,7 @@ class PageShell extends StatelessWidget {
             source: h?.source,
             topInset: top,
             showSettings: showSettings,
+            day: isDaytime(),
           ),
         ),
         SliverPadding(
@@ -90,6 +91,30 @@ bool isDaytime() => switch (AppPrefs.instance.dayMode) {
       DayMode.otomatik => isDaytimeByClock(),
     };
 
+/// Gündüz/gece görünümünü değiştirir ve açık bütün sayfaları yeni renklerle yeniden çizer.
+/// Seçilen görünüm vakte göre olanla aynıysa yeniden "Otomatik"e döner.
+void toggleDayMode(BuildContext context) {
+  final toDay = !isDaytime();
+  final mode = toDay == isDaytimeByClock()
+      ? DayMode.otomatik
+      : (toDay ? DayMode.gunduz : DayMode.gece);
+  AppPrefs.instance.setDayMode(mode);
+  void mark(Element e) {
+    e.markNeedsBuild();
+    e.visitChildren(mark);
+  }
+
+  WidgetsBinding.instance.rootElement?.visitChildren(mark);
+  final messenger = ScaffoldMessenger.maybeOf(context);
+  messenger?.hideCurrentSnackBar();
+  messenger?.showSnackBar(SnackBar(
+    duration: const Duration(seconds: 2),
+    content: Text(mode == DayMode.otomatik
+        ? 'Görünüm yine vakte göre değişecek'
+        : "${toDay ? 'Gündüz' : 'Gece'} görünümü seçildi. Ayarlar'dan Otomatik'e alabilirsiniz."),
+  ));
+}
+
 /// Gündüz (imsak ile akşam arası) mı? Seçili konum yoksa 06:00-19:00 kabul edilir.
 bool isDaytimeByClock() {
   final now = DateTime.now();
@@ -106,6 +131,7 @@ class _HeaderDelegate extends SliverPersistentHeaderDelegate {
   final String? source;
   final double topInset;
   final bool showSettings;
+  final bool day; // gündüz görünümü mü; değişince başlık yeniden çizilir
 
   _HeaderDelegate({
     required this.title,
@@ -114,6 +140,7 @@ class _HeaderDelegate extends SliverPersistentHeaderDelegate {
     required this.source,
     required this.topInset,
     required this.showSettings,
+    required this.day,
   });
 
   static const _shadow = [
@@ -135,7 +162,8 @@ class _HeaderDelegate extends SliverPersistentHeaderDelegate {
       old.subtitle != subtitle ||
       old.verse != verse ||
       old.topInset != topInset ||
-      old.showSettings != showSettings;
+      old.showSettings != showSettings ||
+      old.day != day;
 
   @override
   Widget build(
@@ -341,7 +369,7 @@ class _HeaderDelegate extends SliverPersistentHeaderDelegate {
                 ),
             ],
 
-            // Görselin altında gece/gündüz simgesi: gecede güneş, gündüzde ay (geçiş için kullanılacak).
+            // Görselin altında gece/gündüz düğmesi: gecede güneş, gündüzde ay; dokununca görünüm değişir.
             if (fade > 0)
               Positioned(
                 top: base + 74 - shrinkOffset,
@@ -350,11 +378,22 @@ class _HeaderDelegate extends SliverPersistentHeaderDelegate {
                 height: 31,
                 child: Opacity(
                   opacity: fade,
-                  child: Image.asset(
-                    isDaytime()
-                        ? 'assets/images/ikon/imsak.webp'
-                        : 'assets/images/ikon/ikindi.webp',
-                    fit: BoxFit.contain,
+                  child: Semantics(
+                    button: true,
+                    label: isDaytime()
+                        ? 'Gece görünümüne geç'
+                        : 'Gündüz görünümüne geç',
+                    excludeSemantics: true,
+                    child: GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: () => toggleDayMode(context),
+                      child: Image.asset(
+                        isDaytime()
+                            ? 'assets/images/ikon/imsak.webp'
+                            : 'assets/images/ikon/ikindi.webp',
+                        fit: BoxFit.contain,
+                      ),
+                    ),
                   ),
                 ),
               ),

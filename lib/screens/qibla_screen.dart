@@ -29,7 +29,7 @@ class _QiblaScreenState extends State<QiblaScreen> {
   /// Bu kadar derece içindeyken kıble yönünde sayılır.
   static const double alignTolerance = 4;
 
-  final _pal = PagePalette.current();
+  PagePalette get _pal => PagePalette.current(); // Gündüz/Gece değişince hemen yenilensin
   StreamSubscription<CompassReading>? _sub;
   double? _heading; // yumuşatılmış yön
   int _accuracy = 3;

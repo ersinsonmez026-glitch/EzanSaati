@@ -15,7 +15,7 @@ class CityPickerScreen extends StatefulWidget {
 }
 
 class _CityPickerScreenState extends State<CityPickerScreen> {
-  final _pal = PagePalette.current();
+  PagePalette get _pal => PagePalette.current(); // Gündüz/Gece değişince hemen yenilensin
   String _query = '';
   bool _busy = false;
 

@@ -32,7 +32,7 @@ class _Row {
 class _DuaCircleFormScreenState extends State<DuaCircleFormScreen> {
   static const _weekdays = ['Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cuma', 'Cumartesi', 'Pazar'];
 
-  final _pal = PagePalette.current();
+  PagePalette get _pal => PagePalette.current(); // Gündüz/Gece değişince hemen yenilensin
   final _name = TextEditingController();
   final _total = TextEditingController();
   final _intent = TextEditingController();

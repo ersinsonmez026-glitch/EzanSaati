@@ -27,7 +27,7 @@ class RamadanScreen extends StatefulWidget {
 enum _Tab { imsakiye, dua, gunler, oruc, zekat }
 
 class _RamadanScreenState extends State<RamadanScreen> {
-  final _pal = PagePalette.current();
+  PagePalette get _pal => PagePalette.current(); // Gündüz/Gece değişince hemen yenilensin
   final _location = LocationStore.instance;
   RamazanData? _data;
   _Tab _tab = _Tab.imsakiye;

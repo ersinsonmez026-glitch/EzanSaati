@@ -19,7 +19,7 @@ class MosqueFinderScreen extends StatefulWidget {
 }
 
 class _MosqueFinderScreenState extends State<MosqueFinderScreen> {
-  final _pal = PagePalette.current();
+  PagePalette get _pal => PagePalette.current(); // Gündüz/Gece değişince hemen yenilensin
   late final MosqueStore _store = widget.store ?? MosqueStore();
   final _location = LocationStore.instance;
   List<Mosque>? _items;

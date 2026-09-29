@@ -18,7 +18,7 @@ class DhikrScreen extends StatefulWidget {
 }
 
 class _DhikrScreenState extends State<DhikrScreen> with SingleTickerProviderStateMixin {
-  final _pal = PagePalette.current();
+  PagePalette get _pal => PagePalette.current(); // Gündüz/Gece değişince hemen yenilensin
   DhikrState? _s;
   late final AnimationController _beads = AnimationController(vsync: this, duration: const Duration(milliseconds: 200));
   int _beadDir = -1; // -1: sayınca taneler sola kayar, +1: geri alınca sağa

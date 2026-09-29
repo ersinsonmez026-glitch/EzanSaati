@@ -370,4 +370,23 @@ void main() {
       expect(find.byType(SurahReadScreen), findsOneWidget);
     });
   });
+
+  testWidgets('başlıktaki gece/gündüz düğmesi görünümü ve açık sayfayı hemen değiştirir', (t) async {
+    await AppPrefs.instance.setDayMode(DayMode.gece);
+    addTearDown(() => AppPrefs.instance.setDayMode(DayMode.otomatik));
+    await t.pumpWidget(const MaterialApp(home: CityPickerScreen()));
+    await t.pump();
+    bool paper(PagePalette p) =>
+        find.byWidgetPredicate((w) => w is DecoratedBox && w.decoration == p.background).evaluate().isNotEmpty;
+    expect(paper(PagePalette.yesil), isTrue);
+    await t.tap(find.bySemanticsLabel('Gündüz görünümüne geç'));
+    await t.pump();
+    expect(isDaytime(), isTrue);
+    expect(find.bySemanticsLabel('Gece görünümüne geç'), findsOneWidget);
+    expect(paper(PagePalette.krem), isTrue);
+    await t.tap(find.bySemanticsLabel('Gece görünümüne geç'));
+    await t.pump();
+    expect(isDaytime(), isFalse);
+    expect(paper(PagePalette.yesil), isTrue);
+  });
 }

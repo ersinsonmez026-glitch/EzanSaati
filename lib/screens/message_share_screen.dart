@@ -22,7 +22,7 @@ class MessageShareScreen extends StatefulWidget {
 }
 
 class _MessageShareScreenState extends State<MessageShareScreen> {
-  final _pal = PagePalette.current();
+  PagePalette get _pal => PagePalette.current(); // Gündüz/Gece değişince hemen yenilensin
   final _cardKey = GlobalKey();
   final _scroll = ScrollController();
   late int _index = widget.index;

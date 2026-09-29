@@ -19,7 +19,7 @@ class HadithReadScreen extends StatefulWidget {
 class _HadithReadScreenState extends State<HadithReadScreen> {
   static const _fsKey = 'hadis_fs';
 
-  final _pal = PagePalette.current();
+  PagePalette get _pal => PagePalette.current(); // Gündüz/Gece değişince hemen yenilensin
   final _scroll = ScrollController();
   late int _index = widget.index;
   ReadingPrefs? _prefs;

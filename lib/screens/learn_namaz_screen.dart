@@ -23,7 +23,7 @@ class _LearnNamazScreenState extends State<LearnNamazScreen> {
   static const _railWidth = 104.0;
   static const _gap = 7.0;
 
-  final _pal = PagePalette.current();
+  PagePalette get _pal => PagePalette.current(); // Gündüz/Gece değişince hemen yenilensin
   final _scroll = ScrollController();
   Map<String, Dua>? _duas;
 

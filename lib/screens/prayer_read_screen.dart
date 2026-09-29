@@ -26,7 +26,7 @@ class PrayerReadScreen extends StatefulWidget {
 class _PrayerReadScreenState extends State<PrayerReadScreen> {
   static const _fsKey = 'dua_fs';
 
-  final _pal = PagePalette.current();
+  PagePalette get _pal => PagePalette.current(); // Gündüz/Gece değişince hemen yenilensin
   final _scroll = ScrollController();
   late int _index = widget.index;
   ReadingPrefs? _prefs;

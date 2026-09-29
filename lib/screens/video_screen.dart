@@ -25,7 +25,7 @@ class _VideoScreenState extends State<VideoScreen> {
   // Birim testlerinde WebView yoktur; oynatıcı yerine kapak gösterilir.
   static final _canPlay = !Platform.environment.containsKey('FLUTTER_TEST');
 
-  final _pal = PagePalette.current();
+  PagePalette get _pal => PagePalette.current(); // Gündüz/Gece değişince hemen yenilensin
   late int _index = widget.index;
   YoutubePlayerController? _player;
 
