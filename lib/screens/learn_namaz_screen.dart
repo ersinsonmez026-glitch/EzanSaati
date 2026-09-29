@@ -569,7 +569,7 @@ class _RailButton extends StatelessWidget {
           ),
           child: Row(
             children: [
-              Icon(icon, size: 17, color: selected ? RC.bronzeText : const Color(0xFFF2C24F)),
+              Icon(icon, size: 17, color: selected ? RC.bronzeText : const Color(0xFFE2C584)),
               const SizedBox(width: 5),
               Expanded(
                 child: FittedBox(

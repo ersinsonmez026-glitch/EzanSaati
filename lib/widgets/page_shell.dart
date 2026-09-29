@@ -175,7 +175,7 @@ class _HeaderDelegate extends SliverPersistentHeaderDelegate {
     return DecoratedBox(
       decoration: const BoxDecoration(
         color: AppColors.darkGreen,
-        border: Border(bottom: BorderSide(color: Color(0x99EBB63B), width: 1.5)),
+        border: Border(bottom: BorderSide(color: Color(0x99CFAE68), width: 1.5)),
       ),
       child: ClipRect(
         child: Stack(
@@ -329,7 +329,7 @@ class _HeaderDelegate extends SliverPersistentHeaderDelegate {
                           child: Text(
                             subtitle!,
                             maxLines: 1,
-                            style: const TextStyle(color: Color(0xFFF3CF78), fontSize: 11, shadows: _shadow),
+                            style: const TextStyle(color: Color(0xFFEBD3A0), fontSize: 11, shadows: _shadow),
                           ),
                         ),
                         const SizedBox(height: 4),
@@ -426,7 +426,7 @@ class _LocationPill extends StatelessWidget {
             decoration: BoxDecoration(
               color: const Color(0x8C021C12),
               borderRadius: BorderRadius.circular(99),
-              border: Border.all(color: const Color(0xCCEBB63B), width: 1.2),
+              border: Border.all(color: const Color(0xCCCFAE68), width: 1.2),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
@@ -442,7 +442,7 @@ class _LocationPill extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 1),
-                const Icon(Icons.chevron_right, size: 14, color: Color(0xFFF2C24F)),
+                const Icon(Icons.chevron_right, size: 14, color: Color(0xFFE2C584)),
               ],
             ),
           ),
@@ -464,7 +464,7 @@ class _Ornament extends StatelessWidget {
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors:
-                  left ? const [Color(0x00EBB63B), Color(0xFFEBB63B)] : const [Color(0xFFEBB63B), Color(0x00EBB63B)],
+                  left ? const [Color(0x00CFAE68), Color(0xFFCFAE68)] : const [Color(0xFFCFAE68), Color(0x00CFAE68)],
             ),
           ),
         );
@@ -478,7 +478,7 @@ class _Ornament extends StatelessWidget {
           child: Container(
             width: 6,
             height: 6,
-            decoration: BoxDecoration(border: Border.all(color: const Color(0xFFF2C24F), width: 1.2)),
+            decoration: BoxDecoration(border: Border.all(color: const Color(0xFFE2C584), width: 1.2)),
           ),
         ),
         const SizedBox(width: 4),

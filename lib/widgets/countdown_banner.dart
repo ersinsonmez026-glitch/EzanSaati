@@ -140,9 +140,9 @@ class _SlotBox extends StatelessWidget {
               gradient: const LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
-                colors: [Color(0xFFF7D46A), Color(0xFFD9A02A)],
+                colors: [Color(0xFFE6CC92), Color(0xFFC4A060)],
               ),
-              boxShadow: const [BoxShadow(color: Color(0x99F7C239), blurRadius: 8)],
+              boxShadow: const [BoxShadow(color: Color(0x66E6CC92), blurRadius: 8)],
             )
           : null,
       child: FittedBox(

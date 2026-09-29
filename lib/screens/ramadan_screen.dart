@@ -214,7 +214,7 @@ class _RamadanScreenState extends State<RamadanScreen> {
         ),
         boxShadow: const [
           BoxShadow(color: Color(0x59000000), spreadRadius: 3),
-          BoxShadow(color: Color(0x73EBB63B), spreadRadius: 4.5),
+          BoxShadow(color: Color(0x73CFAE68), spreadRadius: 4.5),
           BoxShadow(color: Color(0x73000000), blurRadius: 22, offset: Offset(0, 8)),
         ],
       ),
@@ -238,7 +238,7 @@ class _RamadanScreenState extends State<RamadanScreen> {
                       shaderCallback: (r) => const LinearGradient(
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
-                        colors: [Color(0xFFFFE7A0), Color(0xFFF2C241), Color(0xFFC88A18)],
+                        colors: [Color(0xFFF6E6BE), Color(0xFFE3C07A), Color(0xFFB8914A)],
                         stops: [0, 0.55, 1],
                       ).createShader(r),
                       child: FittedBox(
@@ -298,7 +298,7 @@ class _RamadanScreenState extends State<RamadanScreen> {
               Container(
                 decoration: const BoxDecoration(
                   color: Color(0x4D000000),
-                  border: Border(top: BorderSide(color: Color(0x4DEBB63B))),
+                  border: Border(top: BorderSide(color: Color(0x4DCFAE68))),
                 ),
                 child: IntrinsicHeight(
                   child: Row(
@@ -307,7 +307,7 @@ class _RamadanScreenState extends State<RamadanScreen> {
                         child: _timeCell(kVakitIkonlari[0], 'Sahur (İmsak)',
                             today == null ? '--:--' : formatHm(today.slots[0].time)),
                       ),
-                      Container(width: 1, color: const Color(0x40EBB63B)),
+                      Container(width: 1, color: const Color(0x40CFAE68)),
                       Expanded(
                         child: _timeCell(kVakitIkonlari[4], 'İftar (Akşam)',
                             today == null ? '--:--' : formatHm(today.slots[4].time)),
@@ -368,7 +368,7 @@ class _RamadanScreenState extends State<RamadanScreen> {
               ),
               child: Column(
                 children: [
-                  Icon(icon, size: 24, color: on ? RC.bronzeText : const Color(0xFFF2C24F)),
+                  Icon(icon, size: 24, color: on ? RC.bronzeText : const Color(0xFFE2C584)),
                   const SizedBox(height: 2),
                   FittedBox(
                     fit: BoxFit.scaleDown,
@@ -1010,12 +1010,12 @@ class _HeroOrnamentPainter extends CustomPainter {
       paint,
     );
     final line = Paint()
-      ..shader = const LinearGradient(colors: [Color(0x00EBB63B), gold]).createShader(Rect.fromLTWH(0, cy, cx - 40, 1))
+      ..shader = const LinearGradient(colors: [Color(0x00CFAE68), gold]).createShader(Rect.fromLTWH(0, cy, cx - 40, 1))
       ..strokeWidth = 1;
     canvas.drawLine(Offset(cx - 150, cy), Offset(cx - 40, cy), line);
     final line2 = Paint()
       ..shader =
-          const LinearGradient(colors: [gold, Color(0x00EBB63B)]).createShader(Rect.fromLTWH(cx + 40, cy, 110, 1))
+          const LinearGradient(colors: [gold, Color(0x00CFAE68)]).createShader(Rect.fromLTWH(cx + 40, cy, 110, 1))
       ..strokeWidth = 1;
     canvas.drawLine(Offset(cx + 40, cy), Offset(cx + 150, cy), line2);
   }

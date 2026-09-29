@@ -55,10 +55,10 @@ class PagePalette {
     page: Color(0xFF000E09),
     paper: Color(0xFF021A12),
     paper2: Color(0xFF00120C),
-    line: Color(0x99EBB63B),
-    ink: Color(0xFFF5DB9E),
-    ink2: Color(0xFFE9C77C),
-    gold: Color(0xFFEBB63B),
+    line: Color(0x99CFAE68),
+    ink: Color(0xFFF3E4C0),
+    ink2: Color(0xFFDCC697),
+    gold: Color(0xFFCFAE68),
     chip: Color(0xFF00140E),
     pill: Color(0xFF021A12),
     verseCard: [Color(0xFFE9DCBC), Color(0xFFDCCB9F)],
@@ -90,9 +90,9 @@ class PagePalette {
 class RC {
   static const cream = Color(0xFFF6DFA6);
   static const creamSoft = Color(0xFFB9CDC2);
-  static const goldText = Color(0xFFF7D06A);
-  static const goldIcon = Color(0xFFEEBF52);
-  static const goldBorder = Color(0xFFEBB63B);
+  static const goldText = Color(0xFFEED6A0);
+  static const goldIcon = Color(0xFFDDBF7E);
+  static const goldBorder = Color(0xFFCFAE68);
   static const verseInk = Color(0xFF2A1F10);
   static const verseInk2 = Color(0xFF6F5A3A);
   static const verseGold = Color(0xFFB8892A);

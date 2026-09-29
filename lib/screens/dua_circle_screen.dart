@@ -1098,7 +1098,7 @@ class _RailButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final fg = selected ? const Color(0xFFFBE7A8) : RC.cream;
-    final accent = selected ? RC.bronzeText : const Color(0xFFF2C24F);
+    final accent = selected ? RC.bronzeText : const Color(0xFFE2C584);
     return Semantics(
       button: true,
       selected: selected,
@@ -1219,7 +1219,7 @@ class _CornerPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final s = size.width / 40;
     final p = Paint()
-      ..color = const Color(0xE6EBB63B)
+      ..color = const Color(0xE6CFAE68)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.6 * s;
     canvas.drawPath(
@@ -1238,7 +1238,7 @@ class _CornerPainter extends CustomPainter {
         ..lineTo(24 * s, 8 * s),
       p,
     );
-    canvas.drawCircle(Offset(9 * s, 9 * s), 2.4 * s, Paint()..color = const Color(0xE6EBB63B));
+    canvas.drawCircle(Offset(9 * s, 9 * s), 2.4 * s, Paint()..color = const Color(0xE6CFAE68));
   }
 
   @override
@@ -1257,7 +1257,7 @@ class _GoldTitle extends StatelessWidget {
       shaderCallback: (r) => const LinearGradient(
         begin: Alignment.topCenter,
         end: Alignment.bottomCenter,
-        colors: [Color(0xFFFFE7A0), Color(0xFFF2C241), Color(0xFFC88A18)],
+        colors: [Color(0xFFF6E6BE), Color(0xFFE3C07A), Color(0xFFB8914A)],
         stops: [0, 0.55, 1],
       ).createShader(r),
       child: Text(

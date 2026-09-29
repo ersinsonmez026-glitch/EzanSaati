@@ -133,9 +133,16 @@ class _HomeScreenState extends State<HomeScreen> {
             final tileW = (w - 2 * pad - 2 * gap) / 3;
             double gridFor(double tileH) => _rows * tileH + (_rows - 1) * gap + 2 * pad;
 
-            // Tuş yüksekliği: tercih genişlik/1.2. Üst alan en az ekranın %40'ı (ve 270 px) kalsın;
-            // sığmazsa tuşlar basıklaşır. Uzun ekranda üst alan %56'yı geçmesin, tuşlar büyür.
-            final minHero = math.max(270.0, h * 0.40), maxHero = h * 0.56;
+            // Üst alanın içeriği: levhalar ve gece/gündüz tuşu, ayet, geri sayım paneli (genişlikle büyür).
+            // Hepsi üst üste binmeden sığmalı; sığmazsa önce tuşlar basıklaşır, yine sığmazsa ayet gizlenir.
+            final bannerH = (w - 12) / CountdownBanner.aspect + 4;
+            final topH = 6 + 133 * k; // levha (95k) + boşluk + gece/gündüz tuşu (34k)
+            final withVerse = topH + 68 * k + bannerH + 8, withoutVerse = topH + bannerH + 8;
+            final showVerse = h - gridFor(tileW / 1.75) >= withVerse;
+            // Tuş yüksekliği: tercih genişlik/1.2. Üst alan en az ekranın %40'ı (ve 270 px) ve içeriği kadar
+            // kalsın; sığmazsa tuşlar basıklaşır. Uzun ekranda üst alan %56'yı geçmesin, tuşlar büyür.
+            final minHero = math.max(math.max(270.0, h * 0.40), showVerse ? withVerse : withoutVerse);
+            final maxHero = math.max(h * 0.56, minHero);
             var tileH = tileW / 1.2;
             if (h - gridFor(tileH) < minHero) {
               tileH = math.max(tileW / 1.75, (h - minHero - (_rows - 1) * gap - 2 * pad) / _rows);
@@ -152,7 +159,7 @@ class _HomeScreenState extends State<HomeScreen> {
               physics: scrolls ? const ClampingScrollPhysics() : const NeverScrollableScrollPhysics(),
               child: Column(
                 children: [
-                  SizedBox(height: heroH, child: _hero(now, loc, k, shadow)),
+                  SizedBox(height: heroH, child: _hero(now, loc, k, shadow, showVerse: showVerse)),
                   // ============================================================
                   // ALT KISIM - 12 TUŞ (3 × 4)
                   // ============================================================
@@ -193,7 +200,7 @@ class _HomeScreenState extends State<HomeScreen> {
   // ============================================================
   // ÜST YARI - ANA GÖRSEL, LEVHALAR, KONUM/TARİH, AYET, GERİ SAYIM
   // ============================================================
-  Widget _hero(DateTime now, AppLocation? loc, double k, List<Shadow> shadow) {
+  Widget _hero(DateTime now, AppLocation? loc, double k, List<Shadow> shadow, {bool showVerse = true}) {
     final medal = 95 * k;
     return Stack(
       children: [
@@ -271,7 +278,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         Text(
                           '${two(now.hour)}:${two(now.minute)}:${two(now.second)}',
                           style: TextStyle(
-                            color: const Color(0xFFF7C746), // başlıklarla aynı sıcak altın; açık gökte gölgeyle okunur
+                            color: const Color(0xFFE8C88A), // başlıklarla aynı sıcak altın; açık gökte gölgeyle okunur
                             shadows: shadow,
                             fontSize: 19 * k,
                             fontWeight: FontWeight.w600,
@@ -303,35 +310,36 @@ class _HomeScreenState extends State<HomeScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Transform.translate(
-                // Panelin sol kutusu ortadaki kemerden daha aşağıdan başlar; ayet o boşluğa iner.
-                offset: Offset(0, 18 * k),
-                child: Padding(
-                  padding: EdgeInsets.only(left: 14, bottom: 6 * k),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        '“Şüphesiz\nnamaz, müminler\nüzerine vakitleri\nbelirlenmiş bir farzdır.”',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontFamily: 'serif', // ayet eski yazı tipiyle, kalın italik
-                          fontSize: 12.5 * k,
-                          fontWeight: FontWeight.w600,
-                          height: 1.3,
-                          fontStyle: FontStyle.italic,
-                          shadows: shadow,
+              if (showVerse)
+                Transform.translate(
+                  // Panelin sol kutusu ortadaki kemerden daha aşağıdan başlar; ayet o boşluğa iner.
+                  offset: Offset(0, 18 * k),
+                  child: Padding(
+                    padding: EdgeInsets.only(left: 14, bottom: 6 * k),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '“Şüphesiz\nnamaz, müminler\nüzerine vakitleri\nbelirlenmiş bir farzdır.”',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontFamily: 'serif', // ayet eski yazı tipiyle, kalın italik
+                            fontSize: 12.5 * k,
+                            fontWeight: FontWeight.w600,
+                            height: 1.3,
+                            fontStyle: FontStyle.italic,
+                            shadows: shadow,
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 2),
-                      GoldText(
-                        'Nisâ, 103',
-                        style: TextStyle(fontFamily: 'serif', fontSize: 10.5 * k, fontWeight: FontWeight.w600),
-                      ),
-                    ],
+                        const SizedBox(height: 2),
+                        GoldText(
+                          'Nisâ, 103',
+                          style: TextStyle(fontFamily: 'serif', fontSize: 10.5 * k, fontWeight: FontWeight.w600),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              ),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 6),
                 child: GestureDetector(

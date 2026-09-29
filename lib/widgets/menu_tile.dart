@@ -121,7 +121,7 @@ class MenuTile extends StatelessWidget {
             end: Alignment.bottomRight,
             colors: krem ? const [Color(0xFFEADBB8), Color(0xFFDCC9A0)] : const [Color(0xFF0D4630), Color(0xFF05281B)],
           ),
-          border: Border.all(color: krem ? const Color(0x8C8A6414) : const Color(0x8CEBB63B)),
+          border: Border.all(color: krem ? const Color(0x8C8A6414) : const Color(0x8CCFAE68)),
           boxShadow: const [BoxShadow(color: Color(0x333C280A), blurRadius: 4, offset: Offset(0, 2))],
         );
         child = Column(

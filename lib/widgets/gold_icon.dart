@@ -12,7 +12,7 @@ class GoldIcon extends StatelessWidget {
 
   const GoldIcon(this.icon, {super.key, this.size, this.light = false, this.glow = true, this.semanticLabel});
 
-  static const _onDark = [Color(0xFFFFE7A0), Color(0xFFF2C241), Color(0xFFC88A18)];
+  static const _onDark = [Color(0xFFF6E6BE), Color(0xFFE3C07A), Color(0xFFB8914A)];
   static const _onLight = [Color(0xFFDDA530), Color(0xFFB8820F), Color(0xFF7A5208)];
 
   @override
@@ -79,15 +79,15 @@ class GoldText extends StatelessWidget {
       {super.key, required this.style, this.tone = GoldTone.onDark, this.textAlign, this.maxLines});
 
   static const _colors = {
-    GoldTone.onDark: [Color(0xFFFFF3C2), Color(0xFFFFD457), Color(0xFFF0B432)],
+    GoldTone.onDark: [Color(0xFFF8EACB), Color(0xFFE8C88A), Color(0xFFC9A05A)],
     GoldTone.onLight: [Color(0xFFB07F10), Color(0xFF8A5E08), Color(0xFF654203)],
-    GoldTone.onPhoto: [Color(0xFFFFF0BC), Color(0xFFFAD366), Color(0xFFEDAE36)],
+    GoldTone.onPhoto: [Color(0xFFFBF1D6), Color(0xFFEDD198), Color(0xFFD4AE68)],
   };
 
   static const _shadows = {
     GoldTone.onDark: [
       Shadow(color: Color(0xB3000000), blurRadius: 2, offset: Offset(0, 1)),
-      Shadow(color: Color(0x66FFC83D), blurRadius: 8),
+      Shadow(color: Color(0x1FE8C88A), blurRadius: 6),
     ],
     GoldTone.onLight: [Shadow(color: Color(0xB3FFFFFF), blurRadius: 0, offset: Offset(0, 1))],
     GoldTone.onPhoto: [
