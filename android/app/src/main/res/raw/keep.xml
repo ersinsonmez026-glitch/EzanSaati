@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Ezan sesleri koddan adıyla kullanılır; sürüm derlemesinde kaynak küçültme silmesin. -->
+<resources xmlns:tools="http://schemas.android.com/tools"
+    tools:keep="@raw/ezan1_kisa,@raw/ezan1_tam,@raw/ezan2_kisa,@raw/ezan2_tam,@raw/ezan3_kisa,@raw/ezan3_tam,@raw/ezan4_kisa,@raw/ezan4_tam" />

@@ -1,4 +1,0 @@
-[mp3 @ 0x559885e556c0] Estimating duration from bitrate, this may be inaccurate
-Input #0, mp3, from 'kaynak_11.mp3':
-  Duration: 00:02:38.17, start: 0.000000, bitrate: 128 kb/s
-  Stream #0:0: Audio: mp3, 44100 Hz, stereo, fltp, 128 kb/s

@@ -58,6 +58,14 @@ class AboutScreen extends StatelessWidget {
               ('Harita verisi', '© OpenStreetMap katkıcıları (ODbL)'),
               ('Arapça yazı tipi', 'Amiri (SIL Open Font License)'),
               ('Yazı tipi', 'EB Garamond (SIL Open Font License)'),
+              ('Ezan sesi 1', 'Wikimedia Commons, "Beautiful adhan.ogg", Adam-synagda (CC0)'),
+              (
+                'Ezan sesi 2',
+                'Wikimedia Commons, "The Adhan - Muslim Call to Prayer - Aaqib Azeez.mp3", Atcovi (CC BY-SA 4.0)',
+              ),
+              ('Ezan sesi 3', 'Wikimedia Commons, "Call to prayer.ogg", Isaacayodele32 (CC BY-SA 4.0)'),
+              ('Ezan sesi 4', 'Wikimedia Commons, "Adhan.ogg", Aishatu98 (CC0)'),
+              ('Ezan seslerinde değişiklik', 'Baş ve sonları kesildi, kısa sürümü çıkarıldı, ses düzeyi eşitlendi'),
             ])
               Padding(
                 padding: const EdgeInsets.fromLTRB(14, 9, 14, 9),

@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:ezan_saati/data/cuz.dart';
 import 'package:ezan_saati/data/namaz_ogren.dart';
 import 'package:ezan_saati/data/namaz_videolari.dart';
@@ -176,9 +178,34 @@ void main() {
       final kandil = plan.singleWhere((n) => n.title == 'Bugün Deneme Kandili');
       expect(kandil.at, DateTime(2026, 9, 29, 9));
       expect(plan.map((n) => n.id).toSet().length, plan.length); // kimlikler benzersiz
+      // Ezan yalnız namaz vakti girince çalar: Güneş, önceden hatırlatma ve dinî gün normal sesle gelir.
+      expect(plan.where((n) => n.ezan).length, 2 * 5);
+      expect(plan.where((n) => n.ezan).every((n) => n.title.endsWith(' vakti')), isTrue);
+      expect(plan.singleWhere((n) => n.title == 'Bugün Deneme Kandili').ezan, isFalse);
       expect(plan.every((n) => n.at.isAfter(now)), isTrue);
       for (var i = 1; i < plan.length; i++) {
         expect(plan[i].at.isBefore(plan[i - 1].at), isFalse);
+      }
+    });
+
+    test('ezan sesi seçimi saklanır; bilinmeyen değer varsayılana döner', () {
+      expect(EzanSettings().ezanSound, 'kisa');
+      expect(EzanSettings().ezanVoice, EzanSettings.defaultVoice);
+      expect(EzanSettings().ezanFile, 'ezan1_kisa');
+      final kayit = EzanSettings.fromJson(EzanSettings(ezanSound: 'tam', ezanVoice: 'ezan3').toJson());
+      expect((kayit.ezanSound, kayit.ezanVoice, kayit.ezanFile), ('tam', 'ezan3', 'ezan3_tam'));
+      expect(EzanSettings(ezanSound: 'telefon').ezanFile, isNull);
+      expect(EzanSettings.fromJson({'ezan': 'yok', 'ezanSes': 'yok'}).ezanFile, 'ezan1_kisa');
+      expect(EzanSettings.fromJson(const {}).ezanFile, 'ezan1_kisa'); // eski kayıtlar
+    });
+
+    test('her ezan sesinin kısa ve tam dosyası var, küçültmede korunuyor', () {
+      final keep = File('android/app/src/main/res/raw/keep.xml').readAsStringSync();
+      for (final v in EzanSettings.ezanVoiceOptions.keys) {
+        for (final d in ['kisa', 'tam']) {
+          expect(File('android/app/src/main/res/raw/${v}_$d.ogg').existsSync(), isTrue, reason: '${v}_$d');
+          expect(keep, contains('@raw/${v}_$d'));
+        }
       }
     });
 

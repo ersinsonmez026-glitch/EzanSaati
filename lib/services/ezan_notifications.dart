@@ -16,6 +16,8 @@ import 'takvim.dart';
 class EzanSettings {
   bool enabled;
   bool sound; // false: sessiz (yalnız görünür bildirim)
+  String ezanVoice; // hangi ezan kaydı: ezanVoiceOptions anahtarlarından biri
+  String ezanSound; // vakit girince: 'kisa' ezanın ilk bölümü, 'tam' ezanın tamamı, 'telefon' telefonun bildirim sesi
   bool vibrate;
   int before; // vakitten kaç dakika önce ayrıca hatırlat (0 = kapalı)
   List<bool> vakit; // İmsak, Güneş, Öğle, İkindi, Akşam, Yatsı
@@ -24,6 +26,8 @@ class EzanSettings {
   EzanSettings({
     this.enabled = false,
     this.sound = true,
+    this.ezanVoice = defaultVoice,
+    this.ezanSound = 'kisa',
     this.vibrate = true,
     this.before = 0,
     List<bool>? vakit,
@@ -31,10 +35,20 @@ class EzanSettings {
   }) : vakit = vakit ?? [true, false, true, true, true, true];
 
   static const beforeOptions = [0, 5, 10, 15, 30, 45];
+  static const ezanSoundOptions = {'kisa': 'Kısa ezan', 'tam': 'Tam ezan', 'telefon': 'Telefon sesi'};
+
+  /// Ezan kayıtları (res/raw içinde <anahtar>_kisa ve <anahtar>_tam). Kaynakları Hakkında sayfasında.
+  static const ezanVoiceOptions = {'ezan1': 'Ses 1', 'ezan2': 'Ses 2', 'ezan3': 'Ses 3', 'ezan4': 'Ses 4'};
+  static const defaultVoice = 'ezan1';
+
+  /// Seçili kaydın ve sürenin ses dosyası adı; telefon sesi seçiliyse null.
+  String? get ezanFile => ezanSound == 'telefon' ? null : '${ezanVoice}_$ezanSound';
 
   Map<String, dynamic> toJson() => {
         'on': enabled,
         'ses': sound,
+        'ezanSes': ezanVoice,
+        'ezan': ezanSound,
         'vib': vibrate,
         'once': before,
         'v': vakit,
@@ -44,6 +58,8 @@ class EzanSettings {
   factory EzanSettings.fromJson(Map<String, dynamic> j) => EzanSettings(
         enabled: j['on'] as bool? ?? false,
         sound: j['ses'] as bool? ?? true,
+        ezanVoice: ezanVoiceOptions.containsKey(j['ezanSes']) ? j['ezanSes'] as String : defaultVoice,
+        ezanSound: ezanSoundOptions.containsKey(j['ezan']) ? j['ezan'] as String : 'kisa',
         vibrate: j['vib'] as bool? ?? true,
         before: (j['once'] as num?)?.toInt() ?? 0,
         vakit: (j['v'] as List?)?.map((e) => e == true).toList(),
@@ -59,8 +75,9 @@ class PlannedNotification {
   final DateTime at;
   final String title;
   final String body;
+  final bool ezan; // namaz vakti girdi: ezan sesiyle çalar
 
-  const PlannedNotification(this.id, this.at, this.title, this.body);
+  const PlannedNotification(this.id, this.at, this.title, this.body, {this.ezan = false});
 
   @override
   String toString() => '$id $at $title';
@@ -90,6 +107,7 @@ List<PlannedNotification> planNotifications({
           t,
           i == 1 ? 'Güneş doğuyor' : '$name vakti',
           i == 1 ? 'Güneş ${formatHm(t)} · ${loc.name}' : '$name vakti girdi · ${formatHm(t)} · ${loc.name}',
+          ezan: i != 1,
         ));
       }
       // Güneş vaktinde ezan okunmaz; önceden hatırlatma yalnız namaz vakitleri için.
@@ -203,12 +221,14 @@ class EzanNotifications extends ChangeNotifier {
     } catch (_) {}
     final plan = planNotifications(s: settings, loc: loc, now: DateTime.now(), religious: religious);
     final s = settings;
-    final channel = 'ezan_${s.sound ? 'ses' : 'sessiz'}_${s.vibrate ? 'titresim' : 'titresimsiz'}';
-    final details = NotificationDetails(
+    // Android'de kanalın sesi sonradan değişmez; her ses/titreşim bileşimi ayrı kanaldır.
+    final vib = s.vibrate ? 'titresim' : 'titresimsiz';
+    final vibName = s.vibrate ? '' : ' (titreşimsiz)';
+    final plain = NotificationDetails(
       android: AndroidNotificationDetails(
-        channel,
-        'Ezan vakitleri${s.sound ? '' : ' (sessiz)'}${s.vibrate ? '' : ' (titreşimsiz)'}',
-        channelDescription: 'Namaz vakitleri ve dinî gün hatırlatmaları',
+        'ezan_${s.sound ? 'ses' : 'sessiz'}_$vib',
+        '${s.sound ? 'Hatırlatmalar' : 'Hatırlatmalar (sessiz)'}$vibName',
+        channelDescription: 'Güneş, vakitten önce hatırlatma ve dinî günler',
         importance: Importance.high,
         priority: Priority.high,
         playSound: s.sound,
@@ -216,13 +236,30 @@ class EzanNotifications extends ChangeNotifier {
         category: AndroidNotificationCategory.reminder,
       ),
     );
+    final ezanFile = s.ezanFile;
+    final ezan = !s.sound || ezanFile == null
+        ? plain
+        : NotificationDetails(
+            android: AndroidNotificationDetails(
+              '${ezanFile}_$vib',
+              '${EzanSettings.ezanVoiceOptions[s.ezanVoice]}, ${EzanSettings.ezanSoundOptions[s.ezanSound]!.toLowerCase()} ile vakit bildirimi$vibName',
+              channelDescription: 'Namaz vakti girince ezan sesiyle bildirim',
+              importance: Importance.max,
+              priority: Priority.high,
+              playSound: true,
+              sound: RawResourceAndroidNotificationSound(ezanFile),
+              enableVibration: s.vibrate,
+              category: AndroidNotificationCategory.alarm,
+              audioAttributesUsage: AudioAttributesUsage.alarm,
+            ),
+          );
     final mode = exactAllowed ? AndroidScheduleMode.exactAllowWhileIdle : AndroidScheduleMode.inexactAllowWhileIdle;
     for (final n in plan) {
       try {
         await _plugin.zonedSchedule(
           id: n.id,
           scheduledDate: tz.TZDateTime.from(n.at, tz.local),
-          notificationDetails: details,
+          notificationDetails: n.ezan ? ezan : plain,
           androidScheduleMode: mode,
           title: n.title,
           body: n.body,

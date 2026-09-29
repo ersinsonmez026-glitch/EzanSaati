@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:just_audio/just_audio.dart';
 
 import '../services/ezan_notifications.dart';
 import '../services/location_store.dart';
@@ -19,6 +22,8 @@ class NotificationsScreen extends StatefulWidget {
 class _NotificationsScreenState extends State<NotificationsScreen> {
   PagePalette get _pal => PagePalette.current(); // Gündüz/Gece değişince hemen yenilensin
   final _n = EzanNotifications.instance;
+  AudioPlayer? _preview; // seçilen ezan sesini dinletmek için
+  bool _playing = false;
 
   @override
   void initState() {
@@ -29,6 +34,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   @override
   void dispose() {
     _n.removeListener(_refresh);
+    _preview?.dispose();
     super.dispose();
   }
 
@@ -37,6 +43,28 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   }
 
   EzanSettings get _s => _n.settings;
+
+  /// Seçili ezan sesini uygulamanın içinden dinletir; çalıyorsa durdurur.
+  Future<void> _togglePreview() async {
+    if (_playing) {
+      await _preview?.stop();
+      if (mounted) setState(() => _playing = false);
+      return;
+    }
+    if (Platform.environment.containsKey('FLUTTER_TEST')) return;
+    final file = _s.ezanFile;
+    if (file == null) return;
+    try {
+      final p = _preview ??= AudioPlayer();
+      await p.setAudioSource(AudioSource.uri(Uri.parse('android.resource://com.ezansaati.app/raw/$file')));
+      setState(() => _playing = true);
+      await p.play();
+      await p.stop();
+    } catch (_) {
+      if (mounted) showNote(context, 'Ses çalınamadı');
+    }
+    if (mounted) setState(() => _playing = false);
+  }
 
   Future<void> _update(void Function(EzanSettings s) change) async {
     final s = EzanSettings.fromJson(_s.toJson());
@@ -132,12 +160,50 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               enabled: s.enabled,
               icon: Icons.volume_up_outlined,
               title: 'Bildirim sesi',
-              subtitle: 'Telefonun bildirim sesiyle ya da sessiz',
+              subtitle: 'Sesli ya da sessiz',
               below: ChoiceRow<bool>(
                 pal: _pal,
                 options: const [(true, 'Sesli'), (false, 'Sessiz')],
                 value: s.sound,
                 onChanged: (v) => _update((x) => x.sound = v),
+              ),
+            ),
+            GroupItem(
+              pal: _pal,
+              enabled: s.enabled && s.sound,
+              icon: Icons.mosque_outlined,
+              title: 'Ezan sesi',
+              subtitle: 'Vakit girince çalacak ses. Kısa: ezanın ilk bölümü; tam: ezanın tamamı.',
+              below: Column(
+                children: [
+                  ChoiceRow<String>(
+                    pal: _pal,
+                    options: [for (final e in EzanSettings.ezanSoundOptions.entries) (e.key, e.value)],
+                    value: s.ezanSound,
+                    onChanged: (v) {
+                      _preview?.stop();
+                      _update((x) => x.ezanSound = v);
+                    },
+                  ),
+                  if (s.ezanSound != 'telefon') ...[
+                    const SizedBox(height: 8),
+                    ChoiceRow<String>(
+                      pal: _pal,
+                      options: [for (final e in EzanSettings.ezanVoiceOptions.entries) (e.key, e.value)],
+                      value: s.ezanVoice,
+                      onChanged: (v) {
+                        _preview?.stop();
+                        _update((x) => x.ezanVoice = v);
+                      },
+                    ),
+                    const SizedBox(height: 8),
+                    DarkButton(
+                      label: _playing ? 'Durdur' : 'Dinle',
+                      height: 40,
+                      onTap: _togglePreview,
+                    ),
+                  ],
+                ],
               ),
             ),
             GroupItem(
