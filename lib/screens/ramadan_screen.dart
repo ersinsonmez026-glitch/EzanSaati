@@ -6,11 +6,13 @@ import 'package:flutter/services.dart';
 
 import '../data/cuz.dart';
 import '../services/content_store.dart';
+import '../services/fasting_log.dart';
 import '../services/location_store.dart';
 import '../services/prayer_calc.dart';
 import '../widgets/page_shell.dart';
 import '../widgets/reading_ui.dart';
 import 'city_picker_screen.dart';
+import 'fasting_tracker_screen.dart';
 import 'surah_read_screen.dart';
 import '../widgets/gold_icon.dart';
 
@@ -34,6 +36,7 @@ class _RamadanScreenState extends State<RamadanScreen> {
   Timer? _ticker;
 
   List<Surah> _surahs = const [];
+  FastingLog? _fastLog;
   int? _cuz; // kullanıcının seçtiği cüz; boşsa Ramazan'ın günü
 
   // Fitre ve zekât hesabı
@@ -60,6 +63,9 @@ class _RamadanScreenState extends State<RamadanScreen> {
     });
     QuranData.load().then((q) {
       if (mounted) setState(() => _surahs = q.surahs);
+    });
+    FastingLog.get().then((l) {
+      if (mounted) setState(() => _fastLog = l);
     });
     _ticker = Timer.periodic(const Duration(seconds: 1), (_) => _refresh());
   }
@@ -111,6 +117,8 @@ class _RamadanScreenState extends State<RamadanScreen> {
       _panel(d),
       gap,
       _cuzCard(d),
+      gap,
+      _fastingCard(d),
       gap,
       _tabs(),
       gap,
@@ -590,6 +598,47 @@ class _RamadanScreenState extends State<RamadanScreen> {
               ),
             ),
         ], _pal.line),
+      ),
+    );
+  }
+
+  // ---------------------------------------------------------------- oruç takibi
+
+  Widget _fastingCard(RamazanData d) {
+    final kept = _fastLog?.days(d.year).length ?? 0;
+    return Semantics(
+      button: true,
+      label: 'Oruç Takibi, ${d.days} günün $kept günü tutuldu',
+      excludeSemantics: true,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () async {
+          await Navigator.of(context).push(MaterialPageRoute(builder: (_) => FastingTrackerScreen(data: d)));
+          if (mounted) setState(() {});
+        },
+        child: PaperBox(
+          pal: _pal,
+          padding: const EdgeInsets.fromLTRB(12, 10, 10, 10),
+          child: Row(
+            children: [
+              const ArtIcon('imsak', size: 38),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Oruç Takibi', style: TextStyle(color: _pal.ink, fontSize: 16, fontWeight: FontWeight.w700)),
+                    Text(
+                      kept == 0 ? 'Tuttuğunuz oruçları takvimde işaretleyin' : '${d.days} günün $kept günü tutuldu',
+                      style: TextStyle(color: _pal.ink2, fontSize: 12.5),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(Icons.chevron_right, color: _pal.gold),
+            ],
+          ),
+        ),
       ),
     );
   }

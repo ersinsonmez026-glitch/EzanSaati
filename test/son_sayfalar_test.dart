@@ -5,6 +5,7 @@ import 'package:ezan_saati/screens/about_screen.dart';
 import 'package:ezan_saati/screens/learn_namaz_screen.dart';
 import 'package:ezan_saati/screens/video_screen.dart';
 import 'package:ezan_saati/screens/city_picker_screen.dart';
+import 'package:ezan_saati/screens/fasting_tracker_screen.dart';
 import 'package:ezan_saati/screens/hadiths_screen.dart';
 import 'package:ezan_saati/screens/mosque_finder_screen.dart';
 import 'package:ezan_saati/screens/notifications_screen.dart';
@@ -14,6 +15,7 @@ import 'package:ezan_saati/screens/surah_read_screen.dart';
 import 'package:ezan_saati/screens/settings_screen.dart';
 import 'package:ezan_saati/services/app_prefs.dart';
 import 'package:ezan_saati/services/ezan_notifications.dart';
+import 'package:ezan_saati/services/fasting_log.dart';
 import 'package:ezan_saati/services/hadith_store.dart';
 import 'package:ezan_saati/services/location_store.dart';
 import 'package:ezan_saati/services/content_store.dart';
@@ -342,7 +344,7 @@ void main() {
       t.view.physicalSize = const Size(390, 2400);
       t.view.devicePixelRatio = 1;
       addTearDown(t.view.reset);
-      await t.runAsync(() => Future.wait([RamazanData.load(), QuranData.load()]));
+      await t.runAsync(() => Future.wait([RamazanData.load(), QuranData.load(), FastingLog.get()]));
       await t.pumpWidget(const MaterialApp(home: RamadanScreen()));
       await t.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 50)));
       await t.pumpAndSettle();
@@ -388,5 +390,60 @@ void main() {
     await t.pump();
     expect(isDaytime(), isFalse);
     expect(paper(PagePalette.yesil), isTrue);
+  });
+
+  group('Oruç takibi', () {
+    Future<RamazanData> open(WidgetTester t, DateTime now) async {
+      t.view.physicalSize = const Size(390, 1800);
+      t.view.devicePixelRatio = 1;
+      addTearDown(t.view.reset);
+      final d = await t.runAsync(() async {
+        await FastingLog.get();
+        return RamazanData.load();
+      });
+      await t.pumpWidget(MaterialApp(home: FastingTrackerScreen(data: d!, clock: () => now)));
+      await t.pump();
+      return d;
+    }
+
+    Future<void> mark(WidgetTester t, int day, String expected) async {
+      await t.tap(find.bySemanticsLabel(RegExp('^Ramazan $day\\. gün')));
+      await t.pumpAndSettle();
+      expect(find.text('Allah kabul etsin'), findsOneWidget);
+      expect(find.text(expected), findsOneWidget);
+      await t.tap(find.text('Âmin'));
+      await t.pumpAndSettle();
+    }
+
+    testWidgets('işaretleyince Allah kabul etsin; ilk oruç ve sayı; ileri gün kapalı; özet', (t) async {
+      final d = await open(t, DateTime(2027, 2, 10, 12)); // Ramazan'ın 3. günü
+      final log = (await t.runAsync(FastingLog.get))!;
+      for (final x in log.days(d.year)) {
+        log.toggle(d.year, x);
+      }
+      await t.pump();
+      await mark(t, 1, 'İlk orucunuzu tuttunuz.');
+      await mark(t, 3, 'Bu Ramazan 2 oruç tuttunuz.');
+      // İleri gün işaretlenemez
+      await t.tap(find.bySemanticsLabel(RegExp(r'^Ramazan 5\. gün')), warnIfMissed: false);
+      await t.pumpAndSettle();
+      expect(find.text('Allah kabul etsin'), findsNothing);
+      // Özet: 2 tutulan, 1 kaçırılan (2. gün), 26 kalan
+      expect(find.text('Tutulan oruç'), findsOneWidget);
+      expect(find.text('29 günün 2 günü tutuldu'), findsOneWidget);
+      expect(log.days(d.year), {1, 3});
+      final missed = find.ancestor(of: find.text('Kaçırılan oruç'), matching: find.byType(Column)).first;
+      expect(find.descendant(of: missed, matching: find.text('1')), findsOneWidget);
+    });
+
+    testWidgets('son gün: bu yıl son orucunuzu tutuyorsunuz', (t) async {
+      final d = await open(t, DateTime(2027, 3, 8, 12)); // 29. gün
+      final log = (await t.runAsync(FastingLog.get))!;
+      for (final x in log.days(d.year)) {
+        log.toggle(d.year, x);
+      }
+      await t.pump();
+      await mark(t, 29, 'Bu yıl son orucunuzu tutuyorsunuz.\nBu Ramazan toplam 1 oruç tuttunuz.');
+    });
   });
 }

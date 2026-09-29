@@ -76,9 +76,7 @@ class PageShell extends StatelessWidget {
     );
     return Scaffold(
       backgroundColor: AppColors.darkGreen,
-      body: background == null
-          ? scroll
-          : DecoratedBox(decoration: background!, child: scroll),
+      body: background == null ? scroll : DecoratedBox(decoration: background!, child: scroll),
     );
   }
 }
@@ -95,9 +93,7 @@ bool isDaytime() => switch (AppPrefs.instance.dayMode) {
 /// Seçilen görünüm vakte göre olanla aynıysa yeniden "Otomatik"e döner.
 void toggleDayMode(BuildContext context) {
   final toDay = !isDaytime();
-  final mode = toDay == isDaytimeByClock()
-      ? DayMode.otomatik
-      : (toDay ? DayMode.gunduz : DayMode.gece);
+  final mode = toDay == isDaytimeByClock() ? DayMode.otomatik : (toDay ? DayMode.gunduz : DayMode.gece);
   AppPrefs.instance.setDayMode(mode);
   void mark(Element e) {
     e.markNeedsBuild();
@@ -143,9 +139,7 @@ class _HeaderDelegate extends SliverPersistentHeaderDelegate {
     required this.day,
   });
 
-  static const _shadow = [
-    Shadow(color: Color(0xCC000000), blurRadius: 6, offset: Offset(0, 1))
-  ];
+  static const _shadow = [Shadow(color: Color(0xCC000000), blurRadius: 6, offset: Offset(0, 1))];
 
   /// Yerleşimin dayandığı üst hiza: durum çubuğu (en az 24; logo bu çubuğun hizasından başlar).
   double get _base => math.max(topInset, 24);
@@ -166,8 +160,7 @@ class _HeaderDelegate extends SliverPersistentHeaderDelegate {
       old.day != day;
 
   @override
-  Widget build(
-      BuildContext context, double shrinkOffset, bool overlapsContent) {
+  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
     final range = maxExtent - minExtent;
     final p = (shrinkOffset / range).clamp(0.0, 1.0); // 0 açık, 1 kapalı
     // Logo, konum, alt yazı ve ayet ilk kaydırmada kaybolur.
@@ -182,8 +175,7 @@ class _HeaderDelegate extends SliverPersistentHeaderDelegate {
     return DecoratedBox(
       decoration: const BoxDecoration(
         color: AppColors.darkGreen,
-        border:
-            Border(bottom: BorderSide(color: Color(0x99D4AF37), width: 1.5)),
+        border: Border(bottom: BorderSide(color: Color(0x99D4AF37), width: 1.5)),
       ),
       child: ClipRect(
         child: Stack(
@@ -195,9 +187,7 @@ class _HeaderDelegate extends SliverPersistentHeaderDelegate {
               right: 0,
               top: -shrinkOffset,
               child: Image.asset(
-                isDaytime()
-                    ? 'assets/images/header_gunduz.jpg'
-                    : 'assets/images/header_gece.jpg',
+                isDaytime() ? 'assets/images/header_gunduz.jpg' : 'assets/images/header_gece.jpg',
                 fit: BoxFit.fitWidth,
                 alignment: Alignment.topCenter,
               ),
@@ -209,18 +199,8 @@ class _HeaderDelegate extends SliverPersistentHeaderDelegate {
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: isDaytime()
-                      ? const [
-                          Color(0x66000000),
-                          Color(0x26000000),
-                          Color(0x1A021C12),
-                          Color(0xB3021C12)
-                        ]
-                      : const [
-                          Color(0x40000000),
-                          Color(0x00000000),
-                          Color(0x00021C12),
-                          Color(0xB3021C12)
-                        ],
+                      ? const [Color(0x66000000), Color(0x26000000), Color(0x1A021C12), Color(0xB3021C12)]
+                      : const [Color(0x40000000), Color(0x00000000), Color(0x00021C12), Color(0xB3021C12)],
                   stops: const [0, 0.25, 0.55, 1],
                 ),
               ),
@@ -270,8 +250,7 @@ class _HeaderDelegate extends SliverPersistentHeaderDelegate {
                 child: Opacity(
                   opacity: fade,
                   child: Center(
-                    child: Image.asset('assets/images/logo_ezan_saati.png',
-                        height: 53, fit: BoxFit.contain),
+                    child: Image.asset('assets/images/logo_ezan_saati.png', height: 53, fit: BoxFit.contain),
                   ),
                 ),
               ),
@@ -293,11 +272,9 @@ class _HeaderDelegate extends SliverPersistentHeaderDelegate {
                       excludeSemantics: true,
                       child: GestureDetector(
                         onTap: () => Navigator.of(context).push(
-                          MaterialPageRoute(
-                              builder: (_) => const SettingsScreen()),
+                          MaterialPageRoute(builder: (_) => const SettingsScreen()),
                         ),
-                        child: Image.asset('assets/images/ikon/ayarlar.webp',
-                            width: 28.5, height: 28.5),
+                        child: Image.asset('assets/images/ikon/ayarlar.webp', width: 28.5, height: 28.5),
                       ),
                     ),
                   ),
@@ -330,10 +307,7 @@ class _HeaderDelegate extends SliverPersistentHeaderDelegate {
                             const SizedBox(height: 3),
                             Text(
                               '($source)',
-                              style: const TextStyle(
-                                  color: Color(0xFFE7DDC4),
-                                  fontSize: 8,
-                                  shadows: _shadow),
+                              style: const TextStyle(color: Color(0xFFE7DDC4), fontSize: 8, shadows: _shadow),
                             ),
                           ],
                         ),
@@ -355,10 +329,7 @@ class _HeaderDelegate extends SliverPersistentHeaderDelegate {
                           child: Text(
                             subtitle!,
                             maxLines: 1,
-                            style: const TextStyle(
-                                color: Color(0xFFE6D3A0),
-                                fontSize: 11,
-                                shadows: _shadow),
+                            style: const TextStyle(color: Color(0xFFE6D3A0), fontSize: 11, shadows: _shadow),
                           ),
                         ),
                         const SizedBox(height: 4),
@@ -380,17 +351,13 @@ class _HeaderDelegate extends SliverPersistentHeaderDelegate {
                   opacity: fade,
                   child: Semantics(
                     button: true,
-                    label: isDaytime()
-                        ? 'Gece görünümüne geç'
-                        : 'Gündüz görünümüne geç',
+                    label: isDaytime() ? 'Gece görünümüne geç' : 'Gündüz görünümüne geç',
                     excludeSemantics: true,
                     child: GestureDetector(
                       behavior: HitTestBehavior.opaque,
                       onTap: () => toggleDayMode(context),
                       child: Image.asset(
-                        isDaytime()
-                            ? 'assets/images/ikon/imsak.webp'
-                            : 'assets/images/ikon/ikindi.webp',
+                        isDaytime() ? 'assets/images/ikon/imsak.webp' : 'assets/images/ikon/ikindi.webp',
                         fit: BoxFit.contain,
                       ),
                     ),
@@ -412,10 +379,7 @@ class _HeaderDelegate extends SliverPersistentHeaderDelegate {
                     maxLines: 1,
                     textAlign: TextAlign.center,
                     tone: GoldTone.onPhoto,
-                    style: TextStyle(
-                        fontSize: 26 - 6 * p,
-                        fontWeight: FontWeight.w600,
-                        fontFamily: 'EBGaramond'),
+                    style: TextStyle(fontSize: 26 - 6 * p, fontWeight: FontWeight.w600, fontFamily: 'EBGaramond'),
                   ),
                 ),
               ),
@@ -455,8 +419,7 @@ class _LocationPill extends StatelessWidget {
         label: 'Konum: ${store.current?.name ?? 'seçilmedi'}',
         excludeSemantics: true,
         child: GestureDetector(
-          onTap: () => Navigator.of(context).push(
-              MaterialPageRoute(builder: (_) => const CityPickerScreen())),
+          onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const CityPickerScreen())),
           child: Container(
             constraints: const BoxConstraints(maxWidth: 118),
             padding: const EdgeInsets.fromLTRB(7, 4, 4, 4),
@@ -475,15 +438,11 @@ class _LocationPill extends StatelessWidget {
                     store.current?.name ?? 'Konum Seç',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                        color: Color(0xFFF8EED2),
-                        fontSize: 11.5,
-                        fontWeight: FontWeight.w500),
+                    style: const TextStyle(color: Color(0xFFF8EED2), fontSize: 11.5, fontWeight: FontWeight.w500),
                   ),
                 ),
                 const SizedBox(width: 1),
-                const Icon(Icons.chevron_right,
-                    size: 14, color: Color(0xFFE9C96A)),
+                const Icon(Icons.chevron_right, size: 14, color: Color(0xFFE9C96A)),
               ],
             ),
           ),
@@ -504,9 +463,8 @@ class _Ornament extends StatelessWidget {
           height: 1,
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: left
-                  ? const [Color(0x00D4AF37), Color(0xFFD4AF37)]
-                  : const [Color(0xFFD4AF37), Color(0x00D4AF37)],
+              colors:
+                  left ? const [Color(0x00D4AF37), Color(0xFFD4AF37)] : const [Color(0xFFD4AF37), Color(0x00D4AF37)],
             ),
           ),
         );
@@ -520,8 +478,7 @@ class _Ornament extends StatelessWidget {
           child: Container(
             width: 6,
             height: 6,
-            decoration: BoxDecoration(
-                border: Border.all(color: const Color(0xFFE9C96A), width: 1.2)),
+            decoration: BoxDecoration(border: Border.all(color: const Color(0xFFE9C96A), width: 1.2)),
           ),
         ),
         const SizedBox(width: 4),

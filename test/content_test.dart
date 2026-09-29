@@ -8,6 +8,7 @@ import 'package:ezan_saati/screens/ramadan_screen.dart';
 import 'package:ezan_saati/screens/surahs_screen.dart';
 import 'package:ezan_saati/screens/video_screen.dart';
 import 'package:ezan_saati/services/content_store.dart';
+import 'package:ezan_saati/services/fasting_log.dart';
 import 'package:ezan_saati/services/takvim.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -140,6 +141,7 @@ void main() {
             MessageData.all(),
             RamazanData.load(),
             EsmaName.all(),
+            FastingLog.get(),
             ReadingPrefs.get(),
           ]));
       await t.pumpWidget(MaterialApp(home: page));
