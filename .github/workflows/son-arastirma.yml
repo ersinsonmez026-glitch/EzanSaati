@@ -39,43 +39,21 @@ jobs:
                       for m in list(re.finditer(k,t))[:3]:
                           print('--[',k,']--',t[max(0,m.start()-300):m.start()+1500].replace('\n',' / '))
               else: print(t[:maxc])
-          for q in ['Diyanet 2028 dini günler takvimi Ramazan başlangıcı Kadir Gecesi',
-                    'vakithesaplama.diyanet.gov.tr dini günler 2028',
-                    'Din İşleri Yüksek Kurulu orucu bozan ve bozmayan durumlar',
-                    'kurul.diyanet.gov.tr orucu bozmayan şeyler',
-                    'Diyanet 2026 fitre miktarı açıklandı',
-                    'Din İşleri Yüksek Kurulu zekât nisap miktarı 80,18 gram altın',
-                    'islamansiklopedisi esmâ-i hüsnâ',
-                    'Diyanet esmaül hüsna anlamları listesi 99']: ddg(q)
-          for y in (2027,2028):
-              page(f'https://vakithesaplama.diyanet.gov.tr/dini_gunler.php?yil={y}',['Ramazan','Kadir'])
-          page('https://sunnah.com/abudawud:2357',None,3000)
-          page('https://sunnah.com/abudawud:2358',None,3000)
-          page('https://islamansiklopedisi.org.tr/esma-i-husna',['Tirmizî','er-Rahmân'],8000)
-          print('\n##### TANZIL juz')
-          try:
-              t=get('https://tanzil.net/res/text/metadata/quran-data.js')
-              m=re.search(r'(?s)QuranData\.Juz = \[(.*?)\];',t); print(re.sub(r'\s+',' ',m.group(1)) if m else t[:500])
-          except Exception as e: print('HATA',e)
-          # Esmâ videoları
-          def walk(o):
-              if isinstance(o,dict):
-                  if 'videoRenderer' in o: yield o['videoRenderer']
-                  for v in o.values(): yield from walk(v)
-              elif isinstance(o,list):
-                  for v in o: yield from walk(v)
-          for q in ['DiyanetTV esmaül hüsna','esmaül hüsna okunuşu','esmaül hüsna ilahi ritmik','esmaül hüsna zikri toplu','esmaül hüsna anlamları ile sesli']:
-              print('\n##### YT:',q)
-              try: h=get('https://www.youtube.com/results?search_query='+urllib.parse.quote(q))
-              except Exception as e: print('HATA',e); continue
-              m=re.search(r'var ytInitialData = (\{.*?\});</script>',h)
-              if not m: print('veri yok'); continue
-              n=0
-              for v in walk(json.loads(m.group(1))):
-                  vid=v.get('videoId'); t=''.join(r.get('text','') for r in v.get('title',{}).get('runs',[]))
-                  ch=''.join(r.get('text','') for r in v.get('ownerText',{}).get('runs',[]))
-                  ln=v.get('lengthText',{}).get('simpleText',''); vc=v.get('viewCountText',{}).get('simpleText','')
-                  if not vid or not ln: continue
-                  print(f'  {vid} | {ch} | {ln} | {vc} | {t[:90]}'); n+=1
-                  if n>=8: break
-              time.sleep(1)
+          def bing(q):
+              print('\n##### BING:',q)
+              try:
+                  h=get('https://www.bing.com/search?setlang=tr&cc=TR&q='+urllib.parse.quote(q))
+                  for u,t in re.findall(r'<h2[^>]*><a[^>]*href="(http[^"]+)"[^>]*>(.*?)</a>',h)[:8]:
+                      print('  ',H.unescape(u),'|',re.sub('<[^>]+>','',H.unescape(t))[:100])
+              except Exception as e: print('HATA',e)
+              time.sleep(2)
+          for q in ['site:kurul.diyanet.gov.tr orucu bozan',
+                    'site:kurul.diyanet.gov.tr orucu bozmayan',
+                    'site:diyanet.gov.tr orucu bozan ve bozmayan şeyler',
+                    'Diyanet 2026 yılı fitre miktarı',
+                    'site:kurul.diyanet.gov.tr zekât nisap',
+                    'site:diyanet.gov.tr esmâ-i hüsnâ anlamları',
+                    'Diyanet esma ül hüsna 99 isim anlamları pdf']: bing(q)
+          page('https://vakithesaplama.diyanet.gov.tr/dinigunler.php?yil=2028',['Ramazan','Kadir','Regaip|Regaib','Berat','Mira'])
+          page('https://vakithesaplama.diyanet.gov.tr/dinigunler.php?yil=2027',['Ramazan','Kadir'])
+          page('https://islamansiklopedisi.org.tr/esma-i-husna',['Tirmizî rivayetinde','Tirmizî’nin rivayet'],3000)
