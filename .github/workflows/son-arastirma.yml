@@ -60,12 +60,16 @@ jobs:
                   r=PdfReader(io.BytesIO(b)); t='\n'.join((pg.extract_text() or '') for pg in r.pages)
                   print('sayfa',len(r.pages),'karakter',len(t)); return t
               except Exception as e: print('HATA',e); return ''
-          for u in ['https://vakithesaplama.diyanet.gov.tr/dinigunler.php?yil=2026','https://vakithesaplama.diyanet.gov.tr/dini_gunler.php']:
-              h=get(u); t=re.sub(r'\s+',' ',text(h)); i=t.find('Ramazan'); print('\nVK',u,len(h),'|',t[max(0,i-1500):i+2500] if i>=0 else 'Ramazan yok')
-              for f in re.findall(r'<form.*?</form>',h,re.S): print('FORM',re.sub(r'\s+',' ',f)[:1500])
-          for u in ['https://www.diyanet.gov.tr/tr-TR/Kurumsal/Detay/34073/2028-yili-dini-gunler-takvimi','https://kurul.diyanet.gov.tr/tr/dini-gunler','https://kurul.diyanet.gov.tr/tr/dinigunler']:
-              try: h=get(u); t=re.sub(r'\s+',' ',text(h)); i=t.find('Ramazan'); print('\nX',u,len(h),'|',t[max(0,i-500):i+1500] if i>=0 else t[:300])
-              except Exception as e: print('X',u,'HATA',e)
-          h=get('https://kurul.diyanet.gov.tr/')
-          for href in sorted(set(re.findall(r'href="([^"]+)"',h))):
-              if re.search('gun|takvim|vakit',href,re.I): print('K',href)
+          def show(tag,h):
+              t=re.sub(r'\s+',' ',text(h)); ms=[m.start() for m in re.finditer('(?i)ramazan|kadir',t)]
+              print('\n',tag,len(h),len(ms))
+              if ms: print(t[max(0,ms[0]-2500):ms[0]+3500])
+          show('GET2026',get('https://vakithesaplama.diyanet.gov.tr/dinigunler.php?yil=2026'))
+          show('GET2028',get('https://vakithesaplama.diyanet.gov.tr/dinigunler.php?yil=2028'))
+          for y in ('2027','2028'):
+              for form in ({'hicriay':y},{'hicriay':y,'hicriyil':'2019'}):
+                  try:
+                      data=urllib.parse.urlencode(form).encode()
+                      h=urllib.request.urlopen(urllib.request.Request('https://vakithesaplama.diyanet.gov.tr/dini_gunler.php',data=data,headers=UA),timeout=40).read().decode('utf-8','ignore')
+                      show('POST'+str(form),h)
+                  except Exception as e: print('POST HATA',y,e)
