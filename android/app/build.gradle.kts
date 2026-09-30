@@ -32,6 +32,13 @@ android {
         versionName = flutter.versionName
     }
 
+    // Yerel kütüphaneler (.so) APK içinde sıkıştırılmış durur: indirilen/paylaşılan APK çok daha küçük olur.
+    packaging {
+        jniLibs {
+            useLegacyPackaging = true
+        }
+    }
+
     buildTypes {
         release {
             // TODO: Add your own signing config for the release build.
