@@ -83,6 +83,17 @@ class _SurahReadScreenState extends State<SurahReadScreen> {
     }
   }
 
+  /// [i]. ayetin ekrandaki üst kenarı (sayfa kaydırmasıyla aynı birimde); çizilmemişse null.
+  /// Kaydırma alanına göre ölçülür: uygulamanın ekranı büyütüp küçültmesinden (DesignScale) etkilenmez.
+  double? _screenTop(int i) {
+    final ro = _keys[i].currentContext?.findRenderObject() as RenderBox?;
+    if (ro == null || !ro.hasSize) return null;
+    final vp = RenderAbstractViewport.maybeOf(ro);
+    if (vp == null) return null;
+    // Kaydırma alanına göre konum (alan ekranın en üstünden başlar); telefon pikseline çevrilmez.
+    return ro.localToGlobal(Offset.zero, ancestor: vp).dy;
+  }
+
   /// Sabit başlığın altında kalan görünür alanın üst kenarı.
   double get _visibleTop => MediaQuery.paddingOf(context).top + PageShell.barHeight + 8;
 
@@ -103,7 +114,7 @@ class _SurahReadScreenState extends State<SurahReadScreen> {
 
     final target = boxOf(ayah - 1);
     if (target != null) {
-      final dy = designTopOf(target, context) - visibleTop;
+      final dy = _screenTop(ayah - 1)! - visibleTop;
       pos.jumpTo((pos.pixels + dy).clamp(pos.minScrollExtent, pos.maxScrollExtent));
       return true;
     }
@@ -113,7 +124,7 @@ class _SurahReadScreenState extends State<SurahReadScreen> {
     for (var i = 0; i < _keys.length; i++) {
       final b = boxOf(i);
       if (b == null) continue;
-      final top = designTopOf(b, context);
+      final top = _screenTop(i)!;
       if (first == null) {
         first = i;
         firstTop = top;
@@ -138,7 +149,7 @@ class _SurahReadScreenState extends State<SurahReadScreen> {
     for (var i = 0; i < _keys.length; i++) {
       final c = _keys[i].currentContext;
       if (c == null) continue;
-      final top = designTopOf(c.findRenderObject() as RenderBox, context);
+      final top = _screenTop(i)!;
       if (top > _visibleTop + 4) break;
       current = i + 1;
     }
@@ -171,7 +182,7 @@ class _SurahReadScreenState extends State<SurahReadScreen> {
       _jumpToAyah(ayah); // uzun surelerde henüz çizilmemiş ayet
       return;
     }
-    final top = designTopOf(box, context);
+    final top = _screenTop(ayah - 1)!;
     final bottom = top + box.size.height;
     final visibleBottom = MediaQuery.sizeOf(context).height - (_audio ? SurahAudioBar.height : 0) - 8;
     if (top >= _visibleTop && bottom <= visibleBottom) return; // zaten görünüyor
