@@ -54,14 +54,15 @@ void main() {
       final scroll = t.widget<SingleChildScrollView>(find.byType(SingleChildScrollView));
       expect(scroll.physics, isA<NeverScrollableScrollPhysics>());
 
-      // Geri sayım ortada, ekranın %92'si; ayet her ekranda görünür ve panelle çakışmaz
+      // Geri sayım ortada, ekranın %96'sı; ayet her ekranda görünür ve panelle çakışmaz
       final banner = t.getRect(find.byType(CountdownBanner));
       expect(banner.center.dx, moreOrLessEquals(size.width / 2, epsilon: 0.5));
-      expect(banner.width, lessThanOrEqualTo(size.width * 0.92 + 0.5));
+      expect(banner.width, lessThanOrEqualTo(size.width * 0.96 + 0.5));
       expect(banner.bottom, lessThanOrEqualTo(rects.first.top));
       final verse = find.textContaining('bir farzdır');
       expect(verse, findsOneWidget);
-      expect(t.getRect(verse).bottom, lessThanOrEqualTo(banner.top));
+      // ayet sol altta: alt kenarı vakit kartlarının üstünde
+      expect(t.getRect(verse).bottom, lessThanOrEqualTo(banner.top + banner.height * CountdownBanner.sideTop + 0.5));
 
       // Gece/gündüz tuşu panelin altında kalmaz: basınca görünüm değişir, Namaz Vakitleri açılmaz
       final wasDay = isDaytime();

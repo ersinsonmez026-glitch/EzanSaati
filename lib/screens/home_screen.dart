@@ -123,28 +123,34 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       child: Scaffold(
         backgroundColor: isDaytime() ? const Color(0xFFD8C59C) : const Color(0xFF03170F), // koyu krem / gece yeşili
+        // Fotoğraf durum çubuğunun (saat, pil) arkasına kadar uzanır; ekran üstten kesilmiş görünmez.
         body: SafeArea(
+          top: false,
           child: LayoutBuilder(builder: (context, box) {
-            final w = box.maxWidth, h = box.maxHeight;
+            final topInset = MediaQuery.paddingOf(context).top;
+            final w = box.maxWidth, h = box.maxHeight - topInset;
             final k = (w / 390).clamp(0.8, 1.4); // yazı ve levha ölçeği (iPhone 390 genişlik esas)
             const gap = 6.0, pad = 6.0;
             final tileW = (w - 2 * pad - 2 * gap) / 3;
             double gridFor(double tileH) => _rows * tileH + (_rows - 1) * gap + pad + 2;
 
-            // Tuşlar her ekranda resimleriyle aynı oranda (600 x 508): resimler hiç kesilmez. Kalan yükseklik
-            // üst alana (fotoğraf, ayet, konum/saat, geri sayım) verilir; fotoğraf gerekirse üstten kesilir.
-            final tileH = tileW * MenuTile.photoAspect;
+            // Tuşlar resimleriyle aynı oranda (600 x 508). Kalan yükseklik üst alana (fotoğraf, ayet, konum,
+            // geri sayım) verilir; fotoğraf gerekirse üstten kesilir. Kısa ekranda cami görünsün diye tuşlar
+            // biraz alçalır (en çok %20); resimleri yalnız alttan kesilir.
+            final fullTileH = tileW * MenuTile.photoAspect;
+            final roomTile = (h - _heroMin(w, k) - (_rows - 1) * gap - pad - 2) / _rows;
+            final tileH = math.min(fullTileH, math.max(fullTileH * 0.8, roomTile));
             final gridH = gridFor(tileH);
             final labelSize = MenuTile.fitLabelSize(_items.map((e) => e.title), tileW);
-            final heroH = math.max(_heroMin(w, k), h - gridH);
+            final heroH = math.max(_heroMin(w, k), h - gridH) + topInset;
             // Çok kısa ekranlarda (ör. yatay) sığmazsa kaydırılabilir; normalde kaydırma yok.
-            final scrolls = heroH + gridH > h + 0.5;
+            final scrolls = heroH - topInset + gridH > h + 0.5;
 
             return SingleChildScrollView(
               physics: scrolls ? const ClampingScrollPhysics() : const NeverScrollableScrollPhysics(),
               child: Column(
                 children: [
-                  SizedBox(height: heroH, child: _hero(loc, k, shadow)),
+                  SizedBox(height: heroH, child: _hero(loc, k, shadow, topInset)),
                   // ============================================================
                   // ALT KISIM - 12 TUŞ (3 × 4)
                   // ============================================================
@@ -186,33 +192,40 @@ class _HomeScreenState extends State<HomeScreen> {
   // ÜST YARI - ANA GÖRSEL, LEVHALAR, KONUM/TARİH, AYET, GERİ SAYIM
   // ============================================================
   // Üst alanın ölçüleri (k: ekran genişliği ölçeği)
-  static double _bannerW(double w) => math.min(w * 0.92, 520);
-  // En az: geri sayım paneli ve üstünde ayet/konum yazıları kadar; daha kısa ekranda sayfa kayar.
-  static double _heroMin(double w, double k) => _bannerW(w) / CountdownBanner.aspect + 2 + 70 * k;
+  static double _bannerW(double w) => math.min(w * 0.96, 540);
+  // En az: geri sayım paneli ve caminin tamamı görünecek kadar (kısa ekranda tuşlar alçalır).
+  static double _heroMin(double w, double k) => _bannerW(w) / CountdownBanner.aspect + 2 + 125 * k;
 
-  Widget _hero(AppLocation? loc, double k, List<Shadow> shadow) {
+  Widget _hero(AppLocation? loc, double k, List<Shadow> shadow, double topInset) {
     return LayoutBuilder(builder: (context, box) {
       final bannerH = _bannerW(box.maxWidth) / CountdownBanner.aspect;
-      // Caminin tabanı geri sayım panelinin hemen üstüne oturur; fotoğraf gerekirse üstten kesilir.
-      final mosqueBase = box.maxHeight - bannerH + 4 * k;
+      // Caminin tabanı "kalan" satırının hemen üstüne oturur (alt tarafı görünür); fotoğraf gerekirse üstten kesilir.
+      final mosqueBase = box.maxHeight - 2 - bannerH;
       return Stack(
         children: [
           _heroPhoto(box.biggest, mosqueBase),
-          // Ayet sol üstte, konum sağ üstte; caminin iki yanında fotoğrafın üstünde durur.
+          // Ayet sol altta: alt kenarı vakit kartlarına değer. Kalan süre üst ortada, konum sağ üstte.
           Positioned(
             left: 12,
-            top: 10 * k,
+            bottom: 2 + bannerH * (1 - CountdownBanner.sideTop) + 3 * k,
             child: _verse(k, shadow),
+          ),
+          // Sonraki vakte kalan süre: üst ortada
+          Positioned(
+            left: 0,
+            right: 0,
+            top: topInset + 4 * k,
+            child: Center(child: RemainingLine(status: _status, k: k)),
           ),
           Positioned(
             right: 10,
-            top: 10 * k,
+            top: topInset + 6 * k,
             child: _locationLabel(loc, k, shadow),
           ),
           Column(
             children: [
               const Spacer(),
-              // Geri sayım paneli (ekranın %92'si, ortada, tuşlara yaslı)
+              // Kalan süre satırı ve vakit kartları (ekranın %96'sı, ortada, tuşlara yaslı)
               Center(
                 child: SizedBox(
                   width: _bannerW(box.maxWidth),
@@ -236,10 +249,10 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
-  /// Arka plan fotoğrafı: caminin tabanı (görselde %54, %64) kutuda [mosqueY] yüksekliğine gelir;
+  /// Arka plan fotoğrafı: caminin tabanı (görselde %54, %66) kutuda [mosqueY] yüksekliğine gelir;
   /// fotoğraf kutuyu her zaman tamamen kaplar (gece ve gündüz aynı kadraj).
   Widget _heroPhoto(Size box, double mosqueY) {
-    const imgW = 1536.0, imgH = 1024.0, fx = 0.54, fy = 0.64;
+    const imgW = 1536.0, imgH = 1024.0, fx = 0.54, fy = 0.66;
     final scale = [box.width / imgW, box.height / imgH, mosqueY / (fy * imgH), (box.height - mosqueY) / ((1 - fy) * imgH)]
         .reduce(math.max);
     final w = imgW * scale, h = imgH * scale;
@@ -283,31 +296,28 @@ class _HomeScreenState extends State<HomeScreen> {
 
   /// Nisâ 103 (eski yazı tipiyle kalın italik); ayrılan alana sığmazsa küçülür, hiç gizlenmez.
   Widget _verse(double k, List<Shadow> shadow) {
-    return FittedBox(
-      fit: BoxFit.scaleDown,
-      alignment: Alignment.topLeft,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Satırlar aşağı doğru uzar
-          Text(
-            '“Şüphesiz namaz,\nmüminler üzerine\nvakitleri belirlenmiş\nbir farzdır.”',
-            style: TextStyle(
-              color: Colors.white,
-              fontFamily: 'serif',
-              fontSize: 11 * k,
-              fontWeight: FontWeight.w600,
-              height: 1.25,
-              fontStyle: FontStyle.italic,
-              shadows: shadow,
-            ),
-          ),
-          GoldText('Nisâ, 103', style: TextStyle(fontFamily: 'serif', fontSize: 10 * k, fontWeight: FontWeight.w600)),
-        ],
+    // Satırlar aşağı doğru uzar; kaynak son satırın yanında (altındaki kalan süre satırına yer kalsın).
+    return Text.rich(
+      TextSpan(children: [
+        const TextSpan(text: '“Şüphesiz namaz,\nmüminler üzerine\nvakitleri belirlenmiş\nbir farzdır.”\n'),
+        TextSpan(
+          text: 'Nisâ, 103',
+          style: TextStyle(
+              color: const Color(0xFFE8C88A), fontSize: 9.5 * k, fontStyle: FontStyle.normal, fontWeight: FontWeight.w700),
+        ),
+      ]),
+      style: TextStyle(
+        color: Colors.white,
+        fontFamily: 'serif',
+        fontSize: 11 * k,
+        fontWeight: FontWeight.w600,
+        height: 1.25,
+        fontStyle: FontStyle.italic,
+        shadows: shadow,
       ),
     );
   }
+
 }
 
 /// İlk açılışta çıkan "konumunu seç" penceresi.
