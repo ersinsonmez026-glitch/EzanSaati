@@ -324,7 +324,7 @@ class _SurahReadScreenState extends State<SurahReadScreen> {
       for (var i = 0; i < verses.length; i++)
         Padding(
           key: _keys[i],
-          padding: const EdgeInsets.only(bottom: 8),
+          padding: const EdgeInsets.only(bottom: 6),
           child: _verse(s, i + 1, verses[i], playing: _audio && _playingAyah == i + 1),
         ),
       const SizedBox(height: 2),
@@ -366,62 +366,60 @@ class _SurahReadScreenState extends State<SurahReadScreen> {
   }
 
   Widget _verseBox(Surah s, int no, Ayah a) {
+    Widget tool(IconData icon, String label, VoidCallback onTap) => Semantics(
+          button: true,
+          label: label,
+          child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: onTap,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 5),
+              child: Icon(icon, size: 17, color: _pal.ink2),
+            ),
+          ),
+        );
+    // Numara rozeti ve dinle/kopyala ayrı bir satır yerine solda dar bir sütunda: metne daha çok yer kalır.
     return PaperBox(
       pal: _pal,
       radius: 14,
-      padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
+      padding: const EdgeInsets.fromLTRB(8, 8, 10, 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
+          Column(
             children: [
-              OctaBadge(number: no, size: 32, color: _pal.gold, textColor: _pal.ink),
-              const Spacer(),
-              Semantics(
-                button: true,
-                label: '$no. ayetten dinle',
-                child: GestureDetector(
-                  behavior: HitTestBehavior.opaque,
-                  onTap: () => _listenFrom(no),
-                  child: Padding(
-                    padding: const EdgeInsets.all(4),
-                    child: Icon(Icons.headphones_outlined, size: 18, color: _pal.ink2),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 6),
-              Semantics(
-                button: true,
-                label: '$no. ayeti kopyala',
-                child: GestureDetector(
-                  behavior: HitTestBehavior.opaque,
-                  onTap: () => copyToClipboard(context, '${a.arabic}\n\n${a.meal}\n(${s.name}, $no)'),
-                  child: Padding(
-                    padding: const EdgeInsets.all(4),
-                    child: Icon(Icons.copy_outlined, size: 18, color: _pal.ink2),
-                  ),
-                ),
-              ),
+              OctaBadge(number: no, size: 28, color: _pal.gold, textColor: _pal.ink),
+              const SizedBox(height: 2),
+              tool(Icons.headphones_outlined, '$no. ayetten dinle', () => _listenFrom(no)),
+              tool(Icons.copy_outlined, '$no. ayeti kopyala',
+                  () => copyToClipboard(context, '${a.arabic}\n\n${a.meal}\n(${s.name}, $no)')),
             ],
           ),
-          const SizedBox(height: 2),
-          if (_showArabic)
-            Text(
-              a.arabic,
-              textAlign: TextAlign.right,
-              textDirection: TextDirection.rtl,
-              style: TextStyle(fontFamily: kQuranFont, fontSize: 24 * _fs, height: 2.2, color: _pal.ink),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                if (_showArabic)
+                  Text(
+                    a.arabic,
+                    textAlign: TextAlign.right,
+                    textDirection: TextDirection.rtl,
+                    style: TextStyle(fontFamily: kQuranFont, fontSize: 24 * _fs, height: 2.0, color: _pal.ink),
+                  ),
+                if (_showMeal) ...[
+                  const SizedBox(height: 2),
+                  Text(a.meal, style: TextStyle(fontSize: 14.5 * _fs, height: 1.5, color: _pal.ink)),
+                  if (a.note.isNotEmpty) ...[
+                    const SizedBox(height: 5),
+                    DashedLine(color: _pal.line),
+                    const SizedBox(height: 5),
+                    Text(a.note, style: TextStyle(fontSize: 11.5, height: 1.4, color: _pal.ink2)),
+                  ],
+                ],
+              ],
             ),
-          if (_showMeal) ...[
-            const SizedBox(height: 4),
-            Text(a.meal, style: TextStyle(fontSize: 14.5 * _fs, height: 1.6, color: _pal.ink)),
-            if (a.note.isNotEmpty) ...[
-              const SizedBox(height: 6),
-              DashedLine(color: _pal.line),
-              const SizedBox(height: 6),
-              Text(a.note, style: TextStyle(fontSize: 11.5, height: 1.45, color: _pal.ink2)),
-            ],
-          ],
+          ),
         ],
       ),
     );
