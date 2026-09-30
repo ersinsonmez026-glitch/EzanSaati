@@ -37,8 +37,28 @@ class QuranReciter {
 const kReciterMaher = QuranReciter('ar.mahermuaiqly', 'Mâhir el-Muaykılî', 'Murattal', 128);
 const kReciterAfasy = QuranReciter('ar.alafasy', 'Mişari Râşid el-Afâsî', 'Murattal', 128);
 
-/// Seçilebilen kârîler (Ayarlar > Kur'an Sesi); ilki varsayılan.
-const kQuranReciters = [kReciterMaher, kReciterAfasy];
+/// Seçilebilen kârîler (Ayarlar > Kur'an Sesi); ilki varsayılan. Kalite, CDN'de bulunan en uygun hız
+/// (30 Eylül 2026 yoklaması: Sudeys ve Abdulbâsıt 192/64, Şureym yalnız 64 kbps).
+const kQuranReciters = [
+  kReciterMaher,
+  QuranReciter('ar.abdurrahmaansudais', 'Abdurrahman es-Sudeys', 'Murattal', 64),
+  QuranReciter('ar.saoodshuraym', 'Suud eş-Şureym', 'Murattal', 64),
+  kReciterAfasy,
+  QuranReciter('ar.abdulbasitmurattal', 'Abdulbâsıt Abdussamed', 'Murattal', 64),
+  QuranReciter('ar.husary', 'Mahmûd Halîl el-Husarî', 'Murattal', 128),
+  QuranReciter('ar.minshawi', 'Muhammed Sıddık el-Minşâvî', 'Murattal', 128),
+];
+
+/// Kârînin kısa tanıtımı (Ayarlar'daki listede).
+const kReciterInfo = {
+  'ar.mahermuaiqly': 'Mekke Harem imamı',
+  'ar.abdurrahmaansudais': 'Mekke Harem baş imamı',
+  'ar.saoodshuraym': 'Mekke Harem\'in eski imamı',
+  'ar.alafasy': 'Kuveyt',
+  'ar.abdulbasitmurattal': 'Mısır',
+  'ar.husary': 'Mısır',
+  'ar.minshawi': 'Mısır',
+};
 
 /// Kullanıcının seçtiği kârî.
 QuranReciter currentReciter() =>

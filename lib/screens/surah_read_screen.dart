@@ -309,16 +309,26 @@ class _SurahReadScreenState extends State<SurahReadScreen> {
       ),
       const SizedBox(height: 10),
       if (_showArabic && s.no != 1 && s.no != 9) ...[
-        Container(
-          padding: const EdgeInsets.symmetric(vertical: 4),
-          foregroundDecoration: _audio && _playingAyah == 0 ? _playingDecoration() : null,
-          child: Text(
+        Builder(builder: (_) {
+          final lit = _audio && _playingAyah == 0;
+          final text = Text(
             _besmele,
             textAlign: TextAlign.center,
             textDirection: TextDirection.rtl,
-            style: TextStyle(fontFamily: kQuranFont, fontSize: 26, color: _pal.gold),
-          ),
-        ),
+            style: TextStyle(fontFamily: kQuranFont, fontSize: 26, color: lit && !_pal.night ? _pal.ink : _pal.gold),
+          );
+          if (!lit) return Padding(padding: const EdgeInsets.symmetric(vertical: 4), child: text);
+          return Container(
+            padding: const EdgeInsets.fromLTRB(10, 8, 10, 4),
+            foregroundDecoration: _playingDecoration(),
+            decoration: BoxDecoration(
+              gradient: _litGradient,
+              borderRadius: BorderRadius.circular(14),
+              boxShadow: [BoxShadow(color: _pal.gold.withValues(alpha: 0.5), blurRadius: 18, spreadRadius: 1)],
+            ),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [_nowReading(s, 0), text]),
+          );
+        }),
         const SizedBox(height: 8),
       ],
       for (var i = 0; i < verses.length; i++)
@@ -350,7 +360,7 @@ class _SurahReadScreenState extends State<SurahReadScreen> {
       );
 
   Widget _verse(Surah s, int no, Ayah a, {bool playing = false}) {
-    final box = _verseBox(s, no, a);
+    final box = _verseBox(s, no, a, playing: playing);
     if (!playing) return box;
     return Semantics(
       label: '$no. ayet okunuyor',
@@ -358,14 +368,60 @@ class _SurahReadScreenState extends State<SurahReadScreen> {
         foregroundDecoration: _playingDecoration(),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(14),
-          boxShadow: [BoxShadow(color: _pal.gold.withValues(alpha: 0.45), blurRadius: 12)],
+          boxShadow: [BoxShadow(color: _pal.gold.withValues(alpha: _pal.night ? 0.55 : 0.5), blurRadius: 18, spreadRadius: 1)],
         ),
         child: box,
       ),
     );
   }
 
-  Widget _verseBox(Surah s, int no, Ayah a) {
+  /// Okunan ayetin ışıklı zemini (gece: altın ışıklı yeşil, gündüz: sıcak altın).
+  LinearGradient get _litGradient => _pal.night
+      ? const LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [Color(0xFF3A3A14), Color(0xFF1C2A14), Color(0xFF0E2016)],
+          stops: [0, 0.45, 1],
+        )
+      : const LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [Color(0xFFFFEDB0), Color(0xFFFBE3A2), Color(0xFFF4D98F)],
+          stops: [0, 0.5, 1],
+        );
+
+  /// Okunan ayetin üstündeki etiket: "Okunuyor · Yâsin Sûresi, 12. ayet".
+  Widget _nowReading(Surah s, int no) => Padding(
+        padding: const EdgeInsets.only(bottom: 6),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.fromLTRB(7, 3, 9, 3),
+              decoration: BoxDecoration(
+                gradient: RC.bronze,
+                borderRadius: BorderRadius.circular(99),
+                border: Border.all(color: RC.bronzeBorder),
+              ),
+              child: const Row(mainAxisSize: MainAxisSize.min, children: [
+                Icon(Icons.graphic_eq, size: 14, color: RC.bronzeText),
+                SizedBox(width: 4),
+                Text('Okunuyor', style: TextStyle(color: RC.bronzeText, fontSize: 11.5, fontWeight: FontWeight.w700)),
+              ]),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                no == 0 ? '${s.name} Sûresi · Besmele' : '${s.name} Sûresi · $no. ayet',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(color: _pal.night ? _pal.gold : _pal.ink, fontSize: 12.5, fontWeight: FontWeight.w700),
+              ),
+            ),
+          ],
+        ),
+      );
+
+  Widget _verseBox(Surah s, int no, Ayah a, {bool playing = false}) {
     Widget tool(IconData icon, String label, VoidCallback onTap) => Semantics(
           button: true,
           label: label,
@@ -379,11 +435,7 @@ class _SurahReadScreenState extends State<SurahReadScreen> {
           ),
         );
     // Numara rozeti ve dinle/kopyala ayrı bir satır yerine solda dar bir sütunda: metne daha çok yer kalır.
-    return PaperBox(
-      pal: _pal,
-      radius: 14,
-      padding: const EdgeInsets.fromLTRB(8, 8, 10, 8),
-      child: Row(
+    final content = Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Column(
@@ -421,7 +473,19 @@ class _SurahReadScreenState extends State<SurahReadScreen> {
             ),
           ),
         ],
+      );
+    if (!playing) {
+      return PaperBox(pal: _pal, radius: 14, padding: const EdgeInsets.fromLTRB(8, 8, 10, 8), child: content);
+    }
+    return Container(
+      padding: const EdgeInsets.fromLTRB(8, 8, 10, 8),
+      clipBehavior: Clip.antiAlias,
+      decoration: BoxDecoration(
+        gradient: _litGradient,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: _pal.gold),
       ),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [_nowReading(s, no), content]),
     );
   }
 }

@@ -143,21 +143,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
           onToggle: () => _toggle("Kur'an Sesi"),
           summary: currentReciter().name,
           children: [
-            GroupItem(
-              pal: _pal,
-              art: 'ses',
-              title: 'Kârî',
-              subtitle: 'Sûreler, cüzler ve dualar bu kârînin sesiyle okunur',
-              below: ChoiceRow<String>(
+            for (final r in kQuranReciters)
+              GroupItem(
                 pal: _pal,
-                options: [for (final r in kQuranReciters) (r.id, r.name)],
-                value: currentReciter().id,
-                onChanged: (v) async {
-                  await AppPrefs.instance.setReciter(v);
+                art: 'ses',
+                title: r.name,
+                subtitle: [kReciterInfo[r.id] ?? '', if (r == kQuranReciters.first) 'varsayılan'].where((x) => x.isNotEmpty).join(' · '),
+                trailing: Icon(
+                  currentReciter().id == r.id ? Icons.radio_button_checked : Icons.radio_button_unchecked,
+                  color: _pal.gold,
+                  size: 22,
+                ),
+                onTap: () async {
+                  await AppPrefs.instance.setReciter(r.id);
                   if (mounted) setState(() {});
                 },
               ),
-            ),
           ],
         ),
         gap,
