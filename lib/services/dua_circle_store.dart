@@ -245,9 +245,9 @@ String trNum(int n) {
 
 /// Davet mesajı.
 String inviteMessage(DuaCircle c, CircleMember m) {
-  final first = m.name.trim().split(RegExp(r'\s+')).first;
+  // Rehberdeki kayıt adı (kısaltma, lakap) karışıklık yaratabildiği için mesajda isim geçmez.
   final b = StringBuffer()
-    ..write('Selamün aleyküm $first, "${c.name}" dua zincirine seni davet ediyorum. ')
+    ..write('Selamün aleyküm, "${c.name}" dua zincirine seni davet ediyorum. ')
     ..write('Sana düşen: ${trNum(m.share)} ${c.unit}.');
   if (c.intent.isNotEmpty) b.write('\nNiyet: ${c.intent}');
   b.write('\nSon gün: ${trDate(c.end)}. Davet $kInviteHours saat geçerlidir.');

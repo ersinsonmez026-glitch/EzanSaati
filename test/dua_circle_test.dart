@@ -95,7 +95,8 @@ void main() {
       final t0 = DateTime(2026, 10, 1, 9);
       final c = _circle(id: 'd', created: t0, end: DateTime(2026, 10, 20))..intent = 'Şifa için';
       final msg = inviteMessage(c, c.members[1]);
-      expect(msg, contains('Selamün aleyküm Ali'));
+      expect(msg, startsWith('Selamün aleyküm, "')); // rehberdeki ad mesajda geçmez
+      expect(msg, isNot(contains('Ali')));
       expect(msg, contains('Sana düşen: 50 salavat'));
       expect(msg, contains('Niyet: Şifa için'));
       expect(msg, contains('Son gün: 20 Ekim'));
