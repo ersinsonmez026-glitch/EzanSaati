@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../services/content_store.dart';
 import '../services/home_widgets.dart';
+import '../widgets/hatim_card.dart';
 import '../widgets/page_shell.dart';
 import '../widgets/reading_ui.dart';
 import 'surah_read_screen.dart';
@@ -87,6 +88,8 @@ class _SurahsScreenState extends State<SurahsScreen> {
       ),
       gap,
       _chips(),
+      gap,
+      HatimCard(surahs: data.surahs),
       if (last != null && last.$1 >= 1 && last.$1 <= 114) ...[gap, _resume(data, last.$1, last.$2)],
       gap,
       SectionHead(

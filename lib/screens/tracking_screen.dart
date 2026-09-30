@@ -5,7 +5,9 @@ import 'package:flutter/material.dart';
 import '../services/content_store.dart';
 import '../services/dhikr_store.dart';
 import '../services/fasting_log.dart';
+import '../services/hatim_plan.dart';
 import '../services/prayer_log.dart';
+import '../widgets/hatim_card.dart';
 import '../widgets/page_shell.dart';
 import '../widgets/reading_ui.dart';
 import 'dhikr_screen.dart';
@@ -26,6 +28,8 @@ class TrackingScreen extends StatefulWidget {
 class _TrackingScreenState extends State<TrackingScreen> {
   PagePalette get _pal => PagePalette.current(); // Gündüz/Gece değişince hemen yenilensin
   final _log = PrayerLog.instance;
+  final _hatim = HatimPlan.instance;
+  List<Surah> _surahs = const [];
   DhikrState? _dhikr;
   FastingLog? _fast;
   RamazanData? _ramazan;
@@ -43,6 +47,11 @@ class _TrackingScreenState extends State<TrackingScreen> {
     super.initState();
     _log.addListener(_refresh);
     _log.load();
+    _hatim.addListener(_refresh);
+    _hatim.load();
+    QuranData.load().then((q) {
+      if (mounted) setState(() => _surahs = q.surahs);
+    });
     _loadOthers();
   }
 
@@ -65,6 +74,7 @@ class _TrackingScreenState extends State<TrackingScreen> {
   @override
   void dispose() {
     _log.removeListener(_refresh);
+    _hatim.removeListener(_refresh);
     super.dispose();
   }
 
@@ -134,7 +144,7 @@ class _TrackingScreenState extends State<TrackingScreen> {
     const gap = SizedBox(height: 10);
     return PageShell(
       title: 'Takibim',
-      subtitle: 'Namaz, zikir ve oruç takibiniz',
+      subtitle: 'Namaz, zikir, oruç ve hatim takibiniz',
       background: _pal.background,
       padding: const EdgeInsets.fromLTRB(12, 12, 12, 24),
       children: [
@@ -142,6 +152,8 @@ class _TrackingScreenState extends State<TrackingScreen> {
         if (_hasDhikr) ...[gap, ..._dhikrs(gap)],
         gap,
         ..._fasting(gap),
+        gap,
+        ..._hatims(gap),
         gap,
         ..._kaza(gap),
         gap,
@@ -467,6 +479,98 @@ class _TrackingScreenState extends State<TrackingScreen> {
     }
     return [
       _section(Icons.nightlight_round, 'Oruçlarım'),
+      PaperBox(
+        pal: _pal,
+        padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: body),
+      ),
+    ];
+  }
+
+  // ---------------------------------------------------------------- hatim
+
+  List<Widget> _hatims(Widget gap) {
+    final h = _hatim;
+    final now = _now;
+    final List<Widget> body;
+    if (!h.active) {
+      body = [
+        Text(
+          h.completed > 0
+              ? 'Şimdiye kadar ${h.completed} hatim tamamladınız. Yeni bir plan başlatabilirsiniz.'
+              : "Kur'an'ı seçtiğiniz sürede, her gün bir bölüm okuyarak hatmedin.",
+          style: TextStyle(color: _pal.ink2, fontSize: 13, height: 1.4),
+        ),
+        const SizedBox(height: 10),
+        DarkButton(label: 'Hatim planı başlat', height: 38, onTap: () => showHatimSetup(context)),
+      ];
+    } else {
+      final next = h.next ?? 0;
+      final behind = h.behind(now);
+      final pct = (h.done.length * 100 / h.days).round();
+      body = [
+        Row(children: [
+          _stat('${h.completed}', 'Hatim', Icons.workspace_premium),
+          const SizedBox(width: 6),
+          _stat('%$pct', '${h.days} günlük plan', Icons.auto_stories),
+          const SizedBox(width: 6),
+          _stat(behind > 0 ? '$behind' : '✓', behind > 0 ? 'Geride' : 'Plana uygun', Icons.schedule),
+        ]),
+        const SizedBox(height: 10),
+        if (h.days <= 60)
+          Wrap(spacing: 4, runSpacing: 4, children: [
+            for (var i = 0; i < h.days; i++)
+              Container(
+                width: 20,
+                height: 20,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(5),
+                  gradient: h.done.contains(i) ? RC.bronze : null,
+                  color: h.done.contains(i) ? null : _pal.chip,
+                  border: Border.all(
+                      color: i == h.dayIndex(now) ? _pal.gold : (h.done.contains(i) ? RC.bronzeBorder : _pal.line)),
+                ),
+                child: Text('${i + 1}',
+                    style: TextStyle(
+                        color: h.done.contains(i) ? RC.bronzeText : _pal.ink2, fontSize: 9, fontWeight: FontWeight.w700)),
+              ),
+          ])
+        else
+          ClipRRect(
+            borderRadius: BorderRadius.circular(99),
+            child: LinearProgressIndicator(
+              value: h.done.length / h.days,
+              minHeight: 8,
+              backgroundColor: _pal.line.withValues(alpha: 0.25),
+              color: _pal.gold,
+            ),
+          ),
+        if (_surahs.length == 114) ...[
+          const SizedBox(height: 10),
+          Text('Sıradaki bölüm', style: TextStyle(color: _pal.ink2, fontSize: 12)),
+          Text(hatimRangeText(_surahs, h.portion(next)),
+              style: TextStyle(color: _pal.ink, fontSize: 15, fontWeight: FontWeight.w700)),
+        ],
+        const SizedBox(height: 10),
+        Row(children: [
+          Expanded(child: DarkButton(label: 'Oku', height: 38, onTap: () => hatimOpen(context, next))),
+          const SizedBox(width: 8),
+          Expanded(
+            child: PillButton(
+              pal: _pal,
+              selected: true,
+              height: 38,
+              radius: 12,
+              onTap: () => hatimMarkRead(context, next),
+              child: const Text('Okudum', style: TextStyle(fontSize: 14)),
+            ),
+          ),
+        ]),
+      ];
+    }
+    return [
+      _section(Icons.auto_stories, 'Hatimlerim'),
       PaperBox(
         pal: _pal,
         padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),

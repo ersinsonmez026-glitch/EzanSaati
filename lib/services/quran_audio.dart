@@ -91,6 +91,16 @@ final List<int> _firstAyah = () {
   return r;
 }();
 
+/// Kur'an genelindeki sıra numarasından (1–6236) sûre ve ayet (ör. 262 → (2, 255)).
+(int, int) ayahOfGlobal(int n) {
+  assert(n >= 1 && n <= kTotalAyahs);
+  var s = 0;
+  while (s + 1 < 114 && _firstAyah[s + 1] <= n) {
+    s++;
+  }
+  return (s + 1, n - _firstAyah[s] + 1);
+}
+
 /// Ayetin Kur'an genelindeki sıra numarası (ör. 2:255 → 262).
 int globalAyahNumber(int surah, int ayah) {
   assert(surah >= 1 && surah <= 114 && ayah >= 1 && ayah <= kSurahAyahCounts[surah - 1]);

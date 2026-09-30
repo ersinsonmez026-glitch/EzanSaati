@@ -8,7 +8,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:timezone/data/latest.dart' as tzdata;
 import 'package:timezone/timezone.dart' as tz;
 
+import 'content_store.dart';
+import 'hatim_plan.dart';
 import 'location_store.dart';
+import 'quran_audio.dart';
 import 'prayer_calc.dart';
 import 'takvim.dart';
 
@@ -216,6 +219,7 @@ class EzanNotifications extends ChangeNotifier {
     if (!_supported) return;
     await _init();
     await _plugin.cancelAll();
+    await _scheduleHatim();
     final loc = LocationStore.instance.current;
     if (!settings.enabled || loc == null) return;
     exactAllowed = await _android?.canScheduleExactNotifications() ?? true;
@@ -273,5 +277,52 @@ class EzanNotifications extends ChangeNotifier {
       }
     }
     notifyListeners();
+  }
+
+  /// Hatim planı hatırlatması: önümüzdeki 7 gün, seçilen saatte (ezan bildirimleri kapalı olsa da).
+  Future<void> _scheduleHatim() async {
+    final plan = HatimPlan.instance;
+    await plan.load();
+    final next = plan.next;
+    if (!plan.active || !plan.remind || next == null) return;
+    List<Surah> surahs = const [];
+    try {
+      surahs = (await QuranData.load()).surahs;
+    } catch (_) {}
+    final now = DateTime.now();
+    const details = NotificationDetails(
+      android: AndroidNotificationDetails(
+        'hatim_plani',
+        'Hatim planı',
+        channelDescription: 'Günlük hatim bölümü hatırlatması',
+        importance: Importance.defaultImportance,
+        priority: Priority.defaultPriority,
+        category: AndroidNotificationCategory.reminder,
+      ),
+    );
+    var k = 0;
+    for (var d = 0; d < 8 && k < 7; d++) {
+      final at = DateTime(now.year, now.month, now.day + d, plan.remindHour, plan.remindMinute);
+      if (!at.isAfter(now)) continue;
+      final part = next + k;
+      if (part >= plan.days) break;
+      final p = plan.portion(part);
+      final (s1, a1) = ayahOfGlobal(p.$1);
+      final (s2, a2) = ayahOfGlobal(p.$2);
+      final range = surahs.length == 114 ? '${surahs[s1 - 1].name} $a1 – ${surahs[s2 - 1].name} $a2' : '';
+      try {
+        await _plugin.zonedSchedule(
+          id: 880000 + k,
+          scheduledDate: tz.TZDateTime.from(at, tz.local),
+          notificationDetails: details,
+          androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+          title: 'Hatim planı',
+          body: range.isEmpty ? 'Bugünkü bölümünüzü okumayı unutmayın.' : 'Bugünkü bölümünüz: $range',
+        );
+      } catch (e) {
+        debugPrint('Hatim hatırlatması kurulamadı: $e');
+      }
+      k++;
+    }
   }
 }
