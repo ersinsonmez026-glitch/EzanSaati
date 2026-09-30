@@ -24,7 +24,6 @@ class _PremiumScreenState extends State<PremiumScreen> {
     (Icons.auto_stories, 'Hatim planı+', '7, 15, 60, 90 ve 180 günlük hatim planları', false),
     (Icons.volume_off_outlined, 'Cami modu', 'Namaz vakitlerinde telefon kendiliğinden sessize ya da titreşime geçer', false),
     (Icons.widgets_outlined, "Ana ekran widget'ları", "Kur'an çalar ve zikir sayacı widget'ı", false),
-    (Icons.groups_outlined, 'Dua Zinciri+', 'Sınırsız grup ve zincir geçmişi', true),
     (Icons.palette_outlined, 'Temalar', 'Farklı renk temaları ve ana ekran görselleri', true),
   ];
 
