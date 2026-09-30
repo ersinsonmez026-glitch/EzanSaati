@@ -15,6 +15,7 @@ import io.flutter.plugin.common.EventChannel
 import io.flutter.plugin.common.MethodChannel
 import com.ezansaati.app.widget.QuranPlayerService
 import com.ezansaati.app.widget.Widgets
+import com.ezansaati.app.mosque.CamiMode
 
 class MainActivity : FlutterActivity() {
 
@@ -53,6 +54,29 @@ class MainActivity : FlutterActivity() {
                 "pausePlayer" -> {
                     if (QuranPlayerService.running && QuranPlayerService.playing) {
                         startService(QuranPlayerService.intent(this, QuranPlayerService.ACTION_PAUSE))
+                    }
+                    result.success(null)
+                }
+                else -> result.notImplemented()
+            }
+        }
+
+        // Cami modu: vakitlerde telefonu sessize/titreşime alma.
+        MethodChannel(messenger, "ezan_saati/cami").setMethodCallHandler { call, result ->
+            when (call.method) {
+                "schedule" -> {
+                    CamiMode.schedule(applicationContext)
+                    result.success(null)
+                }
+                "cancel" -> {
+                    CamiMode.cancel(applicationContext)
+                    result.success(null)
+                }
+                "dndAccess" -> result.success(CamiMode.hasDndAccess(applicationContext))
+                "openDnd" -> {
+                    try {
+                        startActivity(Intent(android.provider.Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS))
+                    } catch (e: Exception) {
                     }
                     result.success(null)
                 }

@@ -9,6 +9,8 @@ import 'package:workmanager/workmanager.dart';
 import '../firebase_options.dart';
 import 'home_widgets.dart';
 import 'location_store.dart';
+import 'mosque_mode.dart';
+import 'premium.dart';
 
 /// Uygulama kapalıyken Dua Zinciri gruplarını kontrol eder: telefon yaklaşık 30 dakikada bir
 /// (Android izin verdikçe) üye olduğu gruplarda başkasının başlattığı yeni zincir var mı diye bakar,
@@ -105,6 +107,9 @@ void inviteWatchDispatcher() {
       // Ana ekran vakit widget'ının vakitleri (uygulama uzun süre açılmasa da güncel kalsın).
       await LocationStore.instance.load();
       await HomeWidgets.writeTimes();
+      // Cami modu aralıkları (Android sıradaki sessizliği bu listeden kurar).
+      await Premium.instance.load();
+      await MosqueMode.instance.writeWindows();
     } catch (_) {}
     try {
       await InviteWatch.check();

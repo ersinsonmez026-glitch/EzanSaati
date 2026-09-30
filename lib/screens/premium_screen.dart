@@ -22,10 +22,10 @@ class _PremiumScreenState extends State<PremiumScreen> {
   static const _features = [
     (Icons.insights, 'Takibim tam hâli', 'Aylık namaz tablosu, zikir geçmişi, kaza namazı ve kaza orucu takibi', false),
     (Icons.auto_stories, 'Hatim planı+', '7, 15, 60, 90 ve 180 günlük hatim planları', false),
+    (Icons.volume_off_outlined, 'Cami modu', 'Namaz vakitlerinde telefon kendiliğinden sessize ya da titreşime geçer', false),
     (Icons.widgets_outlined, "Ana ekran widget'ları", "Kur'an çalar ve zikir sayacı widget'ı", false),
     (Icons.groups_outlined, 'Dua Zinciri+', 'Sınırsız grup ve zincir geçmişi', true),
     (Icons.repeat, 'Ezber modu', 'Ayeti ya da seçtiğiniz aralığı tekrar tekrar dinleme', true),
-    (Icons.volume_off_outlined, 'Cami modu', 'Namaz vakitlerinde telefon kendiliğinden sessize geçer', true),
     (Icons.palette_outlined, 'Temalar', 'Farklı renk temaları ve ana ekran görselleri', true),
   ];
 

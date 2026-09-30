@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import '../services/app_prefs.dart';
 import '../services/ezan_notifications.dart';
 import '../services/location_store.dart';
+import '../services/mosque_mode.dart';
+import '../services/premium.dart';
 import '../services/quran_audio.dart';
 import '../widgets/group_card.dart';
 import '../widgets/page_shell.dart';
@@ -165,6 +167,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ],
         ),
         gap,
+        ListenableBuilder(
+          listenable: Listenable.merge([MosqueMode.instance, Premium.instance]),
+          builder: (context, _) => _mosqueCard(),
+        ),
+        gap,
         GroupCard(
           pal: _pal,
           art: 'fener',
@@ -226,6 +233,150 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ],
         ),
       ],
+    );
+  }
+
+  // ---------------------------------------------------------------- cami modu
+
+  bool? _dnd;
+
+  Widget _mosqueCard() {
+    final m = MosqueMode.instance;
+    final premium = Premium.instance.active;
+    final open = _section == 'Cami Modu';
+    if (open && premium && m.silent && _dnd == null) {
+      m.hasDndAccess().then((v) {
+        if (mounted) setState(() => _dnd = v);
+      });
+    }
+    return GroupCard(
+      pal: _pal,
+      art: 'cami',
+      title: 'Cami Modu',
+      expanded: open,
+      onToggle: () {
+        _dnd = null;
+        _toggle('Cami Modu');
+      },
+      summary: !premium ? 'Premium' : (m.on ? 'Açık · ${m.silent ? 'Sessiz' : 'Titreşim'}' : 'Kapalı'),
+      children: !premium
+          ? [
+              GroupItem(
+                pal: _pal,
+                art: 'cami',
+                title: 'Vakitte telefon sessize geçsin',
+                subtitle: 'Seçtiğiniz vakitlerde telefon kendiliğinden sessize ya da titreşime geçer, '
+                    'süre bitince eski hâline döner.',
+                trailing: const PremiumChip(lock: true),
+                onTap: () => openPremium(context),
+              ),
+            ]
+          : [
+              GroupItem(
+                pal: _pal,
+                art: 'cami',
+                title: 'Cami modu',
+                subtitle: m.on
+                    ? 'Seçili vakitlerde ${m.delay == 0 ? 'ezanla birlikte' : 'ezandan ${m.delay} dk sonra'} '
+                        '${m.minutes} dakika ${m.silent ? 'sessiz' : 'titreşimde'}'
+                    : 'Kapalı · açmak için dokunun',
+                trailing: Switch(
+                  value: m.on,
+                  activeThumbColor: RC.bronzeText,
+                  activeTrackColor: const Color(0xFF6E5114),
+                  onChanged: (v) => m.update(on: v),
+                ),
+                onTap: () => m.update(on: !m.on),
+              ),
+              GroupItem(
+                pal: _pal,
+                art: 'ses',
+                title: 'Telefon',
+                subtitle: 'Titreşimde aramalar sessiz gelir, telefon titrer',
+                below: ChoiceRow<bool>(
+                  pal: _pal,
+                  options: const [(false, 'Titreşim'), (true, 'Sessiz')],
+                  value: m.silent,
+                  onChanged: (v) async {
+                    _dnd = null;
+                    await m.update(silent: v);
+                  },
+                ),
+              ),
+              if (m.silent && _dnd == false)
+                GroupItem(
+                  pal: _pal,
+                  icon: Icons.do_not_disturb_on_outlined,
+                  title: 'İzin gerekli',
+                  subtitle: 'Tam sessiz için telefonun "Rahatsız Etmeyin erişimi" ayarında Ezan Saati\'ne izin verin. '
+                      'İzin yokken telefon titreşime alınır.',
+                  trailing: Text('İzin ver', style: TextStyle(color: _pal.gold, fontWeight: FontWeight.w700)),
+                  onTap: () async {
+                    await m.openDndSettings();
+                    _dnd = null;
+                    if (mounted) setState(() {});
+                  },
+                ),
+              GroupItem(
+                pal: _pal,
+                art: 'fener',
+                title: 'Ne zaman başlasın?',
+                subtitle: 'Ezan vaktinden kaç dakika sonra',
+                below: ChoiceRow<int>(
+                  pal: _pal,
+                  options: [for (final d in MosqueMode.delays) (d, d == 0 ? 'Ezanla' : '$d dk')],
+                  value: m.delay,
+                  onChanged: (v) => m.update(delay: v),
+                ),
+              ),
+              GroupItem(
+                pal: _pal,
+                art: 'takvim',
+                title: 'Ne kadar sürsün?',
+                subtitle: 'Süre bitince telefon eski hâline döner',
+                below: ChoiceRow<int>(
+                  pal: _pal,
+                  options: [for (final d in MosqueMode.durations) (d, '$d dk')],
+                  value: m.minutes,
+                  onChanged: (v) => m.update(minutes: v),
+                ),
+              ),
+              GroupItem(
+                pal: _pal,
+                art: 'cami_bulucu',
+                title: 'Cuma namazı',
+                subtitle: 'Cuma günü öğle vaktindeki süre (hutbe dahil)',
+                below: ChoiceRow<int>(
+                  pal: _pal,
+                  options: [for (final d in MosqueMode.fridayDurations) (d, '$d dk')],
+                  value: m.friday,
+                  onChanged: (v) => m.update(friday: v),
+                ),
+              ),
+              GroupItem(
+                pal: _pal,
+                art: 'namaz_vakitleri',
+                title: 'Vakitler',
+                subtitle: 'Cami modunun çalışacağı vakitler',
+                below: Row(children: [
+                  for (var i = 0; i < 5; i++) ...[
+                    if (i > 0) const SizedBox(width: 4),
+                    Expanded(
+                      child: PillButton(
+                        pal: _pal,
+                        selected: m.prayers[i],
+                        padding: EdgeInsets.zero,
+                        onTap: () => m.update(toggle: i),
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text(MosqueMode.names[i], style: const TextStyle(fontSize: 13)),
+                        ),
+                      ),
+                    ),
+                  ],
+                ]),
+              ),
+            ],
     );
   }
 }

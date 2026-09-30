@@ -10,6 +10,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'screens/dua_circle_screen.dart';
 import 'screens/home_screen.dart';
 import 'services/app_prefs.dart';
+import 'services/mosque_mode.dart';
 import 'services/premium.dart';
 import 'services/ezan_notifications.dart';
 import 'services/home_widgets.dart';
@@ -37,11 +38,15 @@ Future<void> main() async {
   await LocationStore.instance.load();
   await AppPrefs.instance.load();
   await Premium.instance.load();
+  await MosqueMode.instance.load();
 
   // Ezan bildirimleri: her açılışta ve konum değişince önümüzdeki günler için yeniden kurulur.
   await EzanNotifications.instance.load();
   unawaited(EzanNotifications.instance.reschedule());
   LocationStore.instance.addListener(() => unawaited(EzanNotifications.instance.reschedule()));
+  unawaited(MosqueMode.instance.apply());
+  LocationStore.instance.addListener(() => unawaited(MosqueMode.instance.apply()));
+  Premium.instance.addListener(() => unawaited(MosqueMode.instance.apply()));
 
   // Ana ekran widget'ları: vakitler, kârî, sûre listesi; konum ya da görünüm değişince yenilenir.
   HomeWidgets.syncSoon();
