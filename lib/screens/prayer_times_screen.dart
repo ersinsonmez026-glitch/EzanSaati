@@ -93,7 +93,7 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
   @override
   Widget build(BuildContext context) {
     final loc = _location.current;
-    const gap = SizedBox(height: 10);
+    const gap = SizedBox(height: 7);
     final List<Widget> children;
     if (loc == null) {
       children = [_noLocation()];
@@ -158,7 +158,7 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
     return [
       // Tek satır: "İmsak vaktine kalan süre" ve karşısında süre (resim ve çizgi yok).
       Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
         decoration: BoxDecoration(
           gradient: RC.darkPanel,
           borderRadius: BorderRadius.circular(14),
@@ -202,7 +202,7 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
       gap,
       for (var i = 0; i < 6; i++)
         Padding(
-          padding: const EdgeInsets.only(bottom: 7),
+          padding: const EdgeInsets.only(bottom: 5),
           child: _row(i, day.slots[i], now, ci, beforeImsak, status),
         ),
       const SizedBox(height: 3),
@@ -224,8 +224,6 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
           Expanded(child: _link(Icons.calendar_month, 'Miladi Takvim', 'Resmî tatiller', () => _go(_View.miladi))),
         ],
       ),
-      gap,
-      OrnamentStar(color: _pal.gold, lineWidth: 70),
       gap,
       _verse(
         arabic: 'إِنَّ ٱلصَّلَوٰةَ كَانَتْ عَلَى ٱلْمُؤْمِنِينَ كِتَٰبًا مَّوْقُوتًا',
@@ -288,7 +286,7 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
             behavior: HitTestBehavior.opaque,
             onTap: onTap,
             child: Container(
-              height: 34,
+              height: 30,
               alignment: Alignment.center,
               decoration: BoxDecoration(
                 color: on ? null : _pal.chip,
@@ -360,7 +358,7 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
       label: '${slot.name} ${formatHm(slot.time)}${cur ? ', şimdiki vakit' : ''}',
       excludeSemantics: true,
       child: Container(
-        height: 46,
+        height: 40,
         clipBehavior: Clip.antiAlias,
         decoration: BoxDecoration(
           gradient: cur ? const LinearGradient(colors: [Color(0xFFF2D27A), Color(0xFFD9AE45)]) : _pal.paperGradient,
@@ -455,7 +453,7 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
       child: GestureDetector(
         onTap: onTap,
         child: Container(
-          padding: const EdgeInsets.fromLTRB(4, 12, 4, 10),
+          padding: const EdgeInsets.fromLTRB(4, 7, 4, 6),
           decoration: BoxDecoration(
             gradient: RC.darkPanel,
             borderRadius: BorderRadius.circular(16),
@@ -464,16 +462,16 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
           child: Column(
             children: [
               Container(
-                width: 42,
-                height: 42,
+                width: 32,
+                height: 32,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   color: const Color(0x33000000),
                   border: Border.all(color: RC.goldBorder, width: 1.5),
                 ),
-                child: GoldIcon(icon, size: 21),
+                child: GoldIcon(icon, size: 17),
               ),
-              const SizedBox(height: 6),
+              const SizedBox(height: 3),
               FittedBox(
                 fit: BoxFit.scaleDown,
                 child: Text(title,
@@ -492,7 +490,7 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
 
   Widget _verse({required String arabic, required String meal, required String ref}) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
       decoration: BoxDecoration(
         gradient: _pal.paperGradient,
         borderRadius: BorderRadius.circular(16),
@@ -503,11 +501,11 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
           Text(arabic,
               textAlign: TextAlign.center,
               textDirection: TextDirection.rtl,
-              style: TextStyle(fontFamily: kQuranFont, fontSize: 22, height: 1.9, color: _pal.gold)),
+              style: TextStyle(fontFamily: kQuranFont, fontSize: 19, height: 1.75, color: _pal.gold)),
           const SizedBox(height: 4),
           Text('“$meal”',
               textAlign: TextAlign.center,
-              style: TextStyle(color: _pal.ink, fontSize: 14, height: 1.5, fontStyle: FontStyle.italic)),
+              style: TextStyle(color: _pal.ink, fontSize: 13, height: 1.4, fontStyle: FontStyle.italic)),
           const SizedBox(height: 4),
           Text(ref, style: TextStyle(color: _pal.ink2, fontSize: 11.5)),
         ],

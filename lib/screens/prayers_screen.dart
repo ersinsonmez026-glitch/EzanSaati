@@ -139,10 +139,10 @@ class _PrayersScreenState extends State<PrayersScreen> {
 
   Widget _esmaRow(int n, EsmaName e) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
+      padding: const EdgeInsets.fromLTRB(10, 5, 10, 5),
       child: Row(
         children: [
-          OctaBadge(number: n, color: _pal.gold, textColor: _pal.ink),
+          OctaBadge(number: n, size: 32, color: _pal.gold, textColor: _pal.ink),
           const SizedBox(width: 10),
           Expanded(
             child: Column(
@@ -310,10 +310,10 @@ class _PrayersScreenState extends State<PrayersScreen> {
     return InkWell(
       onTap: () => _open(index),
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(12, 8, 10, 8),
+        padding: const EdgeInsets.fromLTRB(10, 5, 8, 5),
         child: Row(
           children: [
-            OctaBadge(number: n, color: _pal.gold, textColor: _pal.ink),
+            OctaBadge(number: n, size: 32, color: _pal.gold, textColor: _pal.ink),
             const SizedBox(width: 10),
             Expanded(
               child: Column(

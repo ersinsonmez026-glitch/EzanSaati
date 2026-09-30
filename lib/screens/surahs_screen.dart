@@ -267,10 +267,10 @@ class _SurahsScreenState extends State<SurahsScreen> {
     return InkWell(
       onTap: () => _open(s.no),
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(12, 8, 10, 8),
+        padding: const EdgeInsets.fromLTRB(10, 5, 8, 5),
         child: Row(
           children: [
-            OctaBadge(number: s.no, color: _pal.gold, textColor: _pal.ink),
+            OctaBadge(number: s.no, size: 32, color: _pal.gold, textColor: _pal.ink),
             const SizedBox(width: 10),
             Expanded(
               child: Column(

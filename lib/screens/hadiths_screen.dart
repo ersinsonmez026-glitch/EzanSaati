@@ -187,10 +187,10 @@ class _HadithsScreenState extends State<HadithsScreen> {
     return InkWell(
       onTap: () => _open(items, index),
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(12, 9, 10, 9),
+        padding: const EdgeInsets.fromLTRB(10, 6, 8, 6),
         child: Row(
           children: [
-            OctaBadge(number: n, color: _pal.gold, textColor: _pal.ink),
+            OctaBadge(number: n, size: 32, color: _pal.gold, textColor: _pal.ink),
             const SizedBox(width: 10),
             Expanded(
               child: Column(

@@ -824,7 +824,7 @@ class ReadingHero extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Padding(
-                padding: const EdgeInsets.fromLTRB(12, 14, 12, 10),
+                padding: const EdgeInsets.fromLTRB(12, 9, 12, 7),
                 child: DefaultTextStyle.merge(
                   textAlign: TextAlign.center,
                   style: const TextStyle(color: RC.cream),
@@ -832,7 +832,7 @@ class ReadingHero extends StatelessWidget {
                 ),
               ),
               Container(
-                padding: const EdgeInsets.all(8),
+                padding: const EdgeInsets.all(6),
                 decoration: BoxDecoration(border: Border(top: BorderSide(color: RC.gold(0.45)))),
                 child: Row(
                   children: [
@@ -879,7 +879,7 @@ class HeroTool extends StatelessWidget {
         child: Opacity(
           opacity: active ? 1 : 0.5,
           child: Container(
-            height: 34,
+            height: 30,
             alignment: Alignment.center,
             decoration: BoxDecoration(
               color: const Color(0x40000000),

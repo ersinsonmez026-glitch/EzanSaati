@@ -36,18 +36,18 @@ class GroupCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
               gradient: RC.darkPanel,
               border: Border(bottom: BorderSide(color: RC.gold(0.6), width: 1.5)),
             ),
             child: Row(
               children: [
-                art != null ? ArtIcon(art!, size: 30) : GoldIcon(icon!, size: 22),
+                art != null ? ArtIcon(art!, size: 26) : GoldIcon(icon!, size: 20),
                 const SizedBox(width: 10),
                 Expanded(
                   child:
-                      GoldText(title, maxLines: 1, style: const TextStyle(fontSize: 19, fontWeight: FontWeight.w600)),
+                      GoldText(title, maxLines: 1, style: const TextStyle(fontSize: 17.5, fontWeight: FontWeight.w600)),
                 ),
                 if (trailing != null) trailing!,
               ],
@@ -90,18 +90,18 @@ class GroupItem extends StatelessWidget {
     final row = Row(
       children: [
         Container(
-          width: 42,
-          height: 42,
+          width: 34,
+          height: 34,
           decoration: BoxDecoration(color: pal.pill, borderRadius: BorderRadius.circular(10)),
-          child: Center(child: art != null ? ArtIcon(art!, size: 36) : GoldIcon(icon!, size: 20, light: !pal.night)),
+          child: Center(child: art != null ? ArtIcon(art!, size: 30) : GoldIcon(icon!, size: 18, light: !pal.night)),
         ),
         const SizedBox(width: 10),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(title, style: TextStyle(color: pal.ink, fontSize: 17, fontWeight: FontWeight.w600)),
-              if (subtitle != null) Text(subtitle!, style: TextStyle(color: pal.ink2, fontSize: 13.5, height: 1.3)),
+              Text(title, style: TextStyle(color: pal.ink, fontSize: 15.5, fontWeight: FontWeight.w600, height: 1.2)),
+              if (subtitle != null) Text(subtitle!, style: TextStyle(color: pal.ink2, fontSize: 12.5, height: 1.25)),
             ],
           ),
         ),
@@ -114,11 +114,11 @@ class GroupItem extends StatelessWidget {
       child: InkWell(
         onTap: enabled ? onTap : null,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
           child: below == null
               ? row
               : Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch, children: [row, const SizedBox(height: 10), below!]),
+                  crossAxisAlignment: CrossAxisAlignment.stretch, children: [row, const SizedBox(height: 6), below!]),
         ),
       ),
     );
