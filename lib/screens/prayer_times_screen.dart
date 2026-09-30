@@ -363,7 +363,7 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
           Icon(on ? Icons.check_circle : Icons.radio_button_unchecked,
               size: 17, color: on ? (cur ? curInk : RC.bronzeText) : (cur ? curInk : _pal.gold)),
           const SizedBox(width: 4),
-          Text(on ? 'Kıldım' : 'Kıldım mı?',
+          Text(on ? 'Kıldım' : 'Kıldın mı?',
               style: TextStyle(color: on && !cur ? RC.bronzeText : (cur ? curInk : _pal.ink))),
         ]),
       );

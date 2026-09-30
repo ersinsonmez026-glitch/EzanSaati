@@ -147,7 +147,7 @@ class _TrackingScreenState extends State<TrackingScreen> {
         SourceNote(
           pal: _pal,
           text: 'Kayıtlar yalnız bu telefonda tutulur. Kılınan namaz Namaz Vakitleri sayfasında vaktin '
-              'satırındaki "Kıldım mı?" düğmesiyle ya da buradaki tabloya dokunarak işaretlenir.',
+              'satırındaki "Kıldın mı?" düğmesiyle ya da buradaki tabloya dokunarak işaretlenir.',
         ),
       ],
     );
