@@ -1,8 +1,8 @@
 name: Serbest lisanslı ses arama
 
-# Ezan ve namaz duaları için serbest lisanslı (CC0 / CC BY / CC BY-SA / kamu malı) ses kayıtlarını
-# Wikimedia Commons ve Internet Archive'da arar; başlık, süre, lisans ve yükleyeni listeler.
-# Yalnız bilgi toplar; hiçbir dosyayı uygulamaya eklemez.
+# Ezan, namaz duaları ve namaz öğretimi için serbest lisanslı (CC0 / CC BY / CC BY-SA / kamu malı)
+# kayıtları Wikimedia Commons ve Internet Archive'da arar. Konuyla ilgili ve lisansı uygun görünen
+# ses dosyalarını dinlenmek üzere indirir (ses-adaylari paketi). Hiçbir dosyayı uygulamaya eklemez.
 
 on:
   workflow_dispatch:
@@ -15,100 +15,156 @@ jobs:
   ara:
     runs-on: ubuntu-latest
     steps:
-      - name: Wikimedia Commons ve Internet Archive'da ara
+      - name: Ara ve adayları indir
         run: |
+          mkdir -p adaylar
           python3 - <<'EOF'
-          import json, re, urllib.parse, urllib.request
+          import json, os, re, urllib.parse, urllib.request
 
-          UA = {'User-Agent': 'EzanSaati-ses-arama/1.0 (github actions)'}
+          UA = {'User-Agent': 'EzanSaati-ses-arama/1.1 (github actions; contact via github)'}
 
-          def get(url):
+          def get(url, raw=False):
               req = urllib.request.Request(url, headers=UA)
-              with urllib.request.urlopen(req, timeout=40) as r:
-                  return json.loads(r.read().decode('utf-8'))
+              with urllib.request.urlopen(req, timeout=60) as r:
+                  data = r.read()
+              return data if raw else json.loads(data.decode('utf-8'))
 
-          groups = {
-              'EZAN': ['ezan', 'adhan', 'azan', 'athan', 'call to prayer', 'أذان', 'ezan-ı muhammedi', 'sabah ezanı'],
-              'SÜBHÂNEKE': ['subhaneke', 'subhanaka allahumma', 'sübhaneke', 'thana dua', 'سبحانك اللهم'],
-              'ETTEHİYYÂTÜ': ['tashahhud', 'attahiyyat', 'ettehiyyatu', 'tahiyyat', 'التحيات'],
-              'SALLİ-BÂRİK': ['salawat ibrahimiyya', 'allahumma salli', 'allahumme salli', 'durood ibrahim', 'salli barik', 'الصلاة الإبراهيمية'],
-              'KUNUT': ['qunut', 'kunut duası', 'dua qunoot', 'قنوت'],
-              'RABBENÂ': ['rabbana atina', 'rabbena atina', 'rabbenagfirli'],
-              'EZAN DUASI': ['ezan duası', 'dua after adhan', 'allahumma rabba hadhihi'],
-              'FATİHA/NAMAZ': ['namaz duaları', 'salah recitation', 'prayer recitation arabic'],
-          }
+          # (grup, arama terimleri, konuyu gösteren kelimeler)
+          groups = [
+              ('ezan', ['ezan', 'adhan', 'azan', 'athan', 'call to prayer', 'أذان', 'muezzin', 'müezzin', 'uşşak ezan',
+                        'saba ezan', 'sabah ezanı', 'türk ezanı', 'turkish adhan', 'istanbul ezan'],
+               r'ezan|adhan|azan\b|athan|call to prayer|أذان|muezz|müezz'),
+              ('dua', ['sübhaneke', 'subhaneke', 'subhanaka', 'ettehiyyatü', 'tahiyyat', 'tashahhud', 'attahiyyat',
+                       'allahümme salli', 'allahumma salli', 'salli barik', 'salawat ibrahimiyya', 'kunut duası',
+                       'kunut duaları', 'qunut hanafi', 'rabbena atina', 'rabbenağfirli', 'ezan duası', 'namaz duaları',
+                       'namaz sureleri', 'التحيات', 'سبحانك اللهم'],
+               r'sübhan|subhan|tehiyy|tahiyy|tashah|salli|salawat|salavat|kunut|qunut|qunoot|rabben|rabban|dua|التحيات|سبحانك'),
+              ('namaz-ogren', ['namaz nasıl kılınır', 'abdest nasıl alınır', 'namaz öğreniyorum', 'how to pray salah',
+                               'how to perform salah', 'wudu ablution', 'salat prayer tutorial', 'islamic prayer procedure'],
+               r'namaz|abdest|salah|salat|wudu|ablution|prayer'),
+          ]
+          bad_lic = re.compile(r'\bnc\b|\bnd\b|noncommercial|noderiv|by-nc|by-nd|nc-|nd-', re.I)
+          good_lic = re.compile(r'cc0|cc[ -]?by|creativecommons\.org/licenses/by|publicdomain|public domain|pdm', re.I)
 
-          def commons(term):
+          def commons(term, filetype):
               q = urllib.parse.urlencode({
                   'action': 'query', 'format': 'json', 'generator': 'search', 'gsrnamespace': 6,
-                  'gsrsearch': f'{term} filetype:audio', 'gsrlimit': 25,
+                  'gsrsearch': f'{term} filetype:{filetype}', 'gsrlimit': 30,
                   'prop': 'imageinfo', 'iiprop': 'url|size|mime|extmetadata|metadata|user',
               })
-              data = get('https://commons.wikimedia.org/w/api.php?' + q)
               out = []
-              for p in (data.get('query', {}).get('pages', {}) or {}).values():
+              for p in (get('https://commons.wikimedia.org/w/api.php?' + q).get('query', {}).get('pages', {}) or {}).values():
                   ii = (p.get('imageinfo') or [{}])[0]
                   em = ii.get('extmetadata', {})
-                  lic = em.get('LicenseShortName', {}).get('value', '?')
-                  artist = re.sub('<[^>]+>', '', em.get('Artist', {}).get('value', '')).strip()[:60]
-                  desc = re.sub('<[^>]+>', '', em.get('ImageDescription', {}).get('value', '')).strip().replace('\n', ' ')[:140]
-                  length = ''
+                  length = 0.0
                   for m in ii.get('metadata') or []:
                       if m.get('name') in ('length', 'playtime_seconds'):
-                          try: length = f"{float(m['value']):.0f} sn"
+                          try: length = float(m['value'])
                           except Exception: pass
-                  out.append((p.get('title', ''), lic, artist, length, ii.get('size', 0), ii.get('descriptionurl', ''), desc))
+                  out.append(dict(src='Wikimedia Commons', title=p.get('title', ''), license=em.get('LicenseShortName', {}).get('value', '?'),
+                                  author=re.sub('<[^>]+>', '', em.get('Artist', {}).get('value', '')).strip()[:80],
+                                  uploader=ii.get('user', ''), length=round(length), size=ii.get('size', 0),
+                                  page=ii.get('descriptionurl', ''), file=ii.get('url', ''),
+                                  desc=re.sub('<[^>]+>', '', em.get('ImageDescription', {}).get('value', '')).strip().replace('\n', ' ')[:200]))
               return out
 
-          def archive(term):
+          def archive(term, mediatype):
               q = urllib.parse.urlencode([
-                  ('q', f'({term}) AND mediatype:audio AND licenseurl:*'),
-                  ('fl[]', 'identifier'), ('fl[]', 'title'), ('fl[]', 'licenseurl'), ('fl[]', 'creator'),
-                  ('rows', 15), ('output', 'json'),
+                  ('q', f'({term}) AND mediatype:{mediatype} AND licenseurl:*'),
+                  ('fl[]', 'identifier'), ('fl[]', 'title'), ('fl[]', 'licenseurl'), ('fl[]', 'creator'), ('fl[]', 'uploader'),
+                  ('rows', 20), ('output', 'json'),
               ])
-              data = get('https://archive.org/advancedsearch.php?' + q)
-              return [(d.get('title', ''), d.get('licenseurl', ''), str(d.get('creator', ''))[:60],
-                       'https://archive.org/details/' + d.get('identifier', ''))
-                      for d in data.get('response', {}).get('docs', [])]
+              return [dict(src='Internet Archive', title=str(d.get('title', '')), license=d.get('licenseurl', ''),
+                           author=str(d.get('creator', ''))[:80], uploader=str(d.get('uploader', ''))[:60],
+                           page='https://archive.org/details/' + d.get('identifier', ''), id=d.get('identifier', ''))
+                      for d in get('https://archive.org/advancedsearch.php?' + q).get('response', {}).get('docs', [])]
 
-          ok_lic = re.compile(r'(cc0|cc[ -]by|public domain|pd|kamu)', re.I)
-          report = {}
-          for group, terms in groups.items():
-              seen = set()
-              print(f'\n==================== {group} ====================')
+          def safe(s):
+              s = re.sub(r'[^\w\-. ]+', '', s, flags=re.UNICODE).strip().replace(' ', '_')
+              return s[:70] or 'dosya'
+
+          report, downloaded, total = {}, [], 0
+          for group, terms, topic in groups:
+              seen, rows = set(), []
+              ftypes = ['audio'] + (['video'] if group == 'namaz-ogren' else [])
+              mtypes = ['audio'] + (['movies'] if group == 'namaz-ogren' else [])
               for t in terms:
+                  for ft in ftypes:
+                      try:
+                          for r in commons(t, ft):
+                              if r['title'] in seen: continue
+                              seen.add(r['title']); r['type'] = ft; rows.append(r)
+                      except Exception as e:
+                          print('Commons hata', t, e)
+                  for mt in mtypes:
+                      try:
+                          for r in archive(t, mt):
+                              if r['page'] in seen: continue
+                              seen.add(r['page']); r['type'] = 'video' if mt == 'movies' else 'audio'; rows.append(r)
+                      except Exception as e:
+                          print('Archive hata', t, e)
+              # Konuyla ilgili ve lisansı uygun olanlar
+              keep = []
+              for r in rows:
+                  text = f"{r['title']} {r.get('desc', '')}"
+                  if not re.search(topic, text, re.I): continue
+                  if r['title'].startswith('File:LL-'): continue  # tek kelime telaffuz kayıtları
+                  lic = str(r['license'])
+                  r['license_ok'] = bool(good_lic.search(lic)) and not bad_lic.search(lic)
+                  keep.append(r)
+              report[group] = keep
+              print(f'\n==================== {group.upper()} ({len(keep)}) ====================')
+              for r in keep:
+                  flag = 'LİSANS UYGUN' if r['license_ok'] else 'lisans UYGUN DEĞİL'
+                  print(f"  [{flag}] [{r['type']}] {r['title']} | {r['license']} | {r['author'] or r['uploader']} | {r.get('length', '')} sn")
+                  print(f"        {r['page']}")
+
+              # Dinlemek için indir: lisansı uygun ses dosyaları (grup başına en çok 25, dosya başına en çok 25 MB)
+              n = 0
+              for r in keep:
+                  if not r['license_ok'] or r['type'] != 'audio' or n >= 25: continue
                   try:
-                      rows = commons(t)
+                      if r['src'] == 'Wikimedia Commons':
+                          if not r.get('file') or r.get('size', 0) > 25e6 or (r.get('length') and r['length'] < 10): continue
+                          url = r['file']; ext = os.path.splitext(url)[1]
+                          name = f"{group}/{n+1:02d}_commons_{safe(r['title'][5:].rsplit('.', 1)[0])}{ext}"
+                          files = [(url, name)]
+                      else:
+                          meta = get(f"https://archive.org/metadata/{r['id']}")
+                          files = []
+                          for f in meta.get('files', []):
+                              fn = f.get('name', '')
+                              if not re.search(r'\.(mp3|ogg|m4a|opus)$', fn, re.I): continue
+                              if int(f.get('size', 0) or 0) > 25e6: continue
+                              files.append((f"https://archive.org/download/{r['id']}/{urllib.parse.quote(fn)}",
+                                            f"{group}/{n+1:02d}_archive_{safe(r['id'])}_{safe(os.path.splitext(fn)[0])}{os.path.splitext(fn)[1]}"))
+                              if len(files) >= 2: break
+                      for url, name in files:
+                          os.makedirs(os.path.dirname('adaylar/' + name), exist_ok=True)
+                          data = get(url, raw=True)
+                          open('adaylar/' + name, 'wb').write(data)
+                          total += len(data)
+                          downloaded.append(dict(file=name, page=r['page'], license=r['license'],
+                                                 author=r['author'] or r['uploader'], src=r['src'], title=r['title']))
+                      if files: n += 1
                   except Exception as e:
-                      print(f'  [Commons hata: {t}] {e}')
-                      rows = []
-                  for title, lic, artist, length, size, url, desc in rows:
-                      if title in seen: continue
-                      seen.add(title)
-                      mark = 'UYGUN ' if ok_lic.search(lic) else 'bakın '
-                      print(f'  [{mark}] {title} | {lic} | {artist} | {length} | {size//1024} KB')
-                      print(f'           {url}')
-                      if desc: print(f'           {desc}')
-                      report.setdefault(group, []).append(dict(src='commons', title=title, license=lic, artist=artist,
-                                                                length=length, url=url, desc=desc))
-              for t in terms[:4]:
-                  try:
-                      rows = archive(t)
-                  except Exception as e:
-                      print(f'  [Archive hata: {t}] {e}')
-                      rows = []
-                  for title, lic, creator, url in rows:
-                      if url in seen: continue
-                      seen.add(url)
-                      print(f'  [archive] {title} | {lic} | {creator}')
-                      print(f'           {url}')
-                      report.setdefault(group, []).append(dict(src='archive', title=title, license=lic, artist=creator, url=url))
-          json.dump(report, open('ses-arama.json', 'w'), ensure_ascii=False, indent=1)
-          print('\nToplam:', {k: len(v) for k, v in report.items()})
+                      print('  indirilemedi:', r['page'], e)
+                  if total > 350e6: break
+
+          json.dump(report, open('adaylar/ses-arama.json', 'w'), ensure_ascii=False, indent=1)
+          with open('adaylar/OKU-BENİ.txt', 'w', encoding='utf-8') as f:
+              f.write('Ezan Saati - serbest lisanslı ses adayları\n')
+              f.write('Bu dosyalar yalnız dinleyip seçmek içindir; hiçbiri uygulamaya eklenmedi.\n')
+              f.write('Internet Archive kayıtlarında lisansı çoğu zaman yükleyen kişi yazar; okuyanın kendisi değilse\n')
+              f.write('lisans güvenilir olmayabilir. Seçtiğiniz kaydın kaynağına ayrıca bakılacak.\n\n')
+              for d in downloaded:
+                  f.write(f"{d['file']}\n  Kaynak: {d['src']} - {d['page']}\n  Lisans: {d['license']}\n  Okuyan/yükleyen: {d['author']}\n\n")
+          print('\nİndirilen dosya:', len(downloaded), f'({total/1e6:.1f} MB)')
+          print('Gruplar:', {k: len(v) for k, v in report.items()})
           EOF
 
       - uses: actions/upload-artifact@v4
         with:
-          name: ses-arama
-          path: ses-arama.json
+          name: ses-adaylari
+          path: adaylar
           retention-days: 14
