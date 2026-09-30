@@ -264,7 +264,7 @@ class _HomeScreenState extends State<HomeScreen> {
       width: w,
       height: h,
       child: Image.asset(
-        isDaytime() ? 'assets/images/home_hero.jpg' : 'assets/images/home_hero_gece.jpg',
+        isDaytime() ? 'assets/images/home_hero.webp' : 'assets/images/home_hero_gece.webp',
         fit: BoxFit.fill,
       ),
     );

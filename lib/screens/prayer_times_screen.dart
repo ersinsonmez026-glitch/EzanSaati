@@ -684,7 +684,7 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
         Expanded(flex: flex, child: Text(t, textAlign: TextAlign.center, style: s));
     return [
       _hero(
-        image: 'assets/images/vakit_kapak.jpg',
+        image: 'assets/images/vakit_kapak.webp',
         imageAlign: const Alignment(-0.6, 0.2),
         label: 'Bugün ve sonraki 6 gün',
         trailing: _cityChip(loc),
@@ -782,7 +782,7 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
 
     return [
       _hero(
-        image: 'assets/images/okuma_kapak.jpg',
+        image: 'assets/images/okuma_kapak.webp',
         imageAlign: const Alignment(-0.2, 0),
         label: 'Bugünün Tarihi',
         children: [
@@ -899,7 +899,7 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
 
     return [
       _hero(
-        image: 'assets/images/vakit_kapak.jpg',
+        image: 'assets/images/vakit_kapak.webp',
         imageAlign: const Alignment(-0.6, 0.2),
         label: 'Bugünün Tarihi',
         children: [

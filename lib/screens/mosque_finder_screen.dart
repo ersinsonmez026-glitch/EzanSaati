@@ -203,7 +203,7 @@ class _MosqueFinderScreenState extends State<MosqueFinderScreen> {
         borderRadius: BorderRadius.circular(18),
         border: Border.all(color: RC.gold(0.75), width: 1.5),
         image: const DecorationImage(
-          image: AssetImage('assets/images/tiles/cami_bulucu.jpg'),
+          image: AssetImage('assets/images/tiles/cami_bulucu.webp'),
           fit: BoxFit.cover,
           opacity: 0.3,
         ),

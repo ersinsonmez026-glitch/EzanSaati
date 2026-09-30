@@ -33,12 +33,14 @@ jobs:
       - name: Paketleri indir
         run: flutter pub get
 
+      # Mağaza sürümü işlemci türüne göre ayrı APK'lara bölünür: her telefon yalnız kendine uygun olanı
+      # kurar (arm64-v8a: günümüz telefonlarının neredeyse tamamı; armeabi-v7a: eski telefonlar).
       - name: APK derle
-        run: flutter build apk --${{ inputs.mode || 'release' }}
+        run: flutter build apk --${{ inputs.mode || 'release' }} ${{ (inputs.mode || 'release') == 'release' && '--split-per-abi' || '' }}
 
       - name: APK'yı yükle
         uses: actions/upload-artifact@v4
         with:
           name: EzanSaati-${{ inputs.mode == 'debug' && 'debug-' || '' }}apk
-          path: build/app/outputs/flutter-apk/app-${{ inputs.mode || 'release' }}.apk
+          path: build/app/outputs/flutter-apk/app-*${{ inputs.mode || 'release' }}.apk
           retention-days: 14

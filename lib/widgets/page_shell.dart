@@ -268,7 +268,7 @@ class _HeaderDelegate extends SliverPersistentHeaderDelegate {
               right: 0,
               top: -shrinkOffset,
               child: Image.asset(
-                isDaytime() ? 'assets/images/header_gunduz.jpg' : 'assets/images/header_gece.jpg',
+                isDaytime() ? 'assets/images/header_gunduz.webp' : 'assets/images/header_gece.webp',
                 fit: BoxFit.fitWidth,
                 alignment: Alignment.topCenter,
               ),
@@ -314,7 +314,7 @@ class _HeaderDelegate extends SliverPersistentHeaderDelegate {
                 child: Opacity(
                   opacity: fade,
                   child: Center(
-                    child: Image.asset('assets/images/logo_ezan_saati.png', height: 53, fit: BoxFit.contain),
+                    child: Image.asset('assets/images/logo_ezan_saati.webp', height: 53, fit: BoxFit.contain),
                   ),
                 ),
               ),

@@ -267,7 +267,7 @@ class AyahShareCard extends StatelessWidget {
                         ),
                       ),
                     ),
-                    Image.asset('assets/images/logo_ezan_saati.png', height: 44 * u, filterQuality: FilterQuality.high),
+                    Image.asset('assets/images/logo_ezan_saati.webp', height: 44 * u, filterQuality: FilterQuality.high),
                   ]),
                 ),
               ),

@@ -110,7 +110,7 @@ class MenuTile extends StatelessWidget {
               padding: const EdgeInsets.all(1),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(13),
-                child: Image.asset('assets/images/tiles/$image.jpg', fit: BoxFit.cover, alignment: Alignment.topCenter),
+                child: Image.asset('assets/images/tiles/$image.webp', fit: BoxFit.cover, alignment: Alignment.topCenter),
               ),
             ),
             Align(alignment: Alignment.bottomCenter, child: plate),

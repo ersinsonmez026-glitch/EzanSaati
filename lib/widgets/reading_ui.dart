@@ -803,7 +803,7 @@ class ReadingHero extends StatelessWidget {
             child: Opacity(
               opacity: 0.55,
               child: Image.asset(
-                'assets/images/okuma_kapak.jpg',
+                'assets/images/okuma_kapak.webp',
                 fit: BoxFit.cover,
                 alignment: const Alignment(0, -0.1),
               ),

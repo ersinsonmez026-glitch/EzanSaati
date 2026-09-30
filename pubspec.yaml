@@ -10,7 +10,6 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  cupertino_icons: ^1.0.6
   adhan: ^2.0.0+1              # Namaz vakti hesaplama (internetsiz)
   geolocator: ^14.0.0          # GPS konumu
   shared_preferences: ^2.3.0   # Seçilen şehri hatırlama

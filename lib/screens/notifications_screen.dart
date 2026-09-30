@@ -289,7 +289,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         border: Border.all(color: RC.gold(0.75), width: 1.5),
         boxShadow: const [BoxShadow(color: Color(0x40281905), blurRadius: 14, offset: Offset(0, 4))],
         image: const DecorationImage(
-          image: AssetImage('assets/images/vakit_kapak.jpg'),
+          image: AssetImage('assets/images/vakit_kapak.webp'),
           fit: BoxFit.cover,
           alignment: Alignment(0.6, 0.2),
           opacity: 0.35,
