@@ -17,6 +17,17 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Aday kârîlerin bulunduğu kaliteler (bilgi)
+        run: |
+          for id in ar.mahermuaiqly ar.abdurrahmaansudais ar.saoodshuraym ar.alafasy ar.abdulbasitmurattal ar.husary ar.minshawi ar.hudhaify; do
+            found=""
+            for rate in 192 128 64 48 40 32; do
+              code=$(curl -s -o /dev/null -w '%{http_code}' -I "https://cdn.islamic.network/quran/audio/$rate/$id/1.mp3")
+              [ "$code" = "200" ] && found="$found $rate"
+            done
+            echo "$id:$found"
+          done
+
       - name: Ayet dosyalarını kontrol et
         run: |
           python3 - <<'EOF'
