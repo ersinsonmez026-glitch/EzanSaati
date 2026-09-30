@@ -9,7 +9,6 @@ import 'package:ezan_saati/screens/surahs_screen.dart';
 import 'package:ezan_saati/screens/video_screen.dart';
 import 'package:ezan_saati/services/content_store.dart';
 import 'package:ezan_saati/services/fasting_log.dart';
-import 'package:ezan_saati/services/takvim.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -60,45 +59,20 @@ void main() {
       }
     });
 
-    test('Dini Mesajlar: 96 mesaj, ayetler Ruvvâd mealinden birebir alıntı', () async {
-      final msgs = await MessageData.all();
-      final q = await QuranData.load();
-      expect(msgs.length, 96);
-      const counts = {'cuma': 41, 'kandil': 20, 'ramazan': 5, 'bayram': 20, 'sabah': 5, 'dua': 5};
-      for (final c in kMessageCategories.keys) {
-        expect(msgs.where((m) => m.category == c).length, counts[c], reason: c);
+    test('Dini Mesajlar: kartların görseli var, her hafta sıradaki kart', () {
+      final ids = kMessageCards.map((c) => c.id).toSet();
+      expect(ids.length, kMessageCards.length);
+      for (final c in kMessageCards) {
+        expect(File(c.asset).existsSync(), isTrue, reason: c.id);
+        expect(c.ref, matches(RegExp(r'^.+, \d+/\d+(-\d+)?$')), reason: c.id);
       }
-      String norm(String s) => s.replaceAll(RegExp(r'\[\d+\]'), '').trim();
-      var verses = 0;
-      for (final m in msgs.where((m) => m.hasVerse)) {
-        final match = RegExp(r'^(.+) Sûresi, (\d+)(?:-(\d+))?$').firstMatch(m.verseRef!)!;
-        final surah =
-            q.surahs.firstWhere((s) => s.name == match.group(1), orElse: () => throw 'Sure yok: ${m.verseRef}');
-        final from = int.parse(match.group(2)!), to = int.parse(match.group(3) ?? match.group(2)!);
-        final meal = [for (var a = from; a <= to; a++) norm(q.verses[surah.no - 1][a - 1].meal)].join(' ');
-        // "…" atlanan yerleri gösterir; her parça mealde aynen geçmeli.
-        for (final part in m.verse!.split('…').map((p) => p.trim()).where((p) => p.isNotEmpty)) {
-          expect(meal.contains(part), isTrue, reason: '${m.verseRef}: $part');
-        }
-        verses++;
-      }
-      expect(verses, 48);
-      for (final m in msgs.where((m) => m.image != null)) {
-        expect(File('assets/images/mesaj/${m.image}.jpg').existsSync(), isTrue, reason: m.image);
-      }
-    });
-
-    test('Günün mesajı güne göre: kandil, bayram, Ramazan, cuma, diğer günler', () async {
-      final msgs = await MessageData.all();
-      final dini = TakvimData.parse(File('assets/data/takvim.json').readAsStringSync()).religious;
-      String cat(DateTime d) => msgs[dailyMessageIndex(msgs, d, dini)].category;
-      expect(cat(DateTime(2027, 1, 4)), 'kandil'); // Miraç Kandili
-      expect(cat(DateTime(2027, 3, 8)), 'bayram'); // arefe
-      expect(cat(DateTime(2027, 5, 19)), 'bayram'); // Kurban Bayramı 4. gün
-      expect(cat(DateTime(2027, 5, 20)), isNot('bayram'));
-      expect(cat(DateTime(2027, 2, 19)), 'ramazan'); // Ramazan'da cuma da olsa
-      expect(cat(DateTime(2026, 10, 2)), 'cuma');
-      expect(['sabah', 'dua'], contains(cat(DateTime(2026, 9, 29))));
+      final files = Directory('assets/images/mesaj').listSync().map((f) => f.uri.pathSegments.last).toSet();
+      expect(files, {for (final id in ids) '$id.webp'}); // kullanılmayan görsel kalmasın
+      // Cuma'dan perşembeye aynı kart, sonraki cuma bir sonraki.
+      final w = weeklyMessageIndex(DateTime(2026, 10, 2));
+      expect(weeklyMessageIndex(DateTime(2026, 10, 8)), w);
+      expect(weeklyMessageIndex(DateTime(2026, 10, 9)), (w + 1) % kMessageCards.length);
+      expect(weeklyMessageIndex(DateTime(2026, 1, 2)), 0);
     });
 
     test('Ramazan: 2027 takvimi tutarlı', () async {
@@ -137,8 +111,7 @@ void main() {
             QuranData.load(),
             DuaData.all(),
             DuaData.namaz(),
-            MessageData.all(),
-            RamazanData.load(),
+                        RamazanData.load(),
             EsmaName.all(),
             FastingLog.get(),
             ReadingPrefs.get(),
@@ -184,13 +157,12 @@ void main() {
       expect(find.text('Abdestin Farzları (4)'), findsOneWidget);
     });
 
-    testWidgets('Dini Mesajlar: kategori ve favori', (t) async {
+    testWidgets('Dini Mesajlar: bu cumanın kartı ve favoriler', (t) async {
       await pump(t, const MessagesScreen());
-      expect(find.text('Günün Mesajı'), findsOneWidget);
-      await t.tap(find.text('Kandil'));
+      expect(find.text('BU CUMANIN KARTI'), findsOneWidget);
+      await t.tap(find.text('Favoriler'));
       await t.pumpAndSettle();
-      await t.scrollUntilVisible(find.text('20 mesaj'), 200, scrollable: find.byType(Scrollable).first);
-      expect(find.text('20 mesaj'), findsOneWidget);
+      expect(find.textContaining('Henüz favori kartınız yok'), findsOneWidget);
     });
 
     testWidgets('Ramazan: panel ve sekmeler', (t) async {

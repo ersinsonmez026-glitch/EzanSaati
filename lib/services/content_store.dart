@@ -4,7 +4,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'takvim.dart';
 
 // ---------------------------------------------------------------------------
 // Kur'an: assets/data/kuran.json
@@ -182,109 +181,80 @@ class EsmaName {
 }
 
 // ---------------------------------------------------------------------------
-// Dini Mesajlar: assets/data/mesajlar.json (96 hazır mesaj)
-// Ayetli mesajlarda meal Ruvvâd Tercüme Merkezi (QuranEnc.com) mealidir; uzun ayetlerden birebir
-// alıntı yapılır, atlanan yerler "…" ile gösterilir. Kaynak: "Talâk Sûresi, 2-3" gibi.
+// Dini Mesajlar: hazır "Hayırlı Cumalar" kartları (assets/images/mesaj/*.webp)
+// Kartlardaki ayet mealleri ve sûre/ayet numaraları tek tek kontrol edildi; yazım hatası, yanlış
+// numara ya da mealden uzak ifadesi olan kartlar alınmadı.
 // ---------------------------------------------------------------------------
 
-class ReligiousMessage {
-  final int index; // dosyadaki sırası (favori anahtarı)
-  final String category; // cuma, kandil, ramazan, bayram, sabah, dua
-  final String background; // photo, arch, night, paper, split
-  final String? image; // photo/split için kategori görseli
-  final String? palette; // arch/night/paper/split için renk
-  final String title;
-  final String? body; // ayetsiz mesajın metni
-  final String? verse; // ayet meali
-  final String? verseRef; // "Cuma Sûresi, 9"
+class MessageCardImage {
+  final String id; // görsel dosyasının adı (favori anahtarı)
+  final String ref; // kartın altındaki kaynak: "Fâtiha, 1/1"
 
-  const ReligiousMessage({
-    required this.index,
-    required this.category,
-    required this.background,
-    required this.title,
-    this.image,
-    this.palette,
-    this.body,
-    this.verse,
-    this.verseRef,
-  });
+  const MessageCardImage(this.id, this.ref);
 
-  bool get hasVerse => verse != null;
-
-  factory ReligiousMessage.fromJson(int index, Map<String, dynamic> j) {
-    final a = j['a'] as Map<String, dynamic>?;
-    return ReligiousMessage(
-      index: index,
-      category: j['c'] as String,
-      background: j['bg'] as String,
-      image: j['img'] as String?,
-      palette: j['p'] as String?,
-      title: j['t'] as String,
-      body: j['b'] as String?,
-      verse: a?['x'] as String?,
-      verseRef: a?['r'] as String?,
-    );
-  }
-
-  /// Kopyalama metni (önizlemedeki biçim).
-  String get shareText =>
-      '$title\n${hasVerse ? '“$verse” ($verseRef)' : (body ?? '')}\n\n— Ezan Saati uygulamasından gönderildi';
+  String get asset => 'assets/images/mesaj/$id.webp';
 }
 
-const kMessageCategories = {
-  'cuma': 'Cuma',
-  'kandil': 'Kandil',
-  'ramazan': 'Ramazan',
-  'bayram': 'Bayram',
-  'sabah': 'Hayırlı Sabahlar',
-  'dua': 'Dua',
-};
+const kMessageCards = [
+  MessageCardImage('fatiha_1', 'Fâtiha, 1/1'),
+  MessageCardImage('fatiha_2', 'Fâtiha, 1/2'),
+  MessageCardImage('fatiha_3', 'Fâtiha, 1/3'),
+  MessageCardImage('fatiha_4', 'Fâtiha, 1/4'),
+  MessageCardImage('fatiha_5', 'Fâtiha, 1/5'),
+  MessageCardImage('fatiha_6', 'Fâtiha, 1/6'),
+  MessageCardImage('bakara_148a', 'Bakara, 2/148'),
+  MessageCardImage('bakara_148b', 'Bakara, 2/148'),
+  MessageCardImage('bakara_152', 'Bakara, 2/152'),
+  MessageCardImage('bakara_153', 'Bakara, 2/153'),
+  MessageCardImage('bakara_195', 'Bakara, 2/195'),
+  MessageCardImage('bakara_201', 'Bakara, 2/201'),
+  MessageCardImage('bakara_222', 'Bakara, 2/222'),
+  MessageCardImage('bakara_286a', 'Bakara, 2/286'),
+  MessageCardImage('bakara_286b', 'Bakara, 2/286'),
+  MessageCardImage('aliimran_134a', 'Âl-i İmrân, 3/134'),
+  MessageCardImage('aliimran_159a', 'Âl-i İmrân, 3/159'),
+  MessageCardImage('aliimran_159b', 'Âl-i İmrân, 3/159'),
+  MessageCardImage('aliimran_160a', 'Âl-i İmrân, 3/160'),
+  MessageCardImage('aliimran_160b', 'Âl-i İmrân, 3/160'),
+  MessageCardImage('nisa_40', 'Nisâ, 4/40'),
+  MessageCardImage('nisa_69', 'Nisâ, 4/69'),
+  MessageCardImage('nisa_103', 'Nisâ, 4/103'),
+  MessageCardImage('maide_2', 'Mâide, 5/2'),
+  MessageCardImage('maide_23', 'Mâide, 5/23'),
+  MessageCardImage('maide_42', 'Mâide, 5/42'),
+  MessageCardImage('enam_101', "En'âm, 6/101"),
+  MessageCardImage('araf_56', "A'râf, 7/56"),
+  MessageCardImage('yusuf_90', 'Yûsuf, 12/90'),
+  MessageCardImage('rad_28', "Ra'd, 13/28"),
+  MessageCardImage('nahl_18', 'Nahl, 16/18'),
+  MessageCardImage('nahl_90', 'Nahl, 16/90'),
+  MessageCardImage('taha_114', 'Tâhâ, 20/114'),
+  MessageCardImage('enbiya_107', 'Enbiyâ, 21/107'),
+  MessageCardImage('nur_35a', 'Nûr, 24/35'),
+  MessageCardImage('nur_35b', 'Nûr, 24/35'),
+  MessageCardImage('kasas_24', 'Kasas, 28/24'),
+  MessageCardImage('ankebut_69a', 'Ankebût, 29/69'),
+  MessageCardImage('ankebut_69b', 'Ankebût, 29/69'),
+  MessageCardImage('secde_7', 'Secde, 32/7'),
+  MessageCardImage('muhammed_12', 'Muhammed, 47/12'),
+  MessageCardImage('talak_2', 'Talâk, 65/2'),
+  MessageCardImage('talak_3a', 'Talâk, 65/3'),
+  MessageCardImage('insirah_5', 'İnşirâh, 94/5'),
+  MessageCardImage('insirah_6', 'İnşirâh, 94/6'),
+  MessageCardImage('insirah_7', 'İnşirâh, 94/7-8'),
+  MessageCardImage('ihlas_1', 'İhlâs, 112/1'),
+  MessageCardImage('ihlas_3', 'İhlâs, 112/3'),
+  MessageCardImage('ihlas_4', 'İhlâs, 112/4'),
+];
 
-const kMessageFavKey = 'mesaj_fav_v2'; // mesaj listesi yenilenince sıra değişti, eski favoriler karışmasın
+const kMessageFavKey = 'mesaj_kart_fav'; // kartlar değişti, eski favoriler karışmasın
 
-/// Günün mesajının türü: kandil günü kandil, bayram (ve arefesi) bayram, Ramazan ayı Ramazan,
-/// cuma günü cuma, diğer günler sabah ve dua mesajları (Diyanet dinî günler takvimine göre).
-Set<String> dailyMessageCategories(DateTime day, List<ReligiousDay> religious) {
-  final d = DateTime(day.year, day.month, day.day);
-  DateTime? ramazanStart;
-  for (final e in religious) {
-    final gun = int.tryParse(RegExp(r'\((\d+) gün\)').firstMatch(e.name)?.group(1) ?? '') ?? 1;
-    final end = e.date.add(Duration(days: gun - 1));
-    if (!d.isBefore(e.date) && !d.isAfter(end)) {
-      if (e.name.contains('Kandili')) return {'kandil'};
-      if (e.name.contains('Bayramı')) return {'bayram'}; // arefe dahil
-    }
-    if (e.name == 'Ramazan Başlangıcı') ramazanStart = e.date;
-    if (ramazanStart != null &&
-        e.name.startsWith('Ramazan Bayramı') &&
-        !d.isBefore(ramazanStart) &&
-        d.isBefore(e.date)) {
-      return {'ramazan'};
-    }
-  }
-  if (d.weekday == DateTime.friday) return {'cuma'};
-  return {'sabah', 'dua'};
-}
-
-/// Günün mesajı: [dailyMessageCategories] içinden her gün sıradaki mesaj.
-int dailyMessageIndex(List<ReligiousMessage> all, DateTime day, List<ReligiousDay> religious) {
-  final cats = dailyMessageCategories(day, religious);
-  final pool = [
-    for (var i = 0; i < all.length; i++)
-      if (cats.contains(all[i].category)) i
-  ];
-  return pool.isEmpty ? dayOfYear(day) % all.length : pool[dayOfYear(day) % pool.length];
-}
-
-class MessageData {
-  static Future<List<ReligiousMessage>>? _all;
-
-  static Future<List<ReligiousMessage>> all() => _all ??= () async {
-        final raw = await rootBundle.loadString('assets/data/mesajlar.json');
-        final list = jsonDecode(raw) as List<dynamic>;
-        return [for (var i = 0; i < list.length; i++) ReligiousMessage.fromJson(i, list[i] as Map<String, dynamic>)];
-      }();
+/// Bu haftanın kartı: her hafta (cuma günü) sıradaki kart.
+int weeklyMessageIndex(DateTime day) {
+  final d = DateTime.utc(day.year, day.month, day.day);
+  final friday = d.subtract(Duration(days: (d.weekday - DateTime.friday) % 7)); // son cuma (bugün dahil)
+  final weeks = friday.difference(DateTime.utc(2026, 1, 2)).inDays ~/ 7; // 2 Ocak 2026 cuma
+  return weeks % kMessageCards.length;
 }
 
 // ---------------------------------------------------------------------------
