@@ -1,0 +1,110 @@
+name: Serbest lisanslı ses arama
+
+# Ezan ve namaz duaları için serbest lisanslı (CC0 / CC BY / CC BY-SA / kamu malı) ses kayıtlarını
+# Wikimedia Commons ve Internet Archive'da arar; başlık, süre, lisans ve yükleyeni listeler.
+# Yalnız bilgi toplar; hiçbir dosyayı uygulamaya eklemez.
+
+on:
+  workflow_dispatch:
+
+jobs:
+  ara:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Wikimedia Commons ve Internet Archive'da ara
+        run: |
+          python3 - <<'EOF'
+          import json, re, urllib.parse, urllib.request
+
+          UA = {'User-Agent': 'EzanSaati-ses-arama/1.0 (github actions)'}
+
+          def get(url):
+              req = urllib.request.Request(url, headers=UA)
+              with urllib.request.urlopen(req, timeout=40) as r:
+                  return json.loads(r.read().decode('utf-8'))
+
+          groups = {
+              'EZAN': ['ezan', 'adhan', 'azan', 'athan', 'call to prayer', 'أذان', 'ezan-ı muhammedi', 'sabah ezanı'],
+              'SÜBHÂNEKE': ['subhaneke', 'subhanaka allahumma', 'sübhaneke', 'thana dua', 'سبحانك اللهم'],
+              'ETTEHİYYÂTÜ': ['tashahhud', 'attahiyyat', 'ettehiyyatu', 'tahiyyat', 'التحيات'],
+              'SALLİ-BÂRİK': ['salawat ibrahimiyya', 'allahumma salli', 'allahumme salli', 'durood ibrahim', 'salli barik', 'الصلاة الإبراهيمية'],
+              'KUNUT': ['qunut', 'kunut duası', 'dua qunoot', 'قنوت'],
+              'RABBENÂ': ['rabbana atina', 'rabbena atina', 'rabbenagfirli'],
+              'EZAN DUASI': ['ezan duası', 'dua after adhan', 'allahumma rabba hadhihi'],
+              'FATİHA/NAMAZ': ['namaz duaları', 'salah recitation', 'prayer recitation arabic'],
+          }
+
+          def commons(term):
+              q = urllib.parse.urlencode({
+                  'action': 'query', 'format': 'json', 'generator': 'search', 'gsrnamespace': 6,
+                  'gsrsearch': f'{term} filetype:audio', 'gsrlimit': 25,
+                  'prop': 'imageinfo', 'iiprop': 'url|size|mime|extmetadata|metadata|user',
+              })
+              data = get('https://commons.wikimedia.org/w/api.php?' + q)
+              out = []
+              for p in (data.get('query', {}).get('pages', {}) or {}).values():
+                  ii = (p.get('imageinfo') or [{}])[0]
+                  em = ii.get('extmetadata', {})
+                  lic = em.get('LicenseShortName', {}).get('value', '?')
+                  artist = re.sub('<[^>]+>', '', em.get('Artist', {}).get('value', '')).strip()[:60]
+                  desc = re.sub('<[^>]+>', '', em.get('ImageDescription', {}).get('value', '')).strip().replace('\n', ' ')[:140]
+                  length = ''
+                  for m in ii.get('metadata') or []:
+                      if m.get('name') in ('length', 'playtime_seconds'):
+                          try: length = f"{float(m['value']):.0f} sn"
+                          except Exception: pass
+                  out.append((p.get('title', ''), lic, artist, length, ii.get('size', 0), ii.get('descriptionurl', ''), desc))
+              return out
+
+          def archive(term):
+              q = urllib.parse.urlencode([
+                  ('q', f'({term}) AND mediatype:audio AND licenseurl:*'),
+                  ('fl[]', 'identifier'), ('fl[]', 'title'), ('fl[]', 'licenseurl'), ('fl[]', 'creator'),
+                  ('rows', 15), ('output', 'json'),
+              ])
+              data = get('https://archive.org/advancedsearch.php?' + q)
+              return [(d.get('title', ''), d.get('licenseurl', ''), str(d.get('creator', ''))[:60],
+                       'https://archive.org/details/' + d.get('identifier', ''))
+                      for d in data.get('response', {}).get('docs', [])]
+
+          ok_lic = re.compile(r'(cc0|cc[ -]by|public domain|pd|kamu)', re.I)
+          report = {}
+          for group, terms in groups.items():
+              seen = set()
+              print(f'\n==================== {group} ====================')
+              for t in terms:
+                  try:
+                      rows = commons(t)
+                  except Exception as e:
+                      print(f'  [Commons hata: {t}] {e}')
+                      rows = []
+                  for title, lic, artist, length, size, url, desc in rows:
+                      if title in seen: continue
+                      seen.add(title)
+                      mark = 'UYGUN ' if ok_lic.search(lic) else 'bakın '
+                      print(f'  [{mark}] {title} | {lic} | {artist} | {length} | {size//1024} KB')
+                      print(f'           {url}')
+                      if desc: print(f'           {desc}')
+                      report.setdefault(group, []).append(dict(src='commons', title=title, license=lic, artist=artist,
+                                                                length=length, url=url, desc=desc))
+              for t in terms[:4]:
+                  try:
+                      rows = archive(t)
+                  except Exception as e:
+                      print(f'  [Archive hata: {t}] {e}')
+                      rows = []
+                  for title, lic, creator, url in rows:
+                      if url in seen: continue
+                      seen.add(url)
+                      print(f'  [archive] {title} | {lic} | {creator}')
+                      print(f'           {url}')
+                      report.setdefault(group, []).append(dict(src='archive', title=title, license=lic, artist=creator, url=url))
+          json.dump(report, open('ses-arama.json', 'w'), ensure_ascii=False, indent=1)
+          print('\nToplam:', {k: len(v) for k, v in report.items()})
+          EOF
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ses-arama
+          path: ses-arama.json
+          retention-days: 14
