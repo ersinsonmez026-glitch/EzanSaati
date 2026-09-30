@@ -149,6 +149,9 @@ class EzanNotifications extends ChangeNotifier {
   static const horizonDays = 10;
 
   final _plugin = FlutterLocalNotificationsPlugin();
+
+  /// Uygulama açıkken bildirime dokunulunca (ör. Dua Zinciri daveti) çağrılır; içerik [payload].
+  static void Function(String? payload)? onTap;
   EzanSettings settings = EzanSettings();
   bool _ready = false;
 
@@ -187,6 +190,7 @@ class EzanNotifications extends ChangeNotifier {
     }
     await _plugin.initialize(
       settings: const InitializationSettings(android: AndroidInitializationSettings('@mipmap/ic_launcher')),
+      onDidReceiveNotificationResponse: (r) => onTap?.call(r.payload),
     );
     _ready = true;
   }

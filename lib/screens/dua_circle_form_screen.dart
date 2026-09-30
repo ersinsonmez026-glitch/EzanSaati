@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../services/circle_people.dart';
 import '../services/circle_sync.dart';
 import '../services/dua_circle_store.dart';
 import '../widgets/page_shell.dart';
@@ -69,8 +70,9 @@ class _DuaCircleFormScreenState extends State<DuaCircleFormScreen> {
       _rows.add(_Row(CircleMember(name: 'Ben', status: MemberStatus.me)));
       _even();
     }
+    CirclePeople.instance.load();
     if (widget.addPerson) {
-      WidgetsBinding.instance.addPostFrameCallback((_) => _pickContact());
+      WidgetsBinding.instance.addPostFrameCallback((_) => _addPeople());
     }
   }
 
@@ -125,7 +127,32 @@ class _DuaCircleFormScreenState extends State<DuaCircleFormScreen> {
       return;
     }
     if (r == null || !mounted) return;
+    CirclePeople.instance.add(r.$1, r.$2); // bir kez eklenen kişi sonraki zincirlerde Kişilerim'den seçilir
     _addPerson(r.$1, r.$2);
+  }
+
+  /// Kişilerim listesi boşsa doğrudan rehberi, doluysa listeyi açar.
+  Future<void> _addPeople() => CirclePeople.instance.people.isEmpty ? _pickContact() : _pickSaved();
+
+  /// Kişilerim listesinden işaretleyerek seçme (listede olmayan kişi rehberden eklenir).
+  Future<void> _pickSaved() async {
+    final taken = {for (final r in _rows) waNumber(r.member.phone)}..remove('');
+    final list = CirclePeople.instance.people.where((p) => !taken.contains(waNumber(p.phone))).toList();
+    final picked = await showModalBottomSheet<List<CirclePerson>>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: _pal.paper,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (_) => _PeopleSheet(pal: _pal, people: list),
+    );
+    if (picked == null || !mounted) return;
+    if (picked.isEmpty) {
+      await _pickContact();
+      return;
+    }
+    for (final p in picked) {
+      _addPerson(p.name, p.phone);
+    }
   }
 
   void _addPerson(String name, String phone) {
@@ -388,15 +415,17 @@ class _DuaCircleFormScreenState extends State<DuaCircleFormScreen> {
               const SizedBox(height: 10),
               Row(
                 children: [
-                  Expanded(child: _lightButton(Icons.contacts, 'Rehberden seç', _pickContact)),
-                  const SizedBox(width: 8),
+                  Expanded(child: _lightButton(Icons.group, 'Kişilerim', _pickSaved)),
+                  const SizedBox(width: 6),
+                  Expanded(child: _lightButton(Icons.contacts, 'Rehber', _pickContact)),
+                  const SizedBox(width: 6),
                   Expanded(child: _lightButton(Icons.balance, 'Eşit böl', _even)),
                 ],
               ),
               const SizedBox(height: 8),
               Text(
-                'Kişiler telefonunuzun rehberinden seçilir; listede olmayan kişiyi önce rehberinize ekleyin. '
-                'Rehber izni istenmez; yalnızca seçtiğiniz kişi eklenir. Paylar eşit olmak zorunda değildir.',
+                'Rehberden bir kez eklediğiniz kişiler Kişilerim listesine kaydedilir; sonraki zincirlerde oradan '
+                'seçersiniz. Numaralar yalnızca bu telefonda tutulur. Paylar eşit olmak zorunda değildir.',
                 style: TextStyle(color: _pal.ink2, fontSize: 11.5, height: 1.4),
               ),
             ],
@@ -677,6 +706,84 @@ class _NameDialogState extends State<_NameDialog> {
         TextButton(onPressed: () => Navigator.pop(context), child: const Text('Vazgeç')),
         TextButton(onPressed: () => Navigator.pop(context, _ctl.text.trim()), child: const Text('Devam')),
       ],
+    );
+  }
+}
+
+/// Kişilerim'den çoklu seçim. Boş liste dönerse rehber açılır.
+class _PeopleSheet extends StatefulWidget {
+  final PagePalette pal;
+  final List<CirclePerson> people;
+
+  const _PeopleSheet({required this.pal, required this.people});
+
+  @override
+  State<_PeopleSheet> createState() => _PeopleSheetState();
+}
+
+class _PeopleSheetState extends State<_PeopleSheet> {
+  final _sel = <CirclePerson>{};
+
+  @override
+  Widget build(BuildContext context) {
+    final pal = widget.pal;
+    return SafeArea(
+      child: ConstrainedBox(
+        constraints: BoxConstraints(maxHeight: MediaQuery.sizeOf(context).height * 0.75),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 6),
+              child: Text('Kişilerim', style: TextStyle(color: pal.ink, fontSize: 17, fontWeight: FontWeight.w700)),
+            ),
+            if (widget.people.isEmpty)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 4, 20, 12),
+                child: Text('Listede eklenecek kişi yok. Rehberden ekleyebilirsiniz.',
+                    style: TextStyle(color: pal.ink2, fontSize: 13)),
+              ),
+            Flexible(
+              child: ListView(
+                shrinkWrap: true,
+                children: [
+                  for (final p in widget.people)
+                    CheckboxListTile(
+                      value: _sel.contains(p),
+                      activeColor: pal.gold,
+                      onChanged: (v) => setState(() => v == true ? _sel.add(p) : _sel.remove(p)),
+                      title: Text(p.name, style: TextStyle(color: pal.ink, fontWeight: FontWeight.w600)),
+                      subtitle: Text(p.inApp ? 'Uygulamada · davet uygulamadan gider' : 'WhatsApp ile davet edilir',
+                          style: TextStyle(color: p.inApp ? pal.gold : pal.ink2, fontSize: 12)),
+                    ),
+                ],
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: () => Navigator.pop(context, const <CirclePerson>[]),
+                      icon: const Icon(Icons.contacts, size: 18),
+                      label: const Text('Rehberden ekle'),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: FilledButton(
+                      onPressed: _sel.isEmpty ? null : () => Navigator.pop(context, _sel.toList()),
+                      child: Text(_sel.isEmpty ? 'Ekle' : '${_sel.length} kişi ekle'),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

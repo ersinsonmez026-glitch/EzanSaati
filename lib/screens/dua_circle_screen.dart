@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../services/circle_people.dart';
 import '../services/circle_sync.dart';
 import '../services/dua_circle_store.dart';
+import '../services/invite_watch.dart';
 import '../widgets/page_shell.dart';
 import '../widgets/reading_ui.dart';
 import 'dua_circle_form_screen.dart';
@@ -25,6 +27,7 @@ class _DuaCircleScreenState extends State<DuaCircleScreen> {
   PagePalette get _pal => PagePalette.current(); // Gündüz/Gece değişince hemen yenilensin
   final _store = DuaCircleStore.instance;
   final _sync = CircleSync.instance;
+  final _people = CirclePeople.instance;
   final _nameCtl = TextEditingController();
   final _phoneCtl = TextEditingController();
   final _codeCtl = TextEditingController();
@@ -37,6 +40,8 @@ class _DuaCircleScreenState extends State<DuaCircleScreen> {
     super.initState();
     _store.addListener(_changed);
     _sync.addListener(_changed);
+    _people.addListener(_changed);
+    _people.load();
     _store.load().then((_) {
       if (!mounted) return;
       final note = _store.takeCleanupNote();
@@ -51,7 +56,12 @@ class _DuaCircleScreenState extends State<DuaCircleScreen> {
     _nameCtl.text = _sync.profileName;
     _phoneCtl.text = _sync.profilePhone;
     final code = normalizeCode(widget.inviteCode ?? '');
-    if (code.isEmpty) return;
+    if (widget.inviteCode != null) setState(() => _menu = 'inv'); // davet bağlantısı ya da bildirimi
+    if (code.isEmpty) {
+      // İlk girişte ad ve numara: size gelen davetler uygulamada kendiliğinden görünsün diye.
+      if (_sync.ready && _sync.profilePhone.isEmpty) await _askProfile();
+      return;
+    }
     setState(() => _menu = 'inv');
     _codeCtl.text = formatCode(code);
     if (!_sync.ready) {
@@ -68,10 +78,56 @@ class _DuaCircleScreenState extends State<DuaCircleScreen> {
     }
   }
 
+  /// Ad ve numara sorusu. Numara sunucuya yazılmaz, yalnız özeti yazılır.
+  Future<void> _askProfile() async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Dua Zinciri\'ne hoş geldiniz'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const Text(
+              'Size gönderilen davetlerin uygulamada kendiliğinden görünmesi için adınızı ve numaranızı bir kez '
+              'kaydedin. Numaranız kimseye gösterilmez.',
+              style: TextStyle(fontSize: 13.5, height: 1.4),
+            ),
+            const SizedBox(height: 10),
+            TextField(
+              key: const Key('askName'),
+              controller: _nameCtl,
+              textCapitalization: TextCapitalization.words,
+              decoration: const InputDecoration(labelText: 'Adınız'),
+            ),
+            TextField(
+              key: const Key('askPhone'),
+              controller: _phoneCtl,
+              keyboardType: TextInputType.phone,
+              decoration: const InputDecoration(labelText: 'Telefon numaranız', hintText: '05xx xxx xx xx'),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Sonra')),
+          FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Kaydet')),
+        ],
+      ),
+    );
+    if (ok != true || !mounted) return;
+    if (waNumber(_phoneCtl.text).isEmpty) {
+      showNote(context, 'Numara eksik görünüyor. Ayarlar bölümünden tekrar kaydedebilirsiniz.');
+      return;
+    }
+    await _run(() => _sync.saveProfile(_nameCtl.text, _phoneCtl.text), ok: 'Kaydedildi');
+    await InviteWatch.requestPermission(); // uygulama kapalıyken davet bildirimi gelebilsin
+  }
+
   @override
   void dispose() {
     _store.removeListener(_changed);
     _sync.removeListener(_changed);
+    _people.removeListener(_changed);
     _nameCtl.dispose();
     _phoneCtl.dispose();
     _codeCtl.dispose();
@@ -108,7 +164,7 @@ class _DuaCircleScreenState extends State<DuaCircleScreen> {
       _menu = 'mine';
       _selected = c.id;
     });
-    _invite(c);
+    _invite(c, auto: true);
   }
 
   Future<void> _edit(DuaCircle c, {bool addPerson = false}) async {
@@ -119,8 +175,8 @@ class _DuaCircleScreenState extends State<DuaCircleScreen> {
     if (r.pending.isNotEmpty) _invite(r);
   }
 
-  void _invite(DuaCircle c) {
-    Navigator.of(context).push(AppRoute(builder: (_) => DuaCircleInviteScreen(circle: c)));
+  void _invite(DuaCircle c, {bool auto = false}) {
+    Navigator.of(context).push(AppRoute(builder: (_) => DuaCircleInviteScreen(circle: c, autoSend: auto)));
   }
 
   @override
@@ -181,6 +237,7 @@ class _DuaCircleScreenState extends State<DuaCircleScreen> {
       ('act', Icons.schedule, 'Devam Eden', '$act zincir'),
       ('fin', Icons.verified, 'Tamamlanan', '${all.length - act} zincir'),
       ('inv', Icons.mail, 'Davetler', inv > 0 ? '$inv bekliyor' : 'Yok'),
+      ('people', Icons.contacts, 'Kişilerim', '${_people.people.length} kişi'),
       ('online', Icons.groups, 'Online Dua', 'Toplam'),
       ('set', Icons.settings, 'Ayarlar', 'Profil, kurallar'),
     ];
@@ -232,6 +289,8 @@ class _DuaCircleScreenState extends State<DuaCircleScreen> {
                 'Size gelen davetleri Davetler bölümünden kabul edebilirsiniz.');
       case 'inv':
         return _invites();
+      case 'people':
+        return _peoplePane();
       case 'online':
         return _online();
       default:
@@ -551,6 +610,79 @@ class _DuaCircleScreenState extends State<DuaCircleScreen> {
             _sync.profilePhone.isEmpty
                 ? 'Numaranızı Ayarlar bölümüne kaydederseniz size gelen davetler burada kendiliğinden görünür.'
                 : 'Numaranıza gelen davetler burada kendiliğinden görünür.',
+            size: 11.5),
+      ],
+    );
+  }
+
+  /// Kişilerim: rehberden bir kez eklenen kişiler. Uygulamada olanlara davet uygulamadan gider;
+  /// olmayanlara uygulama WhatsApp ile önerilir (zincir kurmak gerekmez).
+  Widget _peoplePane() {
+    final list = _people.people;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _heading('Kişilerim', sub: 'Numaralar yalnızca bu telefonda'),
+        if (list.isEmpty)
+          _paneText('Henüz kişi yok. Rehberden eklediğiniz kişiler burada kalır; yeni zincirde buradan seçersiniz.',
+              size: 12.5),
+        for (final p in list)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(10, 0, 10, 6),
+            child: Container(
+              padding: const EdgeInsets.fromLTRB(10, 7, 6, 7),
+              decoration: BoxDecoration(
+                gradient: RC.darkPanel,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: RC.gold(0.6)),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(p.name,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(color: RC.goldText, fontSize: 13.5, fontWeight: FontWeight.w700)),
+                        Text(p.inApp ? 'Uygulamada' : 'Uygulama yok',
+                            style: TextStyle(color: p.inApp ? const Color(0xFF7FD69A) : RC.creamSoft, fontSize: 11.5)),
+                      ],
+                    ),
+                  ),
+                  if (!p.inApp)
+                    _SmallButton(
+                      label: 'Öner',
+                      color: const Color(0xFF1FAA55),
+                      onTap: () => _openWhatsApp(waNumber(p.phone), appSuggestMessage()),
+                    ),
+                  IconButton(
+                    tooltip: 'Listeden çıkar',
+                    visualDensity: VisualDensity.compact,
+                    icon: const Icon(Icons.close, size: 18, color: RC.creamSoft),
+                    onPressed: () => _people.remove(p),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(10, 4, 10, 8),
+          child: _GoldButton(
+            label: 'Rehberden ekle',
+            onTap: () async {
+              try {
+                final r = await ContactPicker.pick();
+                if (r != null) _people.add(r.$1, r.$2);
+              } on UnsupportedError {
+                if (mounted) showNote(context, 'Rehber açılamadı.');
+              }
+            },
+          ),
+        ),
+        _paneText('"Öner": WhatsApp açılır, uygulamanın indirme bağlantısı hazır gelir. Uygulamayı kuran ve bir '
+            'davetinizi kabul eden kişiye sonraki davetler doğrudan uygulamadan gider.',
             size: 11.5),
       ],
     );
@@ -969,8 +1101,11 @@ class _DuaCircleScreenState extends State<DuaCircleScreen> {
               // Uygulamadan katılan kişi ilerlemesini kendisi günceller.
               if (!m.isPending && m.uid == null)
                 item(Icons.edit_note, 'Okuduğu sayıyı gir', () => _askDone(c, m), sub: 'Size bildirdiği okuma sayısı'),
-              item(Icons.chat, 'WhatsApp ile yaz', wa.isEmpty ? null : () => _openWhatsApp(wa, inviteMessage(c, m)),
-                  sub: wa.isEmpty ? 'Telefon numarası yok' : null),
+              item(Icons.chat, m.isPending ? 'WhatsApp\'tan hatırlat' : 'WhatsApp ile yaz',
+                  wa.isEmpty ? null : () => _openWhatsApp(wa, inviteMessage(c, m)),
+                  sub: wa.isEmpty
+                      ? 'Telefon numarası yok'
+                      : (m.isPending ? 'Davet mesajı hazır açılır; gönder tuşuna siz basarsınız' : null)),
               if (m.done == 0)
                 item(Icons.person_remove, 'Zincirden çıkar', () => _store.removeMember(c, m), sub: 'Payı size döner'),
               const SizedBox(height: 8),
@@ -1538,6 +1673,32 @@ class _NumberDialogState extends State<_NumberDialog> {
           child: const Text('Kaydet'),
         ),
       ],
+    );
+  }
+}
+
+/// Küçük renkli düğme (Kişilerim satırında "Öner").
+class _SmallButton extends StatelessWidget {
+  final String label;
+  final Color color;
+  final VoidCallback onTap;
+
+  const _SmallButton({required this.label, required this.color, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          height: 30,
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          alignment: Alignment.center,
+          decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(9)),
+          child: Text(label, style: const TextStyle(color: Colors.white, fontSize: 12.5, fontWeight: FontWeight.w700)),
+        ),
+      ),
     );
   }
 }

@@ -1,4 +1,5 @@
 import 'package:ezan_saati/screens/dua_circle_screen.dart';
+import 'package:ezan_saati/services/circle_people.dart';
 import 'package:ezan_saati/services/dua_circle_store.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -106,6 +107,19 @@ void main() {
     });
   });
 
+  test('Kişilerim: aynı numara bir kez eklenir; kabul eden uygulamada sayılır', () {
+    final p = CirclePeople.instance..replaceAll([]);
+    p.add('Ali', '0532 111 22 33');
+    p.add('Ali Yılmaz', '+90 532 111 22 33'); // aynı numara: yalnız ad güncellenir
+    p.add('Numarasız', '');
+    expect(p.people.length, 1);
+    expect(p.people.single.name, 'Ali Yılmaz');
+    expect(p.isInApp('05321112233'), isFalse);
+    p.markInApp(['905321112233']);
+    expect(p.isInApp('0532 111 22 33'), isTrue);
+    expect(appSuggestMessage(), endsWith(kAppLink));
+  });
+
   testWidgets('Davet bağlantısıyla açılınca Davetler bölümü açılır', (t) async {
     t.view.physicalSize = const Size(390, 844);
     t.view.devicePixelRatio = 1;
@@ -160,11 +174,13 @@ void main() {
     );
     addTearDown(() => t.binding.defaultBinaryMessenger
         .setMockMethodCallHandler(const MethodChannel('ezan_saati/contacts'), null));
-    await show(find.text('Rehberden seç'));
-    await t.tap(find.text('Rehberden seç'));
+    await show(find.text('Rehber'));
+    await t.tap(find.text('Rehber'));
     await t.pumpAndSettle();
     expect(find.text('Ali Yılmaz'), findsOneWidget);
     expect(find.text('110 / 110'), findsOneWidget);
+    // Rehberden eklenen kişi Kişilerim'e kaydedilir
+    expect(CirclePeople.instance.find('0532 111 22 33')?.name, 'Ali Yılmaz');
 
     // Payı elle değiştir: toplam tutmazsa uyarı
     final myShare = find.byKey(const ValueKey('share:me'));

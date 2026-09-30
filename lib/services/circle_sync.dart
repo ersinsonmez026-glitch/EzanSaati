@@ -11,6 +11,7 @@ import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../firebase_options.dart';
+import 'circle_people.dart';
 import 'dua_circle_store.dart';
 
 /// Dua Zinciri'nin ortak (sunuculu) kısmı: Firebase ücretsiz Spark planı.
@@ -294,7 +295,14 @@ class CircleSync extends ChangeNotifier {
       final docs = _memberDocs[e.key];
       if (docs == null) continue;
       final c = circleFromFirestore(e.key, e.value, [for (final d in docs) (d.id, d.data())], _uid ?? '', phones);
-      if (c.mine) _ownerCleanup(c, now);
+      if (c.mine) {
+        _ownerCleanup(c, now);
+        // Daveti uygulamadan kabul eden kişi uygulamayı kullanıyor: sonraki davetler ona uygulamadan gider.
+        CirclePeople.instance.markInApp([
+          for (final m in c.members)
+            if (!m.isMe && m.uid != null && m.phone.isNotEmpty) m.phone
+        ]);
+      }
       // Süresi geçmiş ve tamamlanmamış zincirler üyelere gösterilmez (kurucu silene kadar).
       if (!c.isComplete && !now.isBefore(c.deadline)) continue;
       list.add(c);
