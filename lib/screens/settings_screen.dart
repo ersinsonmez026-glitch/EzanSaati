@@ -6,6 +6,7 @@ import '../services/location_store.dart';
 import '../services/quran_audio.dart';
 import '../widgets/group_card.dart';
 import '../widgets/page_shell.dart';
+import '../widgets/premium_ui.dart';
 import '../widgets/reading_ui.dart';
 import 'about_screen.dart';
 import 'city_picker_screen.dart';
@@ -64,6 +65,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
       background: _pal.background,
       padding: const EdgeInsets.fromLTRB(12, 12, 12, 24),
       children: [
+        const PremiumBanner(),
+        gap,
         GroupCard(
           pal: _pal,
           art: 'cami_bulucu',

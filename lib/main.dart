@@ -10,6 +10,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'screens/dua_circle_screen.dart';
 import 'screens/home_screen.dart';
 import 'services/app_prefs.dart';
+import 'services/premium.dart';
 import 'services/ezan_notifications.dart';
 import 'services/home_widgets.dart';
 import 'services/invite_watch.dart';
@@ -35,6 +36,7 @@ Future<void> main() async {
   // Kayıtlı şehir/konum varsa açılışta yükle.
   await LocationStore.instance.load();
   await AppPrefs.instance.load();
+  await Premium.instance.load();
 
   // Ezan bildirimleri: her açılışta ve konum değişince önümüzdeki günler için yeniden kurulur.
   await EzanNotifications.instance.load();

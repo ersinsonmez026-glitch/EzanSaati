@@ -9,6 +9,7 @@ import '../services/hatim_plan.dart';
 import '../services/prayer_log.dart';
 import '../widgets/hatim_card.dart';
 import '../widgets/page_shell.dart';
+import '../widgets/premium_ui.dart';
 import '../widgets/reading_ui.dart';
 import 'dhikr_screen.dart';
 import 'fasting_tracker_screen.dart';
@@ -91,20 +92,6 @@ class _TrackingScreenState extends State<TrackingScreen> {
           const SizedBox(width: 6),
           Expanded(child: Text(title, style: TextStyle(color: _pal.ink, fontSize: 17, fontWeight: FontWeight.w700))),
           if (trailing != null) trailing,
-        ]),
-      );
-
-  Widget _premiumChip() => Container(
-        padding: const EdgeInsets.fromLTRB(7, 3, 9, 3),
-        decoration: BoxDecoration(
-          gradient: RC.bronze,
-          borderRadius: BorderRadius.circular(99),
-          border: Border.all(color: RC.bronzeBorder),
-        ),
-        child: const Row(mainAxisSize: MainAxisSize.min, children: [
-          Icon(Icons.workspace_premium, size: 13, color: RC.bronzeText),
-          SizedBox(width: 3),
-          Text('Premium', style: TextStyle(color: RC.bronzeText, fontSize: 11, fontWeight: FontWeight.w700)),
         ]),
       );
 
@@ -237,7 +224,7 @@ class _TrackingScreenState extends State<TrackingScreen> {
     }
 
     return [
-      _section(Icons.mosque, 'Namazlarım', trailing: _premiumChip()),
+      _section(Icons.mosque, 'Namazlarım'),
       PaperBox(
         pal: _pal,
         padding: const EdgeInsets.fromLTRB(10, 10, 10, 10),
@@ -277,36 +264,6 @@ class _TrackingScreenState extends State<TrackingScreen> {
                 for (final d in week) Expanded(child: Center(child: cell(d, p))),
               ]),
             ),
-        ]),
-      ),
-      gap,
-      PaperBox(
-        pal: _pal,
-        padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text('${_months[today.month - 1]} ${today.year}',
-              style: TextStyle(color: _pal.ink, fontSize: 15, fontWeight: FontWeight.w700)),
-          const SizedBox(height: 8),
-          Wrap(spacing: 4, runSpacing: 4, children: [for (var d = 1; d <= monthLen; d++) dayBox(d)]),
-          const SizedBox(height: 8),
-          Row(children: [
-            Text('Az', style: TextStyle(color: _pal.ink2, fontSize: 11)),
-            const SizedBox(width: 4),
-            for (var n = 1; n <= 5; n++)
-              Container(
-                width: 12,
-                height: 12,
-                margin: const EdgeInsets.only(right: 3),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(3),
-                  color: _pal.gold.withValues(alpha: 0.18 + 0.164 * n),
-                ),
-              ),
-            Text('5/5', style: TextStyle(color: _pal.ink2, fontSize: 11)),
-            const Spacer(),
-            Icon(Icons.pause, size: 13, color: _pal.ink2),
-            Text(' özel gün', style: TextStyle(color: _pal.ink2, fontSize: 11)),
-          ]),
           const SizedBox(height: 4),
           DashedLine(color: _pal.line),
           Row(children: [
@@ -326,6 +283,39 @@ class _TrackingScreenState extends State<TrackingScreen> {
             ),
           ]),
         ]),
+      ),
+      gap,
+      PremiumLocked(
+        text: 'Aylık namaz tablosu',
+        child: PaperBox(
+          pal: _pal,
+          padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text('${_months[today.month - 1]} ${today.year}',
+                style: TextStyle(color: _pal.ink, fontSize: 15, fontWeight: FontWeight.w700)),
+            const SizedBox(height: 8),
+            Wrap(spacing: 4, runSpacing: 4, children: [for (var d = 1; d <= monthLen; d++) dayBox(d)]),
+            const SizedBox(height: 8),
+            Row(children: [
+              Text('Az', style: TextStyle(color: _pal.ink2, fontSize: 11)),
+              const SizedBox(width: 4),
+              for (var n = 1; n <= 5; n++)
+                Container(
+                  width: 12,
+                  height: 12,
+                  margin: const EdgeInsets.only(right: 3),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(3),
+                    color: _pal.gold.withValues(alpha: 0.18 + 0.164 * n),
+                  ),
+                ),
+              Text('5/5', style: TextStyle(color: _pal.ink2, fontSize: 11)),
+              const Spacer(),
+              Icon(Icons.pause, size: 13, color: _pal.ink2),
+              Text(' özel gün', style: TextStyle(color: _pal.ink2, fontSize: 11)),
+            ]),
+          ]),
+        ),
       ),
     ];
   }
@@ -347,77 +337,80 @@ class _TrackingScreenState extends State<TrackingScreen> {
 
     return [
       _section(Icons.blur_circular, 'Zikirlerim'),
-      PaperBox(
-        pal: _pal,
-        padding: const EdgeInsets.fromLTRB(10, 10, 10, 10),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-          Row(children: [
-            _stat(_trNum(d.onDay(today)), 'Bugün', Icons.today),
-            const SizedBox(width: 6),
-            _stat(_trNum(week), 'Son 7 gün', Icons.date_range),
-            const SizedBox(width: 6),
-            _stat(_trNum(month), _months[today.month - 1], Icons.insights),
-          ]),
-          const SizedBox(height: 12),
-          SizedBox(
-            height: 96,
-            child: Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
-              for (var i = 0; i < 7; i++)
-                Expanded(
-                  child: Column(mainAxisAlignment: MainAxisAlignment.end, children: [
-                    if (counts[i] > 0)
-                      Text(_trNum(counts[i]), style: TextStyle(color: _pal.ink2, fontSize: 9.5, fontWeight: FontWeight.w700)),
-                    const SizedBox(height: 2),
-                    Container(
-                      width: 18,
-                      height: max(3.0, 58.0 * counts[i] / peak),
-                      decoration: BoxDecoration(
-                        gradient: counts[i] > 0 ? RC.bronze : null,
-                        color: counts[i] > 0 ? null : _pal.chip,
-                        borderRadius: BorderRadius.circular(5),
-                        border: Border.all(color: counts[i] > 0 ? RC.bronzeBorder : _pal.line),
+      PremiumLocked(
+        text: 'Zikir geçmişiniz',
+        child: PaperBox(
+          pal: _pal,
+          padding: const EdgeInsets.fromLTRB(10, 10, 10, 10),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+            Row(children: [
+              _stat(_trNum(d.onDay(today)), 'Bugün', Icons.today),
+              const SizedBox(width: 6),
+              _stat(_trNum(week), 'Son 7 gün', Icons.date_range),
+              const SizedBox(width: 6),
+              _stat(_trNum(month), _months[today.month - 1], Icons.insights),
+            ]),
+            const SizedBox(height: 12),
+            SizedBox(
+              height: 96,
+              child: Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
+                for (var i = 0; i < 7; i++)
+                  Expanded(
+                    child: Column(mainAxisAlignment: MainAxisAlignment.end, children: [
+                      if (counts[i] > 0)
+                        Text(_trNum(counts[i]), style: TextStyle(color: _pal.ink2, fontSize: 9.5, fontWeight: FontWeight.w700)),
+                      const SizedBox(height: 2),
+                      Container(
+                        width: 18,
+                        height: max(3.0, 58.0 * counts[i] / peak),
+                        decoration: BoxDecoration(
+                          gradient: counts[i] > 0 ? RC.bronze : null,
+                          color: counts[i] > 0 ? null : _pal.chip,
+                          borderRadius: BorderRadius.circular(5),
+                          border: Border.all(color: counts[i] > 0 ? RC.bronzeBorder : _pal.line),
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 3),
-                    Text(_days[last7[i].weekday - 1],
-                        style: TextStyle(
-                            color: last7[i] == today ? _pal.gold : _pal.ink2,
-                            fontSize: 10.5,
-                            fontWeight: last7[i] == today ? FontWeight.w800 : FontWeight.w600)),
-                  ]),
-                ),
-            ]),
-          ),
-          if (todays.isNotEmpty) ...[
-            const SizedBox(height: 8),
-            DashedLine(color: _pal.line),
-            const SizedBox(height: 6),
-            Text('Bugün çektikleriniz', style: TextStyle(color: _pal.ink2, fontSize: 12)),
-            const SizedBox(height: 4),
-            Wrap(spacing: 6, runSpacing: 6, children: [
-              for (final e in todays.take(6))
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: _pal.chip,
-                    borderRadius: BorderRadius.circular(99),
-                    border: Border.all(color: _pal.line),
+                      const SizedBox(height: 3),
+                      Text(_days[last7[i].weekday - 1],
+                          style: TextStyle(
+                              color: last7[i] == today ? _pal.gold : _pal.ink2,
+                              fontSize: 10.5,
+                              fontWeight: last7[i] == today ? FontWeight.w800 : FontWeight.w600)),
+                    ]),
                   ),
-                  child: Text('${d.byId(e.key).label} · ${_trNum(e.value)}',
-                      style: TextStyle(color: _pal.ink, fontSize: 12, fontWeight: FontWeight.w600)),
-                ),
-            ]),
-          ],
-          const SizedBox(height: 10),
-          DarkButton(
-            label: 'Zikir Sayacı',
-            height: 38,
-            onTap: () async {
-              await Navigator.of(context).push(AppRoute(builder: (_) => const DhikrScreen()));
-              _loadOthers();
-            },
-          ),
-        ]),
+              ]),
+            ),
+            if (todays.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              DashedLine(color: _pal.line),
+              const SizedBox(height: 6),
+              Text('Bugün çektikleriniz', style: TextStyle(color: _pal.ink2, fontSize: 12)),
+              const SizedBox(height: 4),
+              Wrap(spacing: 6, runSpacing: 6, children: [
+                for (final e in todays.take(6))
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: _pal.chip,
+                      borderRadius: BorderRadius.circular(99),
+                      border: Border.all(color: _pal.line),
+                    ),
+                    child: Text('${d.byId(e.key).label} · ${_trNum(e.value)}',
+                        style: TextStyle(color: _pal.ink, fontSize: 12, fontWeight: FontWeight.w600)),
+                  ),
+              ]),
+            ],
+            const SizedBox(height: 10),
+            DarkButton(
+              label: 'Zikir Sayacı',
+              height: 38,
+              onTap: () async {
+                await Navigator.of(context).push(AppRoute(builder: (_) => const DhikrScreen()));
+                _loadOthers();
+              },
+            ),
+          ]),
+        ),
       ),
     ];
   }
@@ -601,33 +594,36 @@ class _TrackingScreenState extends State<TrackingScreen> {
   List<Widget> _kaza(Widget gap) {
     return [
       _section(Icons.history, 'Kaza borcum'),
-      PaperBox(
-        pal: _pal,
-        padding: const EdgeInsets.fromLTRB(12, 8, 6, 8),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-          Row(children: [
-            Expanded(child: Text('Namaz', style: TextStyle(color: _pal.gold, fontSize: 13, fontWeight: FontWeight.w700))),
+      PremiumLocked(
+        text: 'Kaza namazı ve kaza orucu takibi',
+        child: PaperBox(
+          pal: _pal,
+          padding: const EdgeInsets.fromLTRB(12, 8, 6, 8),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+            Row(children: [
+              Expanded(child: Text('Namaz', style: TextStyle(color: _pal.gold, fontSize: 13, fontWeight: FontWeight.w700))),
+              Padding(
+                padding: const EdgeInsets.only(right: 6),
+                child: Text('Toplam ${_trNum(_log.kazaTotal)}',
+                    style: TextStyle(color: _pal.gold, fontSize: 13, fontWeight: FontWeight.w700)),
+              ),
+            ]),
+            for (var p = 0; p < 5; p++) ...[
+              if (p > 0) DashedLine(color: _pal.line),
+              _kazaRow(PrayerLog.names[p], _log.kaza[p], () => _log.setKaza(p, _log.kaza[p] - 1),
+                  () => _log.setKaza(p, _log.kaza[p] + 1), 'Kıldım −1'),
+            ],
+            const SizedBox(height: 6),
+            Text('Oruç', style: TextStyle(color: _pal.gold, fontSize: 13, fontWeight: FontWeight.w700)),
+            _kazaRow('Kaza orucu', _log.kazaOruc, () => _log.setKazaOruc(_log.kazaOruc - 1),
+                () => _log.setKazaOruc(_log.kazaOruc + 1), 'Tuttum −1'),
+            const SizedBox(height: 4),
             Padding(
               padding: const EdgeInsets.only(right: 6),
-              child: Text('Toplam ${_trNum(_log.kazaTotal)}',
-                  style: TextStyle(color: _pal.gold, fontSize: 13, fontWeight: FontWeight.w700)),
+              child: DarkButton(label: 'Namaz borcunu hesapla', height: 40, onTap: _askKaza),
             ),
           ]),
-          for (var p = 0; p < 5; p++) ...[
-            if (p > 0) DashedLine(color: _pal.line),
-            _kazaRow(PrayerLog.names[p], _log.kaza[p], () => _log.setKaza(p, _log.kaza[p] - 1),
-                () => _log.setKaza(p, _log.kaza[p] + 1), 'Kıldım −1'),
-          ],
-          const SizedBox(height: 6),
-          Text('Oruç', style: TextStyle(color: _pal.gold, fontSize: 13, fontWeight: FontWeight.w700)),
-          _kazaRow('Kaza orucu', _log.kazaOruc, () => _log.setKazaOruc(_log.kazaOruc - 1),
-              () => _log.setKazaOruc(_log.kazaOruc + 1), 'Tuttum −1'),
-          const SizedBox(height: 4),
-          Padding(
-            padding: const EdgeInsets.only(right: 6),
-            child: DarkButton(label: 'Namaz borcunu hesapla', height: 40, onTap: _askKaza),
-          ),
-        ]),
+        ),
       ),
     ];
   }

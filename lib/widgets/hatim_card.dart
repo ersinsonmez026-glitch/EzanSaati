@@ -4,8 +4,10 @@ import '../screens/surah_read_screen.dart';
 import '../services/content_store.dart';
 import '../services/ezan_notifications.dart';
 import '../services/hatim_plan.dart';
+import '../services/premium.dart';
 import '../services/quran_audio.dart';
 import 'page_shell.dart';
+import 'premium_ui.dart';
 import 'reading_ui.dart';
 
 /// "Bakara 142 – Bakara 252"
@@ -26,7 +28,7 @@ String hatimDailyText(int days) {
 /// Plan başlatma / değiştirme penceresi.
 Future<void> showHatimSetup(BuildContext context) async {
   final plan = HatimPlan.instance;
-  var days = plan.active ? plan.days : 30;
+  var days = plan.active && (Premium.instance.active || plan.days == HatimPlan.freeDays) ? plan.days : HatimPlan.freeDays;
   var remind = plan.remind;
   var time = TimeOfDay(hour: plan.remindHour, minute: plan.remindMinute);
   final pal = PagePalette.current();
@@ -53,8 +55,16 @@ Future<void> showHatimSetup(BuildContext context) async {
                     selected: days == d,
                     height: 36,
                     padding: const EdgeInsets.symmetric(horizontal: 14),
-                    onTap: () => set(() => days = d),
-                    child: Text('$d gün', style: const TextStyle(fontSize: 14)),
+                    onTap: () {
+                      if (d == HatimPlan.freeDays || requirePremium(ctx)) set(() => days = d);
+                    },
+                    child: Row(mainAxisSize: MainAxisSize.min, children: [
+                      Text('$d gün', style: const TextStyle(fontSize: 14)),
+                      if (d != HatimPlan.freeDays && !Premium.instance.active) ...[
+                        const SizedBox(width: 4),
+                        Icon(Icons.lock, size: 13, color: pal.gold),
+                      ],
+                    ]),
                   ),
                 ),
             ]),

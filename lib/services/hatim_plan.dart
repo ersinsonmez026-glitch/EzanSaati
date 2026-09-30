@@ -16,6 +16,9 @@ class HatimPlan extends ChangeNotifier {
   /// Seçilebilen süreler (gün).
   static const durations = [7, 15, 30, 60, 90, 180];
 
+  /// Premium olmadan seçilebilen süre.
+  static const freeDays = 30;
+
   SharedPreferences? _p;
   DateTime? start; // plan yoksa null
   int days = 30;
