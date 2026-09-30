@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:just_audio/just_audio.dart';
 
+import '../services/home_widgets.dart';
 import '../services/quran_audio.dart';
 import 'reading_ui.dart';
 import 'gold_icon.dart';
@@ -175,6 +176,7 @@ class _SurahAudioBarState extends State<SurahAudioBar> {
       _busy = true;
     });
     try {
+      unawaited(HomeWidgets.pausePlayer()); // ana ekran çaları çalıyorsa dursun
       final p = _ensure();
       if (_reciter != currentReciter()) {
         _reciter = currentReciter();

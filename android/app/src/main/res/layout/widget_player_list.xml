@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Kur'an çalar (liste): üstte sûre/dua adları, altta çalma tuşları -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/wbg_night"
+    android:orientation="vertical"
+    android:padding="12dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <ImageView
+            android:id="@+id/icon"
+            android:layout_width="16dp"
+            android:layout_height="16dp"
+            android:src="@drawable/ic_w_book" />
+
+        <TextView
+            android:id="@+id/title"
+            style="@style/WText.Bold"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="6dp"
+            android:layout_weight="1"
+            android:text="Kur'an"
+            android:textSize="12.5sp" />
+
+        <LinearLayout
+            android:id="@+id/mode"
+            android:layout_width="wrap_content"
+            android:layout_height="26dp"
+            android:background="@drawable/wchip_night"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingStart="9dp"
+            android:paddingEnd="4dp">
+
+            <TextView
+                android:id="@+id/mode_text"
+                style="@style/WText.Bold"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Tüm sûreler"
+                android:textSize="11.5sp" />
+
+            <ImageView
+                android:id="@+id/mode_icon"
+                android:layout_width="16dp"
+                android:layout_height="16dp"
+                android:src="@drawable/ic_w_drop" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <FrameLayout
+        android:id="@+id/list_box"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginTop="6dp"
+        android:layout_weight="1"
+        android:background="@drawable/wlist_night"
+        android:padding="2dp">
+
+        <ListView
+            android:id="@+id/list"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:divider="@null"
+            android:dividerHeight="0dp"
+            android:scrollbars="vertical" />
+
+        <TextView
+            android:id="@+id/empty"
+            style="@style/WText"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:maxLines="3"
+            android:padding="8dp"
+            android:text="Uygulamayı bir kez açın"
+            android:textSize="12.5sp" />
+    </FrameLayout>
+
+    <include layout="@layout/widget_controls" />
+</LinearLayout>

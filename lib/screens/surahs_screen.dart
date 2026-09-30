@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../services/content_store.dart';
+import '../services/home_widgets.dart';
 import '../widgets/page_shell.dart';
 import '../widgets/reading_ui.dart';
 import 'surah_read_screen.dart';
@@ -45,6 +46,7 @@ class _SurahsScreenState extends State<SurahsScreen> {
 
   void _toggleFav(String id, {String? message}) {
     final on = _prefs?.toggleFavorite(_favKey, id) ?? false;
+    HomeWidgets.syncSoon(); // widget çalarındaki "Favori sûreler" listesi
     setState(() {});
     if (message != null) showNote(context, on ? message : 'Favorilerden çıkarıldı');
   }

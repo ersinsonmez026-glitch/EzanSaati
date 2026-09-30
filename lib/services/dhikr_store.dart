@@ -2,6 +2,8 @@ import 'dart:convert';
 
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'home_widgets.dart';
+
 /// Zikir Sayacı'nın zikirleri ve sayım durumu (onizleme/06-zikir-sayaci.html).
 /// Sayılar yalnızca bu cihazda saklanır.
 class Dhikr {
@@ -252,5 +254,8 @@ class DhikrState {
         'dn': today,
       };
 
-  void save() => _p?.setString(_key, jsonEncode(toJson()));
+  void save() {
+    _p?.setString(_key, jsonEncode(toJson()));
+    HomeWidgets.refresh(); // ana ekrandaki zikir widget'ı aynı sayıyı gösterir
+  }
 }

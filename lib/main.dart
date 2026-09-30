@@ -11,6 +11,7 @@ import 'screens/dua_circle_screen.dart';
 import 'screens/home_screen.dart';
 import 'services/app_prefs.dart';
 import 'services/ezan_notifications.dart';
+import 'services/home_widgets.dart';
 import 'services/invite_watch.dart';
 import 'services/location_store.dart';
 import 'services/prayer_groups.dart' show normalizeCode;
@@ -39,6 +40,11 @@ Future<void> main() async {
   await EzanNotifications.instance.load();
   unawaited(EzanNotifications.instance.reschedule());
   LocationStore.instance.addListener(() => unawaited(EzanNotifications.instance.reschedule()));
+
+  // Ana ekran widget'ları: vakitler, kârî, sûre listesi; konum ya da görünüm değişince yenilenir.
+  HomeWidgets.syncSoon();
+  LocationStore.instance.addListener(HomeWidgets.syncSoon);
+  AppPrefs.instance.addListener(HomeWidgets.syncSoon);
 
   // Dua Zinciri: uygulama kapalıyken yaklaşık 30 dakikada bir gruplarda yeni zincir kontrolü.
   unawaited(InviteWatch.schedule());

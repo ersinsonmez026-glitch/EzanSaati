@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Ana ekran widget yazıları (API 26+ sürümünde Lora yazı tipiyle: values-v26) -->
+    <style name="WText">
+        <item name="android:includeFontPadding">false</item>
+        <item name="android:maxLines">1</item>
+        <item name="android:ellipsize">end</item>
+    </style>
+    <style name="WText.Bold">
+        <item name="android:textStyle">bold</item>
+    </style>
+    <string name="widget_player_list">Kur\'an çalar (liste)</string>
+    <string name="widget_player_line">Kur\'an çalar</string>
+    <string name="widget_zikir">Zikir sayacı</string>
+    <string name="widget_vakit">Namaz vakitleri</string>
+</resources>

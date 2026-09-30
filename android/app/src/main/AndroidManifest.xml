@@ -7,6 +7,12 @@
     <!-- Ezan bildirimleri: telefon yeniden açılınca bildirimleri yeniden kurmak ve tam vaktinde çalmak için -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+    <!-- Ana ekran Kur'an çaları: arka planda çalma (bildirimde oynatıcı) -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <!-- Zikir widget'ı: sayarken hafif titreşim -->
+    <uses-permission android:name="android.permission.VIBRATE" />
 
     <application
         android:label="Ezan Saati"
@@ -44,6 +50,32 @@
             </intent-filter>
             <meta-data android:name="flutter_deeplinking_enabled" android:value="true"/>
         </activity>
+        <!-- Ana ekran widget'ları (bkz. kotlin/.../widget) -->
+        <receiver android:name=".widget.PlayerListWidget" android:exported="false" android:label="@string/widget_player_list">
+            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_player_list_info" />
+        </receiver>
+        <receiver android:name=".widget.PlayerLineWidget" android:exported="false" android:label="@string/widget_player_line">
+            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_player_line_info" />
+        </receiver>
+        <receiver android:name=".widget.ZikirWidget" android:exported="false" android:label="@string/widget_zikir">
+            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_zikir_info" />
+        </receiver>
+        <receiver android:name=".widget.VakitWidget" android:exported="false" android:label="@string/widget_vakit">
+            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_vakit_info" />
+        </receiver>
+        <receiver android:name=".widget.WidgetActionReceiver" android:exported="false" />
+        <service
+            android:name=".widget.PlayerListService"
+            android:exported="false"
+            android:permission="android.permission.BIND_REMOTEVIEWS" />
+        <service
+            android:name=".widget.QuranPlayerService"
+            android:exported="false"
+            android:foregroundServiceType="mediaPlayback" />
         <!-- Ezan bildirimleri (flutter_local_notifications) -->
         <receiver android:exported="false" android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationReceiver" />
         <receiver android:exported="false" android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationBootReceiver">

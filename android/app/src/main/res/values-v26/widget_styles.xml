@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="WText">
+        <item name="android:includeFontPadding">false</item>
+        <item name="android:maxLines">1</item>
+        <item name="android:ellipsize">end</item>
+        <item name="android:fontFamily">@font/lora</item>
+    </style>
+    <style name="WText.Bold">
+        <item name="android:textStyle">bold</item>
+    </style>
+</resources>

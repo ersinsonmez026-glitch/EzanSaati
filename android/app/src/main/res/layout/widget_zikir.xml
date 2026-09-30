@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Zikir sayacı: dokundukça sayar -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/wbg_night"
+    android:gravity="center"
+    android:orientation="vertical"
+    android:padding="8dp">
+
+    <LinearLayout
+        android:id="@+id/tap"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:gravity="center"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/name"
+            style="@style/WText.Bold"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="14sp" />
+
+        <TextView
+            android:id="@+id/count"
+            style="@style/WText.Bold"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:textSize="42sp" />
+
+        <TextView
+            android:id="@+id/target"
+            style="@style/WText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="12.5sp" />
+
+        <TextView
+            android:id="@+id/hint"
+            style="@style/WText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="3dp"
+            android:text="Saymak için dokunun"
+            android:textSize="10sp" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:gravity="center"
+        android:orientation="horizontal">
+
+        <FrameLayout android:layout_width="0dp" android:layout_height="1dp" android:layout_weight="1" />
+
+        <ImageView
+            android:id="@+id/btn_reset"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:background="@drawable/wbtn_night"
+            android:contentDescription="Sıfırla"
+            android:padding="6dp"
+            android:src="@drawable/ic_w_refresh" />
+
+        <FrameLayout android:layout_width="0dp" android:layout_height="1dp" android:layout_weight="1" />
+
+        <ImageView
+            android:id="@+id/btn_skip"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:background="@drawable/wbtn_night"
+            android:contentDescription="Sonraki zikir"
+            android:padding="6dp"
+            android:src="@drawable/ic_w_next" />
+
+        <FrameLayout android:layout_width="0dp" android:layout_height="1dp" android:layout_weight="1" />
+    </LinearLayout>
+</LinearLayout>

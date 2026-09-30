@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Önceki / oynat-duraklat / sonraki -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="8dp"
+    android:gravity="center"
+    android:orientation="horizontal">
+
+    <FrameLayout android:layout_width="0dp" android:layout_height="1dp" android:layout_weight="1" />
+
+    <ImageView
+        android:id="@+id/btn_prev"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:background="@drawable/wbtn_night"
+        android:contentDescription="Önceki"
+        android:padding="9dp"
+        android:src="@drawable/ic_w_prev" />
+
+    <FrameLayout android:layout_width="0dp" android:layout_height="1dp" android:layout_weight="1" />
+
+    <ImageView
+        android:id="@+id/btn_play"
+        android:layout_width="52dp"
+        android:layout_height="52dp"
+        android:background="@drawable/wbtn_main"
+        android:contentDescription="Oynat"
+        android:padding="11dp"
+        android:src="@drawable/ic_w_play" />
+
+    <FrameLayout android:layout_width="0dp" android:layout_height="1dp" android:layout_weight="1" />
+
+    <ImageView
+        android:id="@+id/btn_next"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:background="@drawable/wbtn_night"
+        android:contentDescription="Sonraki"
+        android:padding="9dp"
+        android:src="@drawable/ic_w_next" />
+
+    <FrameLayout android:layout_width="0dp" android:layout_height="1dp" android:layout_weight="1" />
+</LinearLayout>

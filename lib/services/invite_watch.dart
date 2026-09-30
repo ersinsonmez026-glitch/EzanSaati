@@ -7,6 +7,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:workmanager/workmanager.dart';
 
 import '../firebase_options.dart';
+import 'home_widgets.dart';
+import 'location_store.dart';
 
 /// Uygulama kapalıyken Dua Zinciri gruplarını kontrol eder: telefon yaklaşık 30 dakikada bir
 /// (Android izin verdikçe) üye olduğu gruplarda başkasının başlattığı yeni zincir var mı diye bakar,
@@ -99,6 +101,11 @@ class InviteWatch {
 @pragma('vm:entry-point')
 void inviteWatchDispatcher() {
   Workmanager().executeTask((task, input) async {
+    try {
+      // Ana ekran vakit widget'ının vakitleri (uygulama uzun süre açılmasa da güncel kalsın).
+      await LocationStore.instance.load();
+      await HomeWidgets.writeTimes();
+    } catch (_) {}
     try {
       await InviteWatch.check();
     } catch (_) {

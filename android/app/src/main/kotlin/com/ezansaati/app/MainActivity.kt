@@ -13,6 +13,8 @@ import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.EventChannel
 import io.flutter.plugin.common.MethodChannel
+import com.ezansaati.app.widget.QuranPlayerService
+import com.ezansaati.app.widget.Widgets
 
 class MainActivity : FlutterActivity() {
 
@@ -40,6 +42,23 @@ class MainActivity : FlutterActivity() {
         }
 
         EventChannel(messenger, "ezan_saati/compass").setStreamHandler(CompassStream())
+
+        // Ana ekran widget'ları: veri değişince yeniden çiz; uygulamada sûre dinlenince widget çaları dursun.
+        MethodChannel(messenger, "ezan_saati/widget").setMethodCallHandler { call, result ->
+            when (call.method) {
+                "update" -> {
+                    Widgets.updateAll(applicationContext)
+                    result.success(null)
+                }
+                "pausePlayer" -> {
+                    if (QuranPlayerService.running && QuranPlayerService.playing) {
+                        startService(QuranPlayerService.intent(this, QuranPlayerService.ACTION_PAUSE))
+                    }
+                    result.success(null)
+                }
+                else -> result.notImplemented()
+            }
+        }
 
         // Rehber izni istemeden, telefonun kendi kişi seçicisiyle tek kişi seçilir.
         MethodChannel(messenger, "ezan_saati/contacts").setMethodCallHandler { call, result ->

@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../services/dhikr_store.dart';
 import '../widgets/page_shell.dart';
@@ -17,7 +18,7 @@ class DhikrScreen extends StatefulWidget {
   State<DhikrScreen> createState() => _DhikrScreenState();
 }
 
-class _DhikrScreenState extends State<DhikrScreen> with SingleTickerProviderStateMixin {
+class _DhikrScreenState extends State<DhikrScreen> with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   PagePalette get _pal => PagePalette.current(); // Gündüz/Gece değişince hemen yenilensin
   DhikrState? _s;
   late final AnimationController _beads = AnimationController(vsync: this, duration: const Duration(milliseconds: 200));
@@ -27,13 +28,24 @@ class _DhikrScreenState extends State<DhikrScreen> with SingleTickerProviderStat
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     DhikrState.load().then((s) {
+      if (mounted) setState(() => _s = s);
+    });
+  }
+
+  /// Ana ekrandaki zikir widget'ında sayılanlar uygulamaya dönünce görünsün.
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state != AppLifecycleState.resumed) return;
+    SharedPreferences.getInstance().then((p) => p.reload()).then((_) => DhikrState.load()).then((s) {
       if (mounted) setState(() => _s = s);
     });
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _beads.dispose();
     super.dispose();
   }
