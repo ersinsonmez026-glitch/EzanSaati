@@ -6,6 +6,10 @@ name: Serbest lisanslı ses arama
 
 on:
   workflow_dispatch:
+  push:
+    branches: [claude/charming-davinci-6c5fkr]
+    paths:
+      - .github/workflows/ses-arama.yml
 
 jobs:
   ara:
