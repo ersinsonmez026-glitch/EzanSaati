@@ -20,6 +20,9 @@ import 'services/prayer_groups.dart' show normalizeCode;
 import 'theme.dart';
 import 'widgets/page_shell.dart' show AppRoute, DesignScale, kAppPageTransitions;
 
+/// Uygulama öne gelince çalışan dinleyici (çöp toplayıcı silmesin diye saklanır).
+AppLifecycleListener? appLifecycle;
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -47,6 +50,11 @@ Future<void> main() async {
   unawaited(MosqueMode.instance.apply());
   LocationStore.instance.addListener(() => unawaited(MosqueMode.instance.apply()));
   Premium.instance.addListener(() => unawaited(MosqueMode.instance.apply()));
+  // Ayarlardan dönülünce (izin verildi/kaldırıldı) bildirimler ve Cami modu yeniden kurulur.
+  appLifecycle = AppLifecycleListener(onResume: () {
+    unawaited(EzanNotifications.instance.onResume());
+    unawaited(MosqueMode.instance.onResume());
+  });
 
   // Ana ekran widget'ları: vakitler, kârî, sûre listesi; konum ya da görünüm değişince yenilenir.
   HomeWidgets.syncSoon();

@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'quran_audio.dart';
+import 'day_utils.dart';
 
 /// Kişisel hatim planı: Kur'an seçilen gün sayısına ayet sayısıyla eşit bölünür; her gün bir bölüm
 /// okunur ve "Okudum" ile işaretlenir. Geride kalınan bölümler sırayla okunur. Yalnız bu telefonda tutulur.
@@ -100,7 +101,7 @@ class HatimPlan extends ChangeNotifier {
   int dayIndex(DateTime now) {
     final s = start;
     if (s == null) return 0;
-    final d = DateTime(now.year, now.month, now.day).difference(s).inHours ~/ 24;
+    final d = calendarDaysBetween(s, now);
     return d.clamp(0, days - 1);
   }
 

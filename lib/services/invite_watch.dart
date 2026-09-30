@@ -7,6 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:workmanager/workmanager.dart';
 
 import '../firebase_options.dart';
+import 'ezan_notifications.dart';
 import 'home_widgets.dart';
 import 'location_store.dart';
 import 'mosque_mode.dart';
@@ -18,6 +19,7 @@ import 'premium.dart';
 class InviteWatch {
   static const _task = 'davet_kontrol';
   static const _lastKey = 'zincir_son_kontrol';
+  static const _notifiedKey = 'zincir_bildirilenler';
 
   /// Bildirime dokununca açılacak yer (Dua Zinciri).
   static const payload = 'davet';
@@ -48,22 +50,32 @@ class InviteWatch {
     if (user == null) return; // Dua Zinciri hiç açılmamış
     final now = DateTime.now();
     final lastMs = prefs.getInt(_lastKey);
-    await prefs.setInt(_lastKey, now.millisecondsSinceEpoch);
-    if (lastMs == null) return; // ilk kontrol: yalnız başlangıç zamanını kaydet
-    final since = Timestamp.fromMillisecondsSinceEpoch(lastMs);
+    if (lastMs == null) {
+      await prefs.setInt(_lastKey, now.millisecondsSinceEpoch); // ilk kontrol: yalnız başlangıç zamanı
+      return;
+    }
+    // Zinciri başlatanın telefon saati geri olabilir: bir saat geriden bakılır, bildirilenler tekrar bildirilmez.
+    final since = Timestamp.fromMillisecondsSinceEpoch(lastMs - const Duration(hours: 1).inMilliseconds);
+    final notified = (prefs.getStringList(_notifiedKey) ?? const <String>[]).toSet();
     final db = FirebaseFirestore.instance;
-    final groups = await db.collection('groups').where('memberUids', arrayContains: user.uid).get();
+    // Yalnız sunucudan okunur: çevrimdışı önbellekten eksik sonuç gelirse zincir kaçmasın.
+    const server = GetOptions(source: Source.server);
+    final groups = await db.collection('groups').where('memberUids', arrayContains: user.uid).get(server);
     final fresh = <(String, String)>[]; // (zincir kimliği, bildirim metni)
     for (final g in groups.docs) {
       final gname = g.data()['name'] as String? ?? '';
-      final chains = await g.reference.collection('chains').where('created', isGreaterThan: since).get();
+      final chains = await g.reference.collection('chains').where('created', isGreaterThan: since).get(server);
       for (final c in chains.docs) {
         final m = c.data();
-        if (m['creatorUid'] == user.uid) continue;
+        if (m['creatorUid'] == user.uid || notified.contains(c.id)) continue;
         final who = (m['creatorName'] as String? ?? '').trim();
         fresh.add((c.id, '${who.isEmpty ? 'Bir üye' : who} "$gname" grubunda ${m['name'] ?? 'yeni bir'} zinciri başlattı.'));
       }
     }
+    // Sorgular başarıyla bitti: zaman ve bildirilenler ancak şimdi kaydedilir (hata olursa bir dahakine tekrar bakılır).
+    await prefs.setInt(_lastKey, now.millisecondsSinceEpoch);
+    final keep = [...notified, for (final (id, _) in fresh) id];
+    await prefs.setStringList(_notifiedKey, keep.length > 200 ? keep.sublist(keep.length - 200) : keep);
     if (fresh.isEmpty) return;
     final plugin = FlutterLocalNotificationsPlugin();
     await plugin.initialize(
@@ -109,7 +121,12 @@ void inviteWatchDispatcher() {
       await HomeWidgets.writeTimes();
       // Cami modu aralıkları (Android sıradaki sessizliği bu listeden kurar).
       await Premium.instance.load();
+      await MosqueMode.instance.load(); // kullanıcının seçtiği vakit ve süreler
       await MosqueMode.instance.writeWindows();
+    } catch (_) {}
+    try {
+      // Uygulama uzun süre açılmasa da ezan ve hatim bildirimleri kurulu kalsın.
+      await EzanNotifications.instance.refreshInBackground();
     } catch (_) {}
     try {
       await InviteWatch.check();

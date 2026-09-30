@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -214,11 +215,42 @@ class EzanNotifications extends ChangeNotifier {
     return granted;
   }
 
-  /// Tüm bildirimleri silip ayarlara göre yeniden kurar.
+  static const _lastKey = 'bildirim_son_kurulum';
+
+  /// Uygulamaya dönülünce: tam vakit izni bu arada verildiyse (ya da kaldırıldıysa) bildirimler yeniden kurulur.
+  Future<void> onResume() async {
+    if (!_supported || !_ready) return;
+    final exact = await _android?.canScheduleExactNotifications() ?? true;
+    if (exact != exactAllowed) await reschedule();
+  }
+
+  /// Tam vakit (alarm) izni yoksa ister (Cami modu açılırken de kullanılır).
+  Future<void> ensureExactAlarms() async {
+    if (!_supported) return;
+    await _init();
+    if (!(await _android?.canScheduleExactNotifications() ?? true)) {
+      await _android?.requestExactAlarmsPermission();
+    }
+  }
+
+  /// Arka plan görevinden çağrılır: son kurulumdan 12 saat geçtiyse yeniden kurar. Böylece uygulama
+  /// uzun süre açılmasa da ([horizonDays] gün sonra) ezan bildirimleri kesilmez.
+  Future<void> refreshInBackground() async {
+    if (!_supported) return;
+    final p = await SharedPreferences.getInstance();
+    final last = p.getInt(_lastKey) ?? 0;
+    if (DateTime.now().millisecondsSinceEpoch - last < const Duration(hours: 12).inMilliseconds) return;
+    await load();
+    await reschedule();
+  }
+
+  /// Kurulu (henüz gösterilmemiş) bildirimleri silip ayarlara göre yeniden kurar. Ekranda duran
+  /// bildirimlere (ör. Dua Zinciri daveti) dokunulmaz.
   Future<void> reschedule() async {
     if (!_supported) return;
     await _init();
-    await _plugin.cancelAll();
+    await _plugin.cancelAllPendingNotifications();
+    unawaited(SharedPreferences.getInstance().then((p) => p.setInt(_lastKey, DateTime.now().millisecondsSinceEpoch)));
     await _scheduleHatim();
     final loc = LocationStore.instance.current;
     if (!settings.enabled || loc == null) return;
@@ -245,11 +277,18 @@ class EzanNotifications extends ChangeNotifier {
       ),
     );
     final ezanFile = s.ezanFile;
+    if (ezanFile != null) {
+      // Eski kanal ezanı alarm sesi olarak çalıyordu (telefon sessizdeyken bile); kaldırılır.
+      try {
+        await _android?.deleteNotificationChannel(channelId: '${ezanFile}_$vib');
+      } catch (_) {}
+    }
     final ezan = !s.sound || ezanFile == null
         ? plain
         : NotificationDetails(
             android: AndroidNotificationDetails(
-              '${ezanFile}_$vib',
+              // Bildirim sesi olarak çalar: telefon sessiz/titreşimdeyken (Cami modu dahil) ezan çalmaz.
+              '${ezanFile}_${vib}_bildirim',
               '${EzanSettings.ezanVoiceOptions[s.ezanVoice]}, ${EzanSettings.ezanSoundOptions[s.ezanSound]!.toLowerCase()} ile vakit bildirimi$vibName',
               channelDescription: 'Namaz vakti girince ezan sesiyle bildirim',
               importance: Importance.max,
@@ -257,8 +296,8 @@ class EzanNotifications extends ChangeNotifier {
               playSound: true,
               sound: RawResourceAndroidNotificationSound(ezanFile),
               enableVibration: s.vibrate,
-              category: AndroidNotificationCategory.alarm,
-              audioAttributesUsage: AudioAttributesUsage.alarm,
+              category: AndroidNotificationCategory.reminder,
+              audioAttributesUsage: AudioAttributesUsage.notification,
             ),
           );
     final mode = exactAllowed ? AndroidScheduleMode.exactAllowWhileIdle : AndroidScheduleMode.inexactAllowWhileIdle;
@@ -300,10 +339,12 @@ class EzanNotifications extends ChangeNotifier {
         category: AndroidNotificationCategory.reminder,
       ),
     );
+    // Bugünün bölümü (ve öncesi) okunduysa bugün hatırlatılmaz.
+    final todayDone = next > plan.dayIndex(now);
     var k = 0;
     for (var d = 0; d < 8 && k < 7; d++) {
       final at = DateTime(now.year, now.month, now.day + d, plan.remindHour, plan.remindMinute);
-      if (!at.isAfter(now)) continue;
+      if (!at.isAfter(now) || (d == 0 && todayDone)) continue;
       final part = next + k;
       if (part >= plan.days) break;
       final p = plan.portion(part);

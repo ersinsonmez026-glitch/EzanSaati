@@ -170,7 +170,11 @@ class _SurahAudioBarState extends State<SurahAudioBar> {
   }
 
   /// Çalmayı başlatır; [ayah] verilirse o ayetten (1 ise besmeleden) başlar.
+  /// Her çalma isteğinde artar; eski (yarıda kesilen) isteğin sonucu ya da hatası yok sayılır.
+  int _gen = 0;
+
   Future<void> _play({int? ayah}) async {
+    final gen = ++_gen;
     setState(() {
       _error = null;
       _busy = true;
@@ -191,6 +195,7 @@ class _SurahAudioBarState extends State<SurahAudioBar> {
           [for (final u in list.urls) AudioSource.uri(u)],
           initialIndex: index,
         );
+        if (gen != _gen) return; // bu arada başka sûre/ayet istendi
         _loaded = widget.surah;
         final i = p.currentIndex ?? index;
         if (mounted) setState(() => _index = i);
@@ -201,9 +206,11 @@ class _SurahAudioBarState extends State<SurahAudioBar> {
       }
       unawaited(p.play());
     } catch (e) {
-      _fail(e);
+      if (gen == _gen) _fail(e); // yenisi tarafından kesilen isteğin hatası gösterilmez
     } finally {
-      if (mounted && _error == null) setState(() => _busy = _player?.processingState == ProcessingState.loading);
+      if (mounted && gen == _gen && _error == null) {
+        setState(() => _busy = _player?.processingState == ProcessingState.loading);
+      }
     }
   }
 

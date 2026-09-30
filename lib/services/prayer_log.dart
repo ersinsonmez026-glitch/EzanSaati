@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'day_utils.dart';
 
 /// Namaz takibi: hangi gün hangi farz namazın kılındığı, özel gün (ara) günleri ve kaza borcu.
 /// Yalnız bu telefonda tutulur.
@@ -84,11 +85,11 @@ class PrayerLog extends ChangeNotifier {
   /// Beşini de kılınan (ya da ara verilen) art arda günler; bugün henüz bitmediyse dünden sayılır.
   int streak(DateTime today) {
     var d = DateTime(today.year, today.month, today.day);
-    if (count(d) < 5 && !paused(d)) d = d.subtract(const Duration(days: 1));
+    if (count(d) < 5 && !paused(d)) d = previousDay(d);
     var n = 0;
     while (count(d) == 5 || paused(d)) {
       if (!paused(d)) n++;
-      d = d.subtract(const Duration(days: 1));
+      d = previousDay(d);
     }
     return n;
   }

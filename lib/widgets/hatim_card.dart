@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../screens/surah_read_screen.dart';
@@ -131,6 +133,8 @@ Future<void> showHatimSetup(BuildContext context) async {
 /// Okudum: bölümü işaretler; hatim bittiyse tebrik eder.
 Future<void> hatimMarkRead(BuildContext context, int i) async {
   final finished = HatimPlan.instance.markRead(i);
+  // Hatırlatmalar okunan bölüme göre yeniden kurulur (bugünkü okunduysa bugün hatırlatılmaz).
+  unawaited(EzanNotifications.instance.reschedule());
   if (!context.mounted) return;
   if (finished) {
     await showDialog<void>(
@@ -141,7 +145,6 @@ Future<void> hatimMarkRead(BuildContext context, int i) async {
         actions: [FilledButton(onPressed: () => Navigator.pop(ctx), child: const Text('Tamam'))],
       ),
     );
-    await EzanNotifications.instance.reschedule();
   } else {
     showNote(context, 'Allah kabul etsin');
   }

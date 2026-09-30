@@ -13,6 +13,7 @@ import 'city_picker_screen.dart';
 import 'notifications_screen.dart';
 import 'tracking_screen.dart';
 import '../widgets/gold_icon.dart';
+import '../services/day_utils.dart';
 
 enum _View { main, imsakiye, hicri, miladi }
 
@@ -849,7 +850,7 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
       };
 
   String _left(DateTime d, DateTime today) {
-    final n = DateTime(d.year, d.month, d.day).difference(today).inDays;
+    final n = calendarDaysBetween(today, d);
     return n < 0 ? 'Geçti' : (n == 0 ? 'Bugün' : '$n gün');
   }
 

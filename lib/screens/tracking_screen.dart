@@ -13,6 +13,7 @@ import '../widgets/premium_ui.dart';
 import '../widgets/reading_ui.dart';
 import 'dhikr_screen.dart';
 import 'fasting_tracker_screen.dart';
+import '../services/day_utils.dart';
 
 /// Takibim: namaz takibi (seri, haftalık tablo, ay görünümü, özel gün), zikir çekiliyorsa zikir
 /// tablosu, oruç özeti ve kaza borcu. Kayıtlar yalnız bu telefonda tutulur.
@@ -121,7 +122,7 @@ class _TrackingScreenState extends State<TrackingScreen> {
     if (d == null) return false;
     final today = DateTime(_now.year, _now.month, _now.day);
     for (var i = 0; i < 30; i++) {
-      if (d.onDay(today.subtract(Duration(days: i))) > 0) return true;
+      if (d.onDay(DateTime(today.year, today.month, today.day - i)) > 0) return true;
     }
     return d.todayTotal > 0;
   }
@@ -158,7 +159,7 @@ class _TrackingScreenState extends State<TrackingScreen> {
   List<Widget> _prayers(Widget gap) {
     final now = _now;
     final today = DateTime(now.year, now.month, now.day);
-    final monday = today.subtract(Duration(days: today.weekday - 1));
+    final monday = DateTime(today.year, today.month, today.day - (today.weekday - 1));
     final week = [for (var i = 0; i < 7; i++) DateTime(monday.year, monday.month, monday.day + i)];
     final (wDone, wTotal) = _log.range(monday, today);
     final (mDone, mTotal) = _log.range(DateTime(today.year, today.month), today);
@@ -325,7 +326,7 @@ class _TrackingScreenState extends State<TrackingScreen> {
   List<Widget> _dhikrs(Widget gap) {
     final d = _dhikr!;
     final today = DateTime(_now.year, _now.month, _now.day);
-    final last7 = [for (var i = 6; i >= 0; i--) today.subtract(Duration(days: i))];
+    final last7 = [for (var i = 6; i >= 0; i--) DateTime(today.year, today.month, today.day - i)];
     final counts = [for (final x in last7) d.onDay(x)];
     final week = counts.fold(0, (a, b) => a + b);
     var month = 0;
@@ -438,7 +439,7 @@ class _TrackingScreenState extends State<TrackingScreen> {
                 style: TextStyle(color: _pal.ink, fontSize: 15.5, fontWeight: FontWeight.w700)),
           ),
           Text(
-            before ? "Ramazan'a ${r.start.difference(today).inDays} gün" : '$kept / ${r.days} gün tutuldu',
+            before ? "Ramazan'a ${calendarDaysBetween(today, r.start)} gün" : '$kept / ${r.days} gün tutuldu',
             style: TextStyle(color: _pal.gold, fontSize: 13, fontWeight: FontWeight.w700),
           ),
         ]),

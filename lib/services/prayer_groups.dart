@@ -10,6 +10,7 @@ import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../firebase_options.dart';
+import 'day_utils.dart';
 
 /// Dua Zinciri: uygulama içindeki dua grupları ve gruplarda başlatılan zincirler
 /// (Firebase ücretsiz Spark planı: yalnız Anonim Giriş ve Cloud Firestore).
@@ -202,10 +203,7 @@ class GroupChain {
 
   /// Son güne kalan gün (bugün biterse 0).
   int get daysLeft {
-    final now = DateTime.now();
-    final a = DateTime(now.year, now.month, now.day);
-    final b = DateTime(deadline.year, deadline.month, deadline.day);
-    return max(0, b.difference(a).inDays);
+    return max(0, calendarDaysBetween(DateTime.now(), deadline));
   }
 
   GroupChain copyWith({Map<int, ChainSlot>? slots, Map<String, ChainClaim>? claims, String? groupName}) =>

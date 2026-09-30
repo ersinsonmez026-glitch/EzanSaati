@@ -112,12 +112,29 @@ class MosqueMode extends ChangeNotifier {
     _p ??= await SharedPreferences.getInstance();
     final p = _p!;
     final loc = LocationStore.instance.current;
-    final act = active ?? ((p.getBool(kOn) ?? false) && Premium.instance.active);
+    final act = active ?? ((p.getBool(kOn) ?? false) && Premium.instance.active && prayers.contains(true));
     if (!act || loc == null) {
       await p.remove(kWindows);
       return;
     }
     await p.setString(kWindows, jsonEncode(windows(loc, DateTime.now())));
+  }
+
+  /// "Rahatsız Etmeyin erişimi" (tam sessiz için); bilinmiyorsa null.
+  bool? dnd;
+
+  Future<void> refreshDnd() async {
+    final v = await hasDndAccess();
+    if (v != dnd) {
+      dnd = v;
+      notifyListeners();
+    }
+  }
+
+  /// Uygulamaya dönülünce: izinler değişmiş olabilir (Rahatsız Etmeyin, tam vakit alarmı).
+  Future<void> onResume() async {
+    await refreshDnd();
+    await apply();
   }
 
   Future<bool> hasDndAccess() async {

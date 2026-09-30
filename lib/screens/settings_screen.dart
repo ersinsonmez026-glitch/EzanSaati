@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../services/app_prefs.dart';
@@ -238,26 +240,23 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   // ---------------------------------------------------------------- cami modu
 
-  bool? _dnd;
+  /// Cami modu açılırken tam vakit alarm izni de istenir (yoksa Android sessizliği geç kaldırabilir).
+  Future<void> _setMosque(bool on) async {
+    await MosqueMode.instance.update(on: on);
+    if (on) await EzanNotifications.instance.ensureExactAlarms();
+  }
 
   Widget _mosqueCard() {
     final m = MosqueMode.instance;
     final premium = Premium.instance.active;
     final open = _section == 'Cami Modu';
-    if (open && premium && m.silent && _dnd == null) {
-      m.hasDndAccess().then((v) {
-        if (mounted) setState(() => _dnd = v);
-      });
-    }
+    if (open && premium && m.silent && m.dnd == null) unawaited(m.refreshDnd());
     return GroupCard(
       pal: _pal,
       art: 'cami',
       title: 'Cami Modu',
       expanded: open,
-      onToggle: () {
-        _dnd = null;
-        _toggle('Cami Modu');
-      },
+      onToggle: () => _toggle('Cami Modu'),
       summary: !premium ? 'Premium' : (m.on ? 'Açık · ${m.silent ? 'Sessiz' : 'Titreşim'}' : 'Kapalı'),
       children: !premium
           ? [
@@ -284,9 +283,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   value: m.on,
                   activeThumbColor: RC.bronzeText,
                   activeTrackColor: const Color(0xFF6E5114),
-                  onChanged: (v) => m.update(on: v),
+                  onChanged: _setMosque,
                 ),
-                onTap: () => m.update(on: !m.on),
+                onTap: () => _setMosque(!m.on),
               ),
               GroupItem(
                 pal: _pal,
@@ -298,12 +297,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   options: const [(false, 'Titreşim'), (true, 'Sessiz')],
                   value: m.silent,
                   onChanged: (v) async {
-                    _dnd = null;
                     await m.update(silent: v);
+                    if (v) await m.refreshDnd();
                   },
                 ),
               ),
-              if (m.silent && _dnd == false)
+              if (m.silent && m.dnd == false)
                 GroupItem(
                   pal: _pal,
                   icon: Icons.do_not_disturb_on_outlined,
@@ -311,11 +310,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   subtitle: 'Tam sessiz için telefonun "Rahatsız Etmeyin erişimi" ayarında Ezan Saati\'ne izin verin. '
                       'İzin yokken telefon titreşime alınır.',
                   trailing: Text('İzin ver', style: TextStyle(color: _pal.gold, fontWeight: FontWeight.w700)),
-                  onTap: () async {
-                    await m.openDndSettings();
-                    _dnd = null;
-                    if (mounted) setState(() {});
-                  },
+                  onTap: m.openDndSettings, // dönünce (uygulama öne gelince) izin yeniden okunur
                 ),
               GroupItem(
                 pal: _pal,

@@ -219,6 +219,8 @@ class DhikrState {
   static Future<DhikrState> load({DateTime Function()? now}) async {
     final s = DhikrState(now: now);
     s._p = await SharedPreferences.getInstance();
+    // Ana ekrandaki zikir widget'ı kaydı doğrudan değiştirir; bellekteki eski kopya kullanılmasın.
+    await s._p!.reload();
     final raw = s._p!.getString(_key);
     if (raw != null) {
       try {
@@ -246,6 +248,12 @@ class DhikrState {
     day = j['day'] as String? ?? '';
     (j['dn'] as Map? ?? const {}).forEach((k, v) => today[k as String] = (v as num).toInt());
     (j['h'] as Map? ?? const {}).forEach((k, v) => history[k as String] = (v as num).toInt());
+    // Yarıda kalan tesbihat (ekran kilitlenince/arama gelince kaybolmasın).
+    final ts = (j['ts'] as num?)?.toInt();
+    if (ts != null && ts >= 0 && ts <= 3) {
+      tesbihat = ts;
+      _beforeTesbihat = j['bt'] as String?;
+    }
   }
 
   Map<String, dynamic> toJson() => {
@@ -259,6 +267,8 @@ class DhikrState {
         'day': day,
         'dn': today,
         'h': _recentHistory(),
+        if (tesbihat != null) 'ts': tesbihat,
+        if (tesbihat != null && _beforeTesbihat != null) 'bt': _beforeTesbihat,
       };
 
   Map<String, int> _recentHistory() {
