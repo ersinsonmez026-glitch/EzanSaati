@@ -708,7 +708,7 @@ class _StickyRailLayoutState extends State<_StickyRailLayout> {
   void _measure() {
     final box = context.findRenderObject() as RenderBox?;
     if (box == null || !box.hasSize || _position == null) return;
-    _baseTop = box.localToGlobal(Offset.zero).dy + _position!.pixels;
+    _baseTop = designTopOf(box, context) + _position!.pixels;
     final railBox = _railKey.currentContext?.findRenderObject() as RenderBox?;
     if (railBox != null && railBox.hasSize && railBox.size.height != _railHeight) {
       setState(() => _railHeight = railBox.size.height);

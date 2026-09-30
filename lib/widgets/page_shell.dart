@@ -508,3 +508,11 @@ class DesignScale extends StatelessWidget {
     );
   }
 }
+
+/// [box]'ın ekrandaki üst kenarı, tasarım biriminde (kaydırma miktarı ve MediaQuery ile aynı birim).
+/// `localToGlobal` telefonun gerçek piksellerini verir; [DesignScale] ekranı büyütüp küçülttüğü için
+/// kaydırma hesabında o değer doğrudan kullanılamaz.
+double designTopOf(RenderBox box, BuildContext context) {
+  final root = Navigator.maybeOf(context, rootNavigator: true)?.context.findRenderObject();
+  return box.localToGlobal(Offset.zero, ancestor: root).dy;
+}

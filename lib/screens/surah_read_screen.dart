@@ -103,7 +103,7 @@ class _SurahReadScreenState extends State<SurahReadScreen> {
 
     final target = boxOf(ayah - 1);
     if (target != null) {
-      final dy = target.localToGlobal(Offset.zero).dy - visibleTop;
+      final dy = designTopOf(target, context) - visibleTop;
       pos.jumpTo((pos.pixels + dy).clamp(pos.minScrollExtent, pos.maxScrollExtent));
       return true;
     }
@@ -113,7 +113,7 @@ class _SurahReadScreenState extends State<SurahReadScreen> {
     for (var i = 0; i < _keys.length; i++) {
       final b = boxOf(i);
       if (b == null) continue;
-      final top = b.localToGlobal(Offset.zero).dy;
+      final top = designTopOf(b, context);
       if (first == null) {
         first = i;
         firstTop = top;
@@ -138,7 +138,7 @@ class _SurahReadScreenState extends State<SurahReadScreen> {
     for (var i = 0; i < _keys.length; i++) {
       final c = _keys[i].currentContext;
       if (c == null) continue;
-      final top = (c.findRenderObject() as RenderBox).localToGlobal(Offset.zero).dy;
+      final top = designTopOf(c.findRenderObject() as RenderBox, context);
       if (top > _visibleTop + 4) break;
       current = i + 1;
     }
@@ -160,7 +160,8 @@ class _SurahReadScreenState extends State<SurahReadScreen> {
     setState(() => _playingAyah = ayah);
     if (ayah < 1 || ayah > _keys.length) return;
     if (DateTime.now().difference(_userScrollAt) < followPause) return;
-    _follow(ayah);
+    // Vurgu (üstteki "Okunuyor" etiketi) ayetler arasında yer değiştirdi; yeni yerleşimden sonra ölç.
+    WidgetsBinding.instance.addPostFrameCallback((_) => _follow(ayah));
   }
 
   void _follow(int ayah) {
@@ -170,7 +171,7 @@ class _SurahReadScreenState extends State<SurahReadScreen> {
       _jumpToAyah(ayah); // uzun surelerde henüz çizilmemiş ayet
       return;
     }
-    final top = box.localToGlobal(Offset.zero).dy;
+    final top = designTopOf(box, context);
     final bottom = top + box.size.height;
     final visibleBottom = MediaQuery.sizeOf(context).height - (_audio ? SurahAudioBar.height : 0) - 8;
     if (top >= _visibleTop && bottom <= visibleBottom) return; // zaten görünüyor
