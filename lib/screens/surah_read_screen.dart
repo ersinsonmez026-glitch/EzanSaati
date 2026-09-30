@@ -8,6 +8,7 @@ import '../services/quran_audio.dart';
 import '../widgets/page_shell.dart';
 import '../widgets/reading_ui.dart';
 import '../widgets/surah_audio_bar.dart';
+import 'ayah_share_screen.dart';
 
 /// Bir surenin okunduğu sayfa: Arapça metin, meal ve dipnotlar.
 /// Kaldığın ayet kaydedilir, yazı boyutu ayarlanabilir.
@@ -433,6 +434,15 @@ class _SurahReadScreenState extends State<SurahReadScreen> {
         ),
       );
 
+  /// Ayeti görsel kart olarak paylaşma ekranı; karta sığmayan uzun ayetler metin olarak paylaşılır.
+  void _share(Surah s, int no, Ayah a) {
+    if (!ayahFitsCard(a)) {
+      shareText(context, '${a.arabic}\n\n${a.plainMeal}\n(${s.name}, $no)\n\n— Ezan Saati uygulamasından gönderildi');
+      return;
+    }
+    Navigator.of(context).push(AppRoute(builder: (_) => AyahShareScreen(surah: s, ayahNo: no, ayah: a)));
+  }
+
   Widget _verseBox(Surah s, int no, Ayah a, {bool playing = false}) {
     Widget tool(IconData icon, String label, VoidCallback onTap) => Semantics(
           button: true,
@@ -457,6 +467,7 @@ class _SurahReadScreenState extends State<SurahReadScreen> {
               tool(Icons.headphones_outlined, '$no. ayetten dinle', () => _listenFrom(no)),
               tool(Icons.copy_outlined, '$no. ayeti kopyala',
                   () => copyToClipboard(context, '${a.arabic}\n\n${a.meal}\n(${s.name}, $no)')),
+              tool(Icons.ios_share, '$no. ayeti paylaş', () => _share(s, no, a)),
             ],
           ),
           const SizedBox(width: 8),
