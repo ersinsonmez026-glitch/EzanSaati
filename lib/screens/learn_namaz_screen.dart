@@ -9,6 +9,7 @@ import '../widgets/page_shell.dart';
 import '../widgets/reading_ui.dart';
 import '../widgets/gold_icon.dart';
 import 'video_screen.dart';
+import '../services/app_theme.dart';
 
 /// Namaz Öğren: solda sabit namaz/konu listesi, sağda rekât rekât anlatım.
 /// Tasarım: onizleme/05-namaz-ogren.html
@@ -288,7 +289,7 @@ class _LearnNamazScreenState extends State<LearnNamazScreen> {
             width: 22,
             height: 22,
             alignment: Alignment.center,
-            decoration: const BoxDecoration(shape: BoxShape.circle, gradient: RC.darkPanel),
+            decoration: BoxDecoration(shape: BoxShape.circle, gradient: RC.darkPanel),
             child: Text('$no', style: const TextStyle(color: RC.goldText, fontSize: 11, fontWeight: FontWeight.w700)),
           ),
           const SizedBox(width: 7),
@@ -555,11 +556,11 @@ class _RailButton extends StatelessWidget {
           decoration: BoxDecoration(
             gradient: selected
                 ? RC.bronze
-                : const LinearGradient(
+                : LinearGradient(
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
-                    colors: [Color(0xFF062A1D), Color(0xFF01170F), Color(0xFF000C07)],
-                    stops: [0, 0.5, 1],
+                    colors: [tc(0xFF062A1D), tc(0xFF01170F), tc(0xFF000C07)],
+                    stops: const [0, 0.5, 1],
                   ),
             borderRadius: BorderRadius.circular(10),
             border: Border.all(color: selected ? RC.bronzeBorder : RC.gold(0.75), width: selected ? 1.5 : 1),

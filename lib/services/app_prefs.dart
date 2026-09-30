@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'app_theme.dart';
+
 /// Ana ekran tuş görünümü: görselli, krem veya yeşil. (Sıra kayıtlı ayarla uyumlu kalsın diye değişmez.)
 enum TileStyle { resimli, krem, yesil }
 
@@ -30,6 +32,11 @@ class AppPrefs extends ChangeNotifier {
 
   static const _kTile = 'tile_style';
   static const _kDay = 'day_mode';
+  static const _kTheme = 'tema';
+  AppTheme _theme = AppTheme.zumrut;
+
+  /// Seçilen renk teması (Premium yoksa uygulamada Zümrüt görünür; bkz. [activeTheme]).
+  AppTheme get theme => _theme;
   static const _kReciter = 'kari';
   static const defaultReciterId = 'ar.mahermuaiqly';
   String _reciterId = defaultReciterId;
@@ -51,6 +58,11 @@ class AppPrefs extends ChangeNotifier {
     final r = prefs.getString(_kReciter);
     if (r != null && r.isNotEmpty) {
       _reciterId = r;
+      notifyListeners();
+    }
+    final th = prefs.getInt(_kTheme);
+    if (th != null && th >= 0 && th < AppTheme.values.length) {
+      _theme = AppTheme.values[th];
       notifyListeners();
     }
     final d = prefs.getInt(_kDay);
@@ -79,5 +91,12 @@ class AppPrefs extends ChangeNotifier {
     notifyListeners();
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_kReciter, id);
+  }
+
+  Future<void> setTheme(AppTheme t) async {
+    _theme = t;
+    notifyListeners();
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt(_kTheme, t.index);
   }
 }

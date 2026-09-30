@@ -11,6 +11,7 @@ import '../widgets/page_shell.dart';
 import '../widgets/reading_ui.dart';
 import 'city_picker_screen.dart';
 import '../widgets/gold_icon.dart';
+import '../services/app_theme.dart';
 
 /// Telefonun pusulasıyla çalışan Kıble bulucu (onizleme/07-kible.html).
 /// Kadran telefonla birlikte döner; ibrenin ucundaki Kâbe üstteki altın işareti
@@ -302,7 +303,7 @@ class _QiblaScreenState extends State<QiblaScreen> {
               left: 145 - 9,
               child: CustomPaint(
                 size: const Size(18, 13),
-                painter: _MarkPainter(aligned ? const Color(0xFF0B6B43) : const Color(0xFFB8892A)),
+                painter: _MarkPainter(aligned ? tc(0xFF0B6B43) : const Color(0xFFB8892A)),
               ),
             ),
           ],

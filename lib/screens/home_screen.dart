@@ -24,6 +24,7 @@ import 'ramadan_screen.dart';
 import 'settings_screen.dart';
 import 'surahs_screen.dart';
 import '../widgets/gold_icon.dart';
+import '../services/app_theme.dart';
 
 /// Ana ekrandaki bir tuş: görseli, adı ve açacağı sayfa.
 class _MenuItem {
@@ -122,7 +123,7 @@ class _HomeScreenState extends State<HomeScreen> {
         primaryTextTheme: theme.primaryTextTheme.apply(fontFamily: 'Lora'),
       ),
       child: Scaffold(
-        backgroundColor: isDaytime() ? const Color(0xFFD8C59C) : const Color(0xFF03170F), // koyu krem / gece yeşili
+        backgroundColor: isDaytime() ? const Color(0xFFD8C59C) : tc(0xFF03170F), // koyu krem / gece yeşili
         // Fotoğraf durum çubuğunun (saat, pil) arkasına kadar uzanır; ekran üstten kesilmiş görünmez.
         body: SafeArea(
           top: false,

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../services/prayer_calc.dart';
+import '../services/app_theme.dart';
 
 /// Ana ekrandaki vakit kartları: günün altı vakti simgeli kartlarda (çerçeve, simgeler ve adlar resimdir: assets/images/geri_sayim.webp; saatler
 /// canlı yazılır). İçinde bulunulan vaktin saat kutusu açık altınla vurgulanır.
@@ -62,7 +63,7 @@ class CountdownBanner extends StatelessWidget {
               height: cardsH,
               child: Stack(
                 children: [
-                  Positioned.fill(child: Image.asset('assets/images/geri_sayim.webp', fit: BoxFit.fill)),
+                  Positioned.fill(child: Image.asset(themedAsset('assets/images/geri_sayim.webp'), fit: BoxFit.fill)),
                   for (var i = 0; i < 6; i++)
                     Positioned(
                       left: _boxes[i].$1 / _w * w,

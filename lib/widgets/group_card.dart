@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'gold_icon.dart';
 import 'reading_ui.dart';
+import '../services/app_theme.dart';
 
 /// Koyu başlıklı, kâğıt zeminli ayar/bilgi grubu (onizleme/02 "Bildirim Ayarları" kartı).
 class GroupCard extends StatelessWidget {
@@ -192,7 +193,7 @@ class GoldSwitch extends StatelessWidget {
           padding: const EdgeInsets.all(3),
           alignment: value ? Alignment.centerRight : Alignment.centerLeft,
           decoration: BoxDecoration(
-            color: value ? const Color(0xFF16774D) : const Color(0xFFA9A08C),
+            color: value ? tc(0xFF16774D) : const Color(0xFFA9A08C),
             borderRadius: BorderRadius.circular(99),
           ),
           child: Container(

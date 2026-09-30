@@ -10,6 +10,7 @@ import '../services/prayer_groups.dart';
 import '../widgets/page_shell.dart';
 import '../widgets/reading_ui.dart';
 import 'surah_read_screen.dart';
+import '../services/app_theme.dart';
 
 /// Dua Zinciri: uygulama içinde dua grupları ve gruplarda birlikte okunan zincirler.
 /// WhatsApp yalnız grup bağlantısını bir kez paylaşmak ve uygulamayı önermek için kullanılır.
@@ -28,7 +29,7 @@ class DuaCircleScreen extends StatefulWidget {
 PagePalette get _pal => PagePalette.current();
 GroupSync get _sync => GroupSync.instance;
 
-const _wa = Color(0xFF1FAA55);
+Color get _wa => tc(0xFF1FAA55);
 
 Widget _label(String t) => Padding(
       padding: const EdgeInsets.fromLTRB(4, 12, 4, 6),

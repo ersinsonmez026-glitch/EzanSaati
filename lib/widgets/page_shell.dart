@@ -8,6 +8,7 @@ import '../services/location_store.dart';
 import '../services/prayer_calc.dart';
 import '../theme.dart';
 import 'gold_icon.dart';
+import '../services/app_theme.dart';
 
 /// Ana ekran dışındaki bütün sayfaların ortak şablonu.
 ///
@@ -112,18 +113,23 @@ bool isDaytime() => switch (AppPrefs.instance.dayMode) {
       DayMode.otomatik => isDaytimeByClock(),
     };
 
-/// Gündüz/gece görünümünü değiştirir ve açık bütün sayfaları yeni renklerle yeniden çizer.
-/// Seçilen görünüm vakte göre olanla aynıysa yeniden "Otomatik"e döner.
-void toggleDayMode(BuildContext context) {
-  final toDay = !isDaytime();
-  final mode = toDay == isDaytimeByClock() ? DayMode.otomatik : (toDay ? DayMode.gunduz : DayMode.gece);
-  AppPrefs.instance.setDayMode(mode);
+/// Açık bütün sayfaları yeni renklerle yeniden çizer (gündüz/gece ya da tema değişince).
+void rebuildAllPages() {
   void mark(Element e) {
     e.markNeedsBuild();
     e.visitChildren(mark);
   }
 
   WidgetsBinding.instance.rootElement?.visitChildren(mark);
+}
+
+/// Gündüz/gece görünümünü değiştirir ve açık bütün sayfaları yeni renklerle yeniden çizer.
+/// Seçilen görünüm vakte göre olanla aynıysa yeniden "Otomatik"e döner.
+void toggleDayMode(BuildContext context) {
+  final toDay = !isDaytime();
+  final mode = toDay == isDaytimeByClock() ? DayMode.otomatik : (toDay ? DayMode.gunduz : DayMode.gece);
+  AppPrefs.instance.setDayMode(mode);
+  rebuildAllPages();
   final messenger = ScaffoldMessenger.maybeOf(context);
   messenger?.hideCurrentSnackBar();
   messenger?.showSnackBar(SnackBar(
@@ -167,7 +173,7 @@ class DayNightSwitch extends StatelessWidget {
             decoration: BoxDecoration(
               shape: labels ? BoxShape.rectangle : BoxShape.circle,
               borderRadius: labels ? BorderRadius.circular(99) : null,
-              color: on ? const Color(0xFF062A1C) : null,
+              color: on ? tc(0xFF062A1C) : null,
               border: on ? Border.all(color: const Color(0xE6CFAE68)) : null,
             ),
             child: Opacity(
@@ -254,9 +260,9 @@ class _HeaderDelegate extends SliverPersistentHeaderDelegate {
     final rowTop = titleTop + 2 + (base + 70 - titleTop - 2) * (1 - p);
 
     return DecoratedBox(
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: AppColors.darkGreen,
-        border: Border(bottom: BorderSide(color: Color(0x99CFAE68), width: 1.5)),
+        border: const Border(bottom: BorderSide(color: Color(0x99CFAE68), width: 1.5)),
       ),
       child: ClipRect(
         child: Stack(
@@ -280,8 +286,8 @@ class _HeaderDelegate extends SliverPersistentHeaderDelegate {
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: isDaytime()
-                      ? const [Color(0x66000000), Color(0x26000000), Color(0x1A021C12), Color(0xB3021C12)]
-                      : const [Color(0x40000000), Color(0x00000000), Color(0x00021C12), Color(0xB3021C12)],
+                      ? [const Color(0x66000000), const Color(0x26000000), tc(0x1A021C12), tc(0xB3021C12)]
+                      : [const Color(0x40000000), const Color(0x00000000), tc(0x00021C12), tc(0xB3021C12)],
                   stops: const [0, 0.25, 0.55, 1],
                 ),
               ),

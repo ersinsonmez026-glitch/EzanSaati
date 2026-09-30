@@ -10,6 +10,7 @@ import '../widgets/gold_icon.dart';
 import '../widgets/group_card.dart';
 import '../widgets/page_shell.dart';
 import '../widgets/reading_ui.dart';
+import '../services/app_theme.dart';
 
 /// Ezan Bildirimleri (onizleme/02-namaz-vakitleri.html "Bildirimler" görünümü).
 class NotificationsScreen extends StatefulWidget {
@@ -284,7 +285,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     return Container(
       padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
       decoration: BoxDecoration(
-        color: const Color(0xFF062A1C),
+        color: tc(0xFF062A1C),
         borderRadius: BorderRadius.circular(18),
         border: Border.all(color: RC.gold(0.75), width: 1.5),
         boxShadow: const [BoxShadow(color: Color(0x40281905), blurRadius: 14, offset: Offset(0, 4))],

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../services/app_prefs.dart';
 import 'gold_icon.dart';
+import '../services/app_theme.dart';
 
 /// Ana ekrandaki tek bir tuş. Görünümü ayarlardan seçilir.
 class MenuTile extends StatelessWidget {
@@ -69,8 +70,8 @@ class MenuTile extends StatelessWidget {
       child: AspectRatio(
         aspectRatio: 600 / 142,
         child: DecoratedBox(
-          decoration: const BoxDecoration(
-            image: DecorationImage(image: AssetImage('assets/images/levha.webp'), fit: BoxFit.fill),
+          decoration: BoxDecoration(
+            image: DecorationImage(image: AssetImage(themedAsset('assets/images/levha.webp')), fit: BoxFit.fill),
           ),
           child: FractionallySizedBox(
             widthFactor: _textArea,
@@ -124,7 +125,7 @@ class MenuTile extends StatelessWidget {
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: krem ? const [Color(0xFFEADBB8), Color(0xFFDCC9A0)] : const [Color(0xFF0D4630), Color(0xFF05281B)],
+            colors: krem ? const [Color(0xFFEADBB8), Color(0xFFDCC9A0)] : [tc(0xFF0D4630), tc(0xFF05281B)],
           ),
           border: Border.all(color: krem ? const Color(0x8C8A6414) : const Color(0x8CCFAE68)),
           boxShadow: const [BoxShadow(color: Color(0x333C280A), blurRadius: 4, offset: Offset(0, 2))],

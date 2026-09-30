@@ -9,6 +9,7 @@ import '../widgets/page_shell.dart';
 import '../widgets/reading_ui.dart';
 import '../widgets/surah_audio_bar.dart';
 import 'ayah_share_screen.dart';
+import '../services/app_theme.dart';
 
 /// Bir surenin okunduğu sayfa: Arapça metin, meal ve dipnotlar.
 /// Kaldığın ayet kaydedilir, yazı boyutu ayarlanabilir.
@@ -390,11 +391,11 @@ class _SurahReadScreenState extends State<SurahReadScreen> {
 
   /// Okunan ayetin ışıklı zemini (gece: altın ışıklı yeşil, gündüz: sıcak altın).
   LinearGradient get _litGradient => _pal.night
-      ? const LinearGradient(
+      ? LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          colors: [Color(0xFF3A3A14), Color(0xFF1C2A14), Color(0xFF0E2016)],
-          stops: [0, 0.45, 1],
+          colors: [const Color(0xFF3A3A14), const Color(0xFF1C2A14), tc(0xFF0E2016)],
+          stops: const [0, 0.45, 1],
         )
       : const LinearGradient(
           begin: Alignment.topCenter,

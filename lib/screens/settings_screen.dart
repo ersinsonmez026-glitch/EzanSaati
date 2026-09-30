@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../services/app_prefs.dart';
+import '../services/app_theme.dart';
 import '../services/ezan_notifications.dart';
 import '../services/location_store.dart';
 import '../services/mosque_mode.dart';
@@ -107,6 +108,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
           onToggle: () => _toggle('Görünüm'),
           summary: '${AppPrefs.instance.tileStyle.label} · ${AppPrefs.instance.dayMode.label}',
           children: [
+            GroupItem(
+              pal: _pal,
+              icon: Icons.palette_outlined,
+              title: 'Renk teması',
+              subtitle: Premium.instance.active
+                  ? 'Gece görünümünün zemin rengi'
+                  : 'Zümrüt ücretsiz; diğer temalar Premium ile açılır',
+              below: _themeRow(),
+            ),
             GroupItem(
               pal: _pal,
               art: 'gorunum',
@@ -373,5 +383,64 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
             ],
     );
+  }
+
+  // ---------------------------------------------------------------- renk teması
+
+  Widget _themeRow() {
+    final premium = Premium.instance.active;
+    final selected = premium ? AppPrefs.instance.theme : AppTheme.zumrut;
+    return Row(children: [
+      for (final t in AppTheme.values) ...[
+        if (t != AppTheme.values.first) const SizedBox(width: 6),
+        Expanded(
+          child: Semantics(
+            button: true,
+            selected: t == selected,
+            label: '${t.label} teması',
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () async {
+                if (t != AppTheme.zumrut && !requirePremium(context)) return;
+                await AppPrefs.instance.setTheme(t);
+                if (mounted) setState(() {});
+              },
+              child: Column(children: [
+                Container(
+                  height: 38,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [themedColor(0xFF0F5A3C, t), themedColor(0xFF01170F, t)],
+                    ),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                      color: t == selected ? const Color(0xFFF0C75E) : RC.gold(0.45),
+                      width: t == selected ? 2.2 : 1,
+                    ),
+                  ),
+                  alignment: Alignment.center,
+                  child: t == selected
+                      ? const Icon(Icons.check, size: 18, color: Color(0xFFF0C75E))
+                      : (!premium && t != AppTheme.zumrut)
+                          ? const Icon(Icons.lock, size: 15, color: Color(0xCCF0C75E))
+                          : null,
+                ),
+                const SizedBox(height: 3),
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(t.label,
+                      style: TextStyle(
+                          color: _pal.ink,
+                          fontSize: 12,
+                          fontWeight: t == selected ? FontWeight.w700 : FontWeight.w500)),
+                ),
+              ]),
+            ),
+          ),
+        ),
+      ],
+    ]);
   }
 }

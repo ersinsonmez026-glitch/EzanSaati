@@ -130,7 +130,7 @@ class _Thumb extends StatelessWidget {
         Image.network(
           video.thumbnail,
           fit: BoxFit.cover,
-          errorBuilder: (_, __, ___) => const DecoratedBox(decoration: BoxDecoration(gradient: RC.darkPanel)),
+          errorBuilder: (_, __, ___) => DecoratedBox(decoration: BoxDecoration(gradient: RC.darkPanel)),
         ),
         const Center(
           child: DecoratedBox(

@@ -7,6 +7,7 @@ import '../widgets/gold_icon.dart';
 import '../widgets/page_shell.dart';
 import '../widgets/reading_ui.dart';
 import 'city_picker_screen.dart';
+import '../services/app_theme.dart';
 
 /// Cami Bulucu: yakındaki camiler (OpenStreetMap), uzaklık ve yön; yol tarifi harita uygulamasında.
 class MosqueFinderScreen extends StatefulWidget {
@@ -199,7 +200,7 @@ class _MosqueFinderScreenState extends State<MosqueFinderScreen> {
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
       decoration: BoxDecoration(
-        color: const Color(0xFF062A1C),
+        color: tc(0xFF062A1C),
         borderRadius: BorderRadius.circular(18),
         border: Border.all(color: RC.gold(0.75), width: 1.5),
         image: const DecorationImage(

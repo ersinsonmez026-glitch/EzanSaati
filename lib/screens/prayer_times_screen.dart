@@ -14,6 +14,7 @@ import 'notifications_screen.dart';
 import 'tracking_screen.dart';
 import '../widgets/gold_icon.dart';
 import '../services/day_utils.dart';
+import '../services/app_theme.dart';
 
 enum _View { main, imsakiye, hicri, miladi }
 
@@ -375,7 +376,7 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
         Text(formatDuration(st.remaining)),
       ]);
     } else if (past) {
-      pill = Icon(Icons.check_circle, size: 18, color: _pal.night ? const Color(0xFF4FE0A6) : const Color(0xFF1D8A5C));
+      pill = Icon(Icons.check_circle, size: 18, color: _pal.night ? tc(0xFF4FE0A6) : tc(0xFF1D8A5C));
     } else if (_offset == 0) {
       pill = Text(formatDuration(slot.time.difference(now)));
     }
@@ -406,10 +407,10 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
                         colors: [Color(0xFFE0B84E), Color(0xFFB68A25)])
-                    : const LinearGradient(
+                    : LinearGradient(
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
-                        colors: [Color(0xFF0B3F2B), Color(0xFF062A1C)]),
+                        colors: [tc(0xFF0B3F2B), tc(0xFF062A1C)]),
                 border: Border(right: BorderSide(color: RC.gold(0.5))),
               ),
               child: ArtIcon(kVakitIkonlari[i], size: 34),
@@ -603,7 +604,7 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
       constraints: const BoxConstraints(minHeight: 150),
       clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
-        color: const Color(0xFF062A1C),
+        color: tc(0xFF062A1C),
         borderRadius: BorderRadius.circular(18),
         border: Border.all(color: RC.gold(0.75), width: 1.5),
         boxShadow: const [BoxShadow(color: Color(0x40281905), blurRadius: 14, offset: Offset(0, 4))],
@@ -617,12 +618,12 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
               child: Image.asset(image, fit: BoxFit.cover, alignment: imageAlign),
             ),
           ),
-          const Positioned.fill(
+          Positioned.fill(
             child: DecoratedBox(
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [Color(0xFF062A1C), Color(0xD9062A1C), Color(0x26062A1C), Color(0x0D062A1C)],
-                  stops: [0.3, 0.45, 0.75, 1],
+                  colors: [tc(0xFF062A1C), tc(0xD9062A1C), tc(0x26062A1C), tc(0x0D062A1C)],
+                  stops: const [0.3, 0.45, 0.75, 1],
                 ),
               ),
             ),
@@ -1022,7 +1023,7 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
                 children: [
                   _legend(const Color(0x59C0392B), 'Resmî tatil'),
                   _legend(const Color(0xFFC9A133), 'Dinî gün', circle: true),
-                  _legend(const Color(0xFF0F5A3C), 'Bugün'),
+                  _legend(tc(0xFF0F5A3C), 'Bugün'),
                 ],
               ),
             ),
@@ -1061,17 +1062,17 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
     const red = Color(0xFFB0392B), redNight = Color(0xFFFF8F7F);
     Color bigColor = _pal.ink;
     if (holiday) bigColor = _pal.night ? redNight : red;
-    if (friday) bigColor = _pal.night ? const Color(0xFF4FE0A6) : const Color(0xFF1D8A5C);
+    if (friday) bigColor = _pal.night ? tc(0xFF4FE0A6) : tc(0xFF1D8A5C);
     if (today) bigColor = RC.goldText;
     return Opacity(
       opacity: out ? 0.35 : 1,
       child: Container(
         decoration: BoxDecoration(
           gradient: today
-              ? const LinearGradient(
+              ? LinearGradient(
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
-                  colors: [Color(0xFF0F5A3C), Color(0xFF083826)])
+                  colors: [tc(0xFF0F5A3C), tc(0xFF083826)])
               : (half
                   ? const LinearGradient(
                       begin: Alignment.topLeft,

@@ -15,6 +15,7 @@ import 'city_picker_screen.dart';
 import 'fasting_tracker_screen.dart';
 import 'surah_read_screen.dart';
 import '../widgets/gold_icon.dart';
+import '../services/app_theme.dart';
 
 /// Ramazan: geri sayım, günün cüzü, şehre göre imsakiye, oruç niyeti ve dualar, önemli günler,
 /// oruç rehberi, fitre-fidye-zekât hesabı.
@@ -206,11 +207,11 @@ class _RamadanScreenState extends State<RamadanScreen> {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(18),
         border: Border.all(color: RC.goldBorder, width: 1.5),
-        gradient: const RadialGradient(
+        gradient: RadialGradient(
           center: Alignment.topCenter,
           radius: 1.3,
-          colors: [Color(0xFF0A3323), Color(0xFF021A11), Color(0xFF000C07)],
-          stops: [0, 0.5, 1],
+          colors: [tc(0xFF0A3323), tc(0xFF021A11), tc(0xFF000C07)],
+          stops: const [0, 0.5, 1],
         ),
         boxShadow: const [
           BoxShadow(color: Color(0x59000000), spreadRadius: 3),
@@ -457,11 +458,11 @@ class _RamadanScreenState extends State<RamadanScreen> {
     final rows = <Widget>[
       Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [Color(0xFF0A3525), Color(0xFF01170F)],
+            colors: [tc(0xFF0A3525), tc(0xFF01170F)],
           ),
         ),
         child: row(

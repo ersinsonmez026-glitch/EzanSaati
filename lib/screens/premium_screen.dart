@@ -5,6 +5,7 @@ import '../services/premium.dart';
 import '../widgets/gold_icon.dart';
 import '../widgets/page_shell.dart';
 import '../widgets/reading_ui.dart';
+import '../services/app_theme.dart';
 
 /// Premium tanıtım ve abonelik sayfası.
 class PremiumScreen extends StatefulWidget {
@@ -24,7 +25,7 @@ class _PremiumScreenState extends State<PremiumScreen> {
     (Icons.auto_stories, 'Hatim planı+', '7, 15, 60, 90 ve 180 günlük hatim planları', false),
     (Icons.volume_off_outlined, 'Cami modu', 'Namaz vakitlerinde telefon kendiliğinden sessize ya da titreşime geçer', false),
     (Icons.widgets_outlined, "Ana ekran widget'ları", "Kur'an çalar ve zikir sayacı widget'ı", false),
-    (Icons.palette_outlined, 'Temalar', 'Farklı renk temaları ve ana ekran görselleri', true),
+    (Icons.palette_outlined, 'Renk temaları', 'Zümrüt, Gece mavisi, Bordo ve Kahve', false),
   ];
 
   static const _free = [
@@ -45,11 +46,11 @@ class _PremiumScreenState extends State<PremiumScreen> {
         return PageShell(
           title: 'Premium',
           subtitle: 'İbadetlerinizi düzenli takip edin',
-          background: const BoxDecoration(
+          background: BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
-              colors: [Color(0xFF062A1D), Color(0xFF010D08)],
+              colors: [tc(0xFF062A1D), tc(0xFF010D08)],
             ),
           ),
           padding: const EdgeInsets.fromLTRB(14, 14, 14, 28),
@@ -100,10 +101,10 @@ class _PremiumScreenState extends State<PremiumScreen> {
   Widget _hero(bool active) => Container(
         padding: const EdgeInsets.fromLTRB(16, 18, 16, 16),
         decoration: BoxDecoration(
-          gradient: const LinearGradient(
+          gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [Color(0xFF0E3A29), Color(0xFF04190F)],
+            colors: [tc(0xFF0E3A29), tc(0xFF04190F)],
           ),
           borderRadius: BorderRadius.circular(20),
           border: Border.all(color: RC.gold(0.8), width: 1.3),
@@ -133,7 +134,7 @@ class _PremiumScreenState extends State<PremiumScreen> {
             alignment: Alignment.center,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: const Color(0xFF0B3325),
+              color: tc(0xFF0B3325),
               border: Border.all(color: RC.gold(0.6)),
             ),
             child: Icon(icon, size: 19, color: RC.bronzeText),
@@ -175,7 +176,7 @@ class _PremiumScreenState extends State<PremiumScreen> {
           duration: const Duration(milliseconds: 150),
           padding: const EdgeInsets.fromLTRB(12, 11, 12, 11),
           decoration: BoxDecoration(
-            color: on ? const Color(0xFF123F2D) : const Color(0xFF051C13),
+            color: on ? tc(0xFF123F2D) : tc(0xFF051C13),
             borderRadius: BorderRadius.circular(16),
             border: Border.all(color: on ? const Color(0xFFE6C35A) : RC.gold(0.35), width: on ? 2 : 1),
           ),
@@ -235,7 +236,7 @@ class _PremiumScreenState extends State<PremiumScreen> {
   Widget _freeBox() => Container(
         padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
         decoration: BoxDecoration(
-          color: const Color(0xFF041710),
+          color: tc(0xFF041710),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(color: RC.gold(0.3)),
         ),

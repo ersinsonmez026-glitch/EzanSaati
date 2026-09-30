@@ -8,6 +8,7 @@ import '../services/content_store.dart';
 import '../widgets/gold_icon.dart';
 import '../widgets/page_shell.dart';
 import '../widgets/reading_ui.dart';
+import '../services/app_theme.dart';
 
 /// Dini Mesajlar: bu cumanın kartı, favoriler ve hazır "Hayırlı Cumalar" kartları.
 class MessagesScreen extends StatefulWidget {
@@ -88,10 +89,10 @@ class _MessagesScreenState extends State<MessagesScreen> {
     return Container(
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
+        gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [Color(0xFF0B3325), Color(0xFF03170F)],
+          colors: [tc(0xFF0B3325), tc(0xFF03170F)],
         ),
         borderRadius: BorderRadius.circular(18),
         border: Border.all(color: RC.gold(0.75), width: 1.2),
@@ -263,7 +264,7 @@ class _MessageViewerScreenState extends State<MessageViewerScreen> {
     final fav = _prefs?.favorites(kMessageFavKey).contains(c.id) ?? false;
     const cream = Color(0xFFF3E4C0);
     return Scaffold(
-      backgroundColor: const Color(0xFF020F0A),
+      backgroundColor: tc(0xFF020F0A),
       body: SafeArea(
         child: Column(children: [
           SizedBox(
@@ -337,7 +338,7 @@ class _CardImage extends StatelessWidget {
     return Container(
       clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
-        color: const Color(0xFF03170F),
+        color: tc(0xFF03170F),
         borderRadius: BorderRadius.circular(radius),
         border: Border.all(color: RC.gold(0.6)),
       ),

@@ -5,6 +5,7 @@ import '../services/premium.dart';
 import 'gold_icon.dart';
 import 'page_shell.dart';
 import 'reading_ui.dart';
+import '../services/app_theme.dart';
 
 /// Altın zeminli küçük "Premium" rozeti.
 class PremiumChip extends StatelessWidget {
@@ -106,10 +107,10 @@ class PremiumBanner extends StatelessWidget {
               child: Container(
                 padding: const EdgeInsets.fromLTRB(12, 11, 10, 11),
                 decoration: BoxDecoration(
-                  gradient: const LinearGradient(
+                  gradient: LinearGradient(
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
-                    colors: [Color(0xFF0E3A29), Color(0xFF03170F)],
+                    colors: [tc(0xFF0E3A29), tc(0xFF03170F)],
                   ),
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(color: RC.gold(0.8), width: 1.2),

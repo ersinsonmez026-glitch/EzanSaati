@@ -6,6 +6,7 @@ import 'package:share_plus/share_plus.dart';
 
 import '../services/content_store.dart';
 import '../widgets/reading_ui.dart';
+import '../services/app_theme.dart';
 
 /// Karta sığmayacak kadar uzun ayetler görsel yerine metin olarak paylaşılır (ayet kısaltılmaz).
 const kShareMaxChars = 1000;
@@ -59,7 +60,7 @@ class _AyahShareScreenState extends State<AyahShareScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF020F0A),
+      backgroundColor: tc(0xFF020F0A),
       body: SafeArea(
         child: Column(children: [
           SizedBox(
@@ -198,12 +199,12 @@ class AyahShareCard extends StatelessWidget {
       final u = w / 360; // tasarım birimi: 360 genişliğe göre
       const gold = Color(0xFFD8B45A);
       return DecoratedBox(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: RadialGradient(
-            center: Alignment(0, -0.3),
+            center: const Alignment(0, -0.3),
             radius: 1.1,
-            colors: [Color(0xFF0F4A33), Color(0xFF062618), Color(0xFF021309)],
-            stops: [0, 0.6, 1],
+            colors: [tc(0xFF0F4A33), tc(0xFF062618), tc(0xFF021309)],
+            stops: const [0, 0.6, 1],
           ),
         ),
         child: Padding(

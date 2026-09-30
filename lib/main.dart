@@ -10,6 +10,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'screens/dua_circle_screen.dart';
 import 'screens/home_screen.dart';
 import 'services/app_prefs.dart';
+import 'services/app_theme.dart';
 import 'services/mosque_mode.dart';
 import 'services/premium.dart';
 import 'services/ezan_notifications.dart';
@@ -18,7 +19,7 @@ import 'services/invite_watch.dart';
 import 'services/location_store.dart';
 import 'services/prayer_groups.dart' show normalizeCode;
 import 'theme.dart';
-import 'widgets/page_shell.dart' show AppRoute, DesignScale, kAppPageTransitions;
+import 'widgets/page_shell.dart' show AppRoute, DesignScale, kAppPageTransitions, rebuildAllPages;
 
 /// Uygulama öne gelince çalışan dinleyici (çöp toplayıcı silmesin diye saklanır).
 AppLifecycleListener? appLifecycle;
@@ -50,6 +51,10 @@ Future<void> main() async {
   unawaited(MosqueMode.instance.apply());
   LocationStore.instance.addListener(() => unawaited(MosqueMode.instance.apply()));
   Premium.instance.addListener(() => unawaited(MosqueMode.instance.apply()));
+  // Renk teması: seçilen tema yalnız Premium'da görünür; değişince açık sayfalar yeniden çizilir.
+  AppPrefs.instance.addListener(_applyTheme);
+  Premium.instance.addListener(_applyTheme);
+  _applyTheme();
   // Ayarlardan dönülünce (izin verildi/kaldırıldı) bildirimler ve Cami modu yeniden kurulur.
   appLifecycle = AppLifecycleListener(onResume: () {
     unawaited(EzanNotifications.instance.onResume());
@@ -92,6 +97,13 @@ Future<void> _openInstallReferrer() async {
   }
 }
 
+void _applyTheme() {
+  final t = Premium.instance.active ? AppPrefs.instance.theme : AppTheme.zumrut;
+  if (t == activeTheme) return;
+  activeTheme = t;
+  rebuildAllPages();
+}
+
 /// Uygulamanın gezgini (bildirimden sayfa açmak için).
 final kNavigatorKey = GlobalKey<NavigatorState>();
 
@@ -112,16 +124,16 @@ class EzanSaatiApp extends StatelessWidget {
         brightness: Brightness.dark,
         scaffoldBackgroundColor: AppColors.darkGreen,
         primaryColor: AppColors.gold,
-        colorScheme: const ColorScheme.dark(
+        colorScheme: ColorScheme.dark(
           primary: AppColors.gold,
           secondary: AppColors.green,
           surface: AppColors.greenSurface,
         ),
         fontFamily: 'Lora',
         pageTransitionsTheme: kAppPageTransitions,
-        snackBarTheme: const SnackBarThemeData(
+        snackBarTheme: SnackBarThemeData(
           backgroundColor: AppColors.green,
-          contentTextStyle: TextStyle(color: Colors.white),
+          contentTextStyle: const TextStyle(color: Colors.white),
         ),
       ),
       // Her ekran aynı tasarımı orantılı gösterir (bkz. DesignScale).

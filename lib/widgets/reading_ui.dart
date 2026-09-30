@@ -6,6 +6,7 @@ import 'package:share_plus/share_plus.dart';
 
 import 'page_shell.dart';
 import 'gold_icon.dart';
+import '../services/app_theme.dart';
 
 /// Sureler, Dualar ve Namaz Öğren sayfalarının renkleri (TASARIM_KURALLARI.md v2).
 /// Gündüz krem kâğıt, akşamdan imsaka kadar koyu yeşil görünüm kullanılır.
@@ -50,18 +51,18 @@ class PagePalette {
     verseCard: [Color(0xFFFBF3E0), Color(0xFFF1E4C5)],
   );
 
-  static const yesil = PagePalette._(
+  static PagePalette get yesil => PagePalette._(
     night: true,
-    page: Color(0xFF000E09),
-    paper: Color(0xFF021A12),
-    paper2: Color(0xFF00120C),
-    line: Color(0x99CFAE68),
-    ink: Color(0xFFF3E4C0),
-    ink2: Color(0xFFDCC697),
-    gold: Color(0xFFCFAE68),
-    chip: Color(0xFF00140E),
-    pill: Color(0xFF021A12),
-    verseCard: [Color(0xFFE9DCBC), Color(0xFFDCCB9F)],
+    page: tc(0xFF000E09),
+    paper: tc(0xFF021A12),
+    paper2: tc(0xFF00120C),
+    line: const Color(0x99CFAE68),
+    ink: const Color(0xFFF3E4C0),
+    ink2: const Color(0xFFDCC697),
+    gold: const Color(0xFFCFAE68),
+    chip: tc(0xFF00140E),
+    pill: tc(0xFF021A12),
+    verseCard: [const Color(0xFFE9DCBC), const Color(0xFFDCCB9F)],
   );
 
   /// Başlık manzarasıyla aynı kural: imsak-akşam arası krem, sonrası yeşil.
@@ -69,12 +70,12 @@ class PagePalette {
 
   /// Sayfa zemini. Yeşilde ortası hafif aydınlık radyal geçiş.
   Decoration get background => night
-      ? const BoxDecoration(
+      ? BoxDecoration(
           gradient: RadialGradient(
-            center: Alignment(0, -0.68),
+            center: const Alignment(0, -0.68),
             radius: 1.0,
-            colors: [Color(0xFF06281C), Color(0xFF011810), Color(0xFF000A06)],
-            stops: [0, 0.45, 1],
+            colors: [tc(0xFF06281C), tc(0xFF011810), tc(0xFF000A06)],
+            stops: const [0, 0.45, 1],
           ),
         )
       : BoxDecoration(color: page);
@@ -98,11 +99,11 @@ class RC {
   static const verseGold = Color(0xFFB8892A);
 
   /// Kart / tuş zemini: yukarıdan aşağı koyu yeşil.
-  static const darkPanel = LinearGradient(
+  static LinearGradient get darkPanel => LinearGradient(
     begin: Alignment.topCenter,
     end: Alignment.bottomCenter,
-    colors: [Color(0xFF0A3525), Color(0xFF01170F), Color(0xFF000C07)],
-    stops: [0, 0.55, 1],
+    colors: [tc(0xFF0A3525), tc(0xFF01170F), tc(0xFF000C07)],
+    stops: const [0, 0.55, 1],
   );
 
   /// Seçili durum: bronz.
@@ -793,7 +794,7 @@ class ReadingHero extends StatelessWidget {
     return Container(
       clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
-        color: const Color(0xFF062A1C),
+        color: tc(0xFF062A1C),
         borderRadius: BorderRadius.circular(18),
         border: Border.all(color: RC.gold(0.75), width: 1.5),
       ),
@@ -809,13 +810,13 @@ class ReadingHero extends StatelessWidget {
               ),
             ),
           ),
-          const Positioned.fill(
+          Positioned.fill(
             child: DecoratedBox(
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
-                  colors: [Color(0x33062A1C), Color(0xE6062A1C)],
+                  colors: [tc(0x33062A1C), tc(0xE6062A1C)],
                 ),
               ),
             ),
