@@ -4,12 +4,13 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import 'screens/dua_circle_screen.dart';
 import 'screens/home_screen.dart';
 import 'services/app_prefs.dart';
 import 'services/ezan_notifications.dart';
 import 'services/location_store.dart';
 import 'theme.dart';
-import 'widgets/page_shell.dart' show DesignScale, kAppPageTransitions;
+import 'widgets/page_shell.dart' show AppRoute, DesignScale, kAppPageTransitions;
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -63,6 +64,13 @@ class EzanSaatiApp extends StatelessWidget {
       // Her ekran aynı tasarımı orantılı gösterir (bkz. DesignScale).
       builder: (context, child) => DesignScale(child: child!),
       home: const HomeScreen(),
+      // Davet bağlantısı (ezansaati://app/davet?k=KOD): Dua Zinciri davetlerde, kod girilmiş açılır.
+      onGenerateRoute: (settings) {
+        final uri = Uri.tryParse(settings.name ?? '');
+        if (uri == null || uri.path != '/davet') return null;
+        return AppRoute(builder: (_) => DuaCircleScreen(inviteCode: uri.queryParameters['k']));
+      },
+      onUnknownRoute: (_) => AppRoute(builder: (_) => const HomeScreen()),
     );
   }
 }

@@ -93,7 +93,7 @@ class _DuaCircleInviteScreenState extends State<DuaCircleInviteScreen> {
         const SizedBox(height: 8),
         Text(
           'WhatsApp mesajı hazır açılır; göndermek için WhatsApp\'ta gönder tuşuna basın. '
-          '${widget.circle.remote ? 'Uygulamayı kullanan ve numarasını kaydetmiş kişiler daveti uygulamada da görür; diğerleri mesajdaki kodla katılır. ' : ''}'
+          '${widget.circle.remote ? 'Uygulamayı kullanan ve numarasını kaydetmiş kişiler daveti uygulamada da görür; diğerleri mesajdaki bağlantıya dokunarak katılır.' : ''}'
           'Davet $kInviteHours saat geçerlidir; yanıt gelmezse pay size döner.',
           textAlign: TextAlign.center,
           style: TextStyle(color: _pal.ink2, fontSize: 12, height: 1.45),

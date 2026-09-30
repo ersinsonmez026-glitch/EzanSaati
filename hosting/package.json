@@ -1,0 +1,12 @@
+{
+  "name": "ezansaati-davet-sayfasi",
+  "private": true,
+  "type": "module",
+  "description": "Dua Zinciri davet sayfası (Firebase Hosting)",
+  "scripts": {
+    "deploy": "node deploy.mjs ezansaati-premium-2026"
+  },
+  "dependencies": {
+    "google-auth-library": "^10.0.0"
+  }
+}

@@ -139,7 +139,10 @@ void toggleDayMode(BuildContext context) {
 class DayNightSwitch extends StatelessWidget {
   final double height;
 
-  const DayNightSwitch({super.key, required this.height});
+  /// Simge yerine "Gündüz" / "Gece" yazısı (ana ekranda).
+  final bool labels;
+
+  const DayNightSwitch({super.key, required this.height, this.labels = false});
 
   @override
   Widget build(BuildContext context) {
@@ -157,17 +160,26 @@ class DayNightSwitch extends StatelessWidget {
           onTap: on ? null : () => toggleDayMode(context),
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 200),
-            width: d,
+            width: labels ? null : d,
             height: d,
-            padding: EdgeInsets.all(d * 0.1),
+            padding: labels ? EdgeInsets.symmetric(horizontal: d * 0.45) : EdgeInsets.all(d * 0.1),
+            alignment: Alignment.center,
             decoration: BoxDecoration(
-              shape: BoxShape.circle,
+              shape: labels ? BoxShape.rectangle : BoxShape.circle,
+              borderRadius: labels ? BorderRadius.circular(99) : null,
               color: on ? const Color(0xFF062A1C) : null,
               border: on ? Border.all(color: const Color(0xE6CFAE68)) : null,
             ),
             child: Opacity(
-              opacity: on ? 1 : 0.55,
-              child: Image.asset(isDay ? 'assets/images/ikon/gunduz.webp' : 'assets/images/ikon/gece.webp'),
+              opacity: on ? 1 : 0.6,
+              child: labels
+                  ? Text(isDay ? 'Gündüz' : 'Gece',
+                      style: TextStyle(
+                          color: on ? const Color(0xFFF2D58E) : Colors.white,
+                          fontSize: d * 0.55,
+                          fontWeight: FontWeight.w700,
+                          height: 1))
+                  : Image.asset(isDay ? 'assets/images/ikon/gunduz.webp' : 'assets/images/ikon/gece.webp'),
             ),
           ),
         ),

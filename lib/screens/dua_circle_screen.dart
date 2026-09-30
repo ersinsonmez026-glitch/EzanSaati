@@ -12,7 +12,10 @@ import '../widgets/gold_icon.dart';
 /// Dua Zinciri ana sayfası (onizleme/10-dua-zinciri.html): solda menü, sağda
 /// seçili zincirin kartı, altta diğer zincirler.
 class DuaCircleScreen extends StatefulWidget {
-  const DuaCircleScreen({super.key});
+  /// Davet bağlantısıyla açıldıysa bağlantıdaki kod: sayfa Davetler'de açılır, kod kendiliğinden girilir.
+  final String? inviteCode;
+
+  const DuaCircleScreen({super.key, this.inviteCode});
 
   @override
   State<DuaCircleScreen> createState() => _DuaCircleScreenState();
@@ -47,6 +50,22 @@ class _DuaCircleScreenState extends State<DuaCircleScreen> {
     if (!mounted) return;
     _nameCtl.text = _sync.profileName;
     _phoneCtl.text = _sync.profilePhone;
+    final code = normalizeCode(widget.inviteCode ?? '');
+    if (code.isEmpty) return;
+    setState(() => _menu = 'inv');
+    _codeCtl.text = formatCode(code);
+    if (!_sync.ready) {
+      showNote(context, 'Daveti almak için internet gerekiyor. Bağlanınca "Kodu gir"e dokunun.');
+      return;
+    }
+    final err = await _sync.redeemCode(code);
+    if (!mounted) return;
+    if (err != null) {
+      showNote(context, err);
+    } else {
+      _codeCtl.clear();
+      showNote(context, 'Davet geldi. Katılmak için "Kabul et"e dokunun.');
+    }
   }
 
   @override

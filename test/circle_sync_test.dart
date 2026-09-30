@@ -94,7 +94,9 @@ void main() {
     expect(list.single.pending.single.name, 'Veli');
     // Numara yalnızca kurucunun telefonunda (WhatsApp daveti için)
     expect(list.single.pending.single.phone, '0532 111 22 33');
-    expect(inviteMessage(list.single, list.single.pending.single), contains(formatCode(code)));
+    final msg = inviteMessage(list.single, list.single.pending.single);
+    expect(msg, endsWith(inviteLink(code))); // tek bağlantı: uygulamayı açar ya da indirme sayfasına götürür
+    expect(msg, isNot(contains(kAppLink)));
   });
 
   test('Davetli davetini numarasıyla görür, kabul eder; ilerleme ve tamamlanma herkes için eşitlenir', () async {

@@ -46,9 +46,15 @@ const kCircleTemplates = [
 const kCircleMaxDays = 30;
 const kInviteHours = 24;
 
-/// Davet mesajındaki uygulama indirme bağlantısı. Uygulama Play Store'a
-/// çıkınca buraya yazılacak; boşken mesaja bağlantı eklenmez.
-const kAppLink = '';
+/// Davet mesajının en altındaki uygulama indirme bağlantısı (Play Store sayfası; paket adı
+/// android/app/build.gradle'daki applicationId). Uygulama Play Store'da yayımlanınca açılır.
+const kAppLink = 'https://play.google.com/store/apps/details?id=com.ezansaati.app';
+
+/// Davet bağlantısı (Firebase Hosting'deki hosting/public/davet.html sayfası). Uygulama yüklüyse
+/// uygulamayı davetle açar (ezansaati://app/davet?k=KOD), yüklü değilse Play Store'a götürür.
+const kInviteLinkBase = 'https://ezansaati-premium-2026.web.app/davet';
+
+String inviteLink(String code) => '$kInviteLinkBase?k=$code';
 
 /// [me]: zinciri kuran kişi (adı eski kayıtlarla uyum için korunuyor).
 enum MemberStatus { me, pending, accepted, declined }
@@ -250,14 +256,13 @@ String inviteMessage(DuaCircle c, CircleMember m) {
     ..write('Selamün aleyküm, "${c.name}" dua zincirine seni davet ediyorum. ')
     ..write('Sana düşen: ${trNum(m.share)} ${c.unit}.');
   if (c.intent.isNotEmpty) b.write('\nNiyet: ${c.intent}');
-  b.write('\nSon gün: ${trDate(c.end)}. Davet $kInviteHours saat geçerlidir.');
   if (c.remote && m.key.isNotEmpty) {
-    b.write('\nDavet kodun: ${formatCode(m.key)}');
-    b.write('\nEzan Saati uygulamasında Dua Zinciri > Davetler bölümüne bu kodu yazarak katılabilirsin.');
+    // Tek bağlantı: uygulama yüklüyse davetle açar, değilse indirme sayfasına götürür.
+    b.write('\n\nKatılmak için dokun: ${inviteLink(m.key)}');
   } else {
     b.write('\nEzan Saati uygulamasındaki Dua Zinciri bölümünden katılabilirsin.');
+    b.write('\n\nEzan Saati uygulamasını indirmek için: $kAppLink');
   }
-  if (kAppLink.isNotEmpty) b.write('\nUygulama yüklü değilse: $kAppLink');
   return b.toString();
 }
 

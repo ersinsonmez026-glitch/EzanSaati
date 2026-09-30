@@ -1,0 +1,39 @@
+name: Davet sayfasını yayınla
+
+# hosting/public içindeki Dua Zinciri davet sayfasını Firebase Hosting'e (ücretsiz Spark planı) yükler:
+# https://ezansaati-premium-2026.web.app/davet?k=KOD
+# Firestore'a ve güvenlik kurallarına dokunmaz. Gerekli sır: FIREBASE_SERVICE_ACCOUNT (değiştirilmez).
+
+on:
+  workflow_dispatch:
+  push:
+    # Geçici: iş akışı main'e girene kadar bu dalda da çalışır.
+    branches: [main, claude/charming-davinci-6c5fkr]
+    paths:
+      - hosting/**
+      - .github/workflows/hosting.yml
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Firebase Hosting'e yayınla
+        working-directory: hosting
+        env:
+          SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: |
+          if [ -z "$SERVICE_ACCOUNT" ]; then
+            echo "::error::FIREBASE_SERVICE_ACCOUNT sırrı tanımlı değil."
+            exit 1
+          fi
+          printf '%s' "$SERVICE_ACCOUNT" > "$RUNNER_TEMP/sa.json"
+          export GOOGLE_APPLICATION_CREDENTIALS="$RUNNER_TEMP/sa.json"
+          npm install --no-audit --no-fund
+          npm run deploy
+          rm -f "$RUNNER_TEMP/sa.json"

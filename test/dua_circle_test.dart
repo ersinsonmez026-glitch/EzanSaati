@@ -91,7 +91,7 @@ void main() {
       expect(c.me.share, 100);
     });
 
-    test('Davet mesajı pay ve son günü içerir; bağlantı yokken link eklenmez', () {
+    test('Davet mesajı kısa: pay ve niyet; en altta uygulama bağlantısı', () {
       final t0 = DateTime(2026, 10, 1, 9);
       final c = _circle(id: 'd', created: t0, end: DateTime(2026, 10, 20))..intent = 'Şifa için';
       final msg = inviteMessage(c, c.members[1]);
@@ -99,11 +99,26 @@ void main() {
       expect(msg, isNot(contains('Ali')));
       expect(msg, contains('Sana düşen: 50 salavat'));
       expect(msg, contains('Niyet: Şifa için'));
-      expect(msg, contains('Son gün: 20 Ekim'));
-      expect(msg, contains('24 saat'));
-      expect(msg, isNot(contains('http')));
+      expect(msg, isNot(contains('Son gün'))); // kısa mesaj: süre ve son gün yazılmaz
+      expect(msg, isNot(contains('saat geçerli')));
+      expect(msg, endsWith(kAppLink)); // bağlantı her zaman en altta
       expect(trNum(70000), '70.000');
     });
+  });
+
+  testWidgets('Davet bağlantısıyla açılınca Davetler bölümü açılır', (t) async {
+    t.view.physicalSize = const Size(390, 844);
+    t.view.devicePixelRatio = 1;
+    addTearDown(t.view.reset);
+    DuaCircleStore.instance.replaceAll([]);
+
+    await t.pumpWidget(const MaterialApp(home: DuaCircleScreen(inviteCode: 'abcde-fghjk')));
+    await t.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 50)));
+    await t.pump();
+    await t.pump(const Duration(milliseconds: 500));
+    // Testte sunucuya bağlanılmaz: Davetler bölümü açık, bağlantı uyarısı çıkar (kod bağlanınca hazır bekler).
+    expect(find.textContaining('Bağlanınca "Kodu gir"'), findsOneWidget);
+    await t.pump(const Duration(seconds: 5));
   });
 
   testWidgets('Dua Zinciri: oluştur, toplam uyarısı, davet ve okuma ekleme', (t) async {

@@ -111,7 +111,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final now = DateTime.now();
     final loc = _location.current;
     const shadow = [Shadow(color: Colors.black87, blurRadius: 5, offset: Offset(1, 1))];
 
@@ -145,7 +144,7 @@ class _HomeScreenState extends State<HomeScreen> {
               physics: scrolls ? const ClampingScrollPhysics() : const NeverScrollableScrollPhysics(),
               child: Column(
                 children: [
-                  SizedBox(height: heroH, child: _hero(now, loc, k, shadow)),
+                  SizedBox(height: heroH, child: _hero(loc, k, shadow)),
                   // ============================================================
                   // ALT KISIM - 12 TUŞ (3 × 4)
                   // ============================================================
@@ -191,7 +190,7 @@ class _HomeScreenState extends State<HomeScreen> {
   // En az: geri sayım paneli ve üstünde ayet/konum yazıları kadar; daha kısa ekranda sayfa kayar.
   static double _heroMin(double w, double k) => _bannerW(w) / CountdownBanner.aspect + 2 + 70 * k;
 
-  Widget _hero(DateTime now, AppLocation? loc, double k, List<Shadow> shadow) {
+  Widget _hero(AppLocation? loc, double k, List<Shadow> shadow) {
     return LayoutBuilder(builder: (context, box) {
       final bannerH = _bannerW(box.maxWidth) / CountdownBanner.aspect;
       // Caminin tabanı geri sayım panelinin hemen üstüne oturur; fotoğraf gerekirse üstten kesilir.
@@ -199,16 +198,16 @@ class _HomeScreenState extends State<HomeScreen> {
       return Stack(
         children: [
           _heroPhoto(box.biggest, mosqueBase),
-          // Ayet sol üstte, konum/tarih/saat sağ üstte; caminin iki yanında fotoğrafın üstünde durur.
+          // Ayet sol üstte, konum sağ üstte; caminin iki yanında fotoğrafın üstünde durur.
           Positioned(
             left: 12,
-            top: 2,
+            top: 10 * k,
             child: _verse(k, shadow),
           ),
           Positioned(
             right: 10,
-            top: 2,
-            child: _cityDate(now, loc, k, shadow),
+            top: 10 * k,
+            child: _locationLabel(loc, k, shadow),
           ),
           Column(
             children: [
@@ -226,11 +225,11 @@ class _HomeScreenState extends State<HomeScreen> {
               const SizedBox(height: 2),
             ],
           ),
-          // Gündüz/gece düğmesi sağda, geri sayım panelinin kenarının üstünde
+          // Gündüz/gece düğmesi: her ekranda sağda, geri sayım çerçevesinin sağ kenarının biraz üstünde
           Positioned(
-            right: 10,
-            bottom: 2 + bannerH * (1 - CountdownBanner.sideTop) + 4 * k,
-            child: DayNightSwitch(height: 26 * k),
+            right: 12,
+            bottom: 2 + bannerH * (1 - CountdownBanner.sideTop) + 5 * k,
+            child: DayNightSwitch(height: 24 * k, labels: true),
           ),
         ],
       );
@@ -258,55 +257,29 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _cityDate(DateTime now, AppLocation? loc, double k, List<Shadow> shadow) {
+  /// Sağ üstteki konum; dokununca şehir seçimi açılır.
+  Widget _locationLabel(AppLocation? loc, double k, List<Shadow> shadow) {
     return InkWell(
       borderRadius: BorderRadius.circular(12),
       onTap: () => Navigator.of(context).push(AppRoute(builder: (_) => const CityPickerScreen())),
-      child: FittedBox(
-        fit: BoxFit.scaleDown,
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(2, 0, 2, 2),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  GoldIcon(Icons.location_on, size: 11 * k),
-                  const SizedBox(width: 2),
-                  Text(
-                    loc?.name ?? 'Konum Seç',
-                    maxLines: 1,
-                    style:
-                        TextStyle(color: Colors.white, fontSize: 12.5 * k, fontWeight: FontWeight.w700, shadows: shadow),
-                  ),
-                ],
-              ),
-              SizedBox(height: 2 * k),
-              Text(
-                '${formatDateTr(now)} · ${weekdayTr(now)}',
-                maxLines: 1,
-                style: TextStyle(color: Colors.white, fontSize: 10 * k, fontWeight: FontWeight.w600, shadows: shadow),
-              ),
-              SizedBox(height: 2 * k),
-              Text(
-                '${two(now.hour)}:${two(now.minute)}:${two(now.second)}',
-                style: TextStyle(
-                  color: const Color(0xFFE8C88A),
-                  shadows: shadow,
-                  fontSize: 13.5 * k,
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: 1,
-                  fontFeatures: const [FontFeature.tabularFigures()],
-                ),
-              ),
-            ],
-          ),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(2, 0, 2, 2),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            GoldIcon(Icons.location_on, size: 13 * k),
+            const SizedBox(width: 2),
+            Text(
+              loc?.name ?? 'Konum Seç',
+              maxLines: 1,
+              style: TextStyle(color: Colors.white, fontSize: 14.5 * k, fontWeight: FontWeight.w700, shadows: shadow),
+            ),
+          ],
         ),
       ),
     );
   }
+
 
   /// Nisâ 103 (eski yazı tipiyle kalın italik); ayrılan alana sığmazsa küçülür, hiç gizlenmez.
   Widget _verse(double k, List<Shadow> shadow) {
@@ -323,14 +296,14 @@ class _HomeScreenState extends State<HomeScreen> {
             style: TextStyle(
               color: Colors.white,
               fontFamily: 'serif',
-              fontSize: 9.5 * k,
+              fontSize: 11 * k,
               fontWeight: FontWeight.w600,
               height: 1.25,
               fontStyle: FontStyle.italic,
               shadows: shadow,
             ),
           ),
-          GoldText('Nisâ, 103', style: TextStyle(fontFamily: 'serif', fontSize: 8.5 * k, fontWeight: FontWeight.w600)),
+          GoldText('Nisâ, 103', style: TextStyle(fontFamily: 'serif', fontSize: 10 * k, fontWeight: FontWeight.w600)),
         ],
       ),
     );
