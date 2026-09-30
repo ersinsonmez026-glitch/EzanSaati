@@ -338,7 +338,7 @@ class _SurahReadScreenState extends State<SurahReadScreen> {
       SourceNote(
         pal: _pal,
         text: 'Arapça metin: Tanzil Projesi (CC BY 3.0) · Türkçe meal: Ruvvâd Tercüme Merkezi, '
-            'QuranEnc.com (sürüm 1.0.4)${_audio ? '\n$kQuranAudioSource' : ''}',
+            'QuranEnc.com (sürüm 1.0.4)${_audio ? '\n${quranAudioSource()}' : ''}',
       ),
     ];
   }

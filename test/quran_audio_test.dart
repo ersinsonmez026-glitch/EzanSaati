@@ -1,4 +1,5 @@
 import 'package:ezan_saati/screens/surah_read_screen.dart';
+import 'package:ezan_saati/services/app_prefs.dart';
 import 'package:ezan_saati/services/content_store.dart';
 import 'package:ezan_saati/services/quran_audio.dart';
 import 'package:ezan_saati/widgets/surah_audio_bar.dart';
@@ -21,15 +22,16 @@ void main() {
     );
   });
 
-  const cdn = 'https://cdn.islamic.network/quran/audio/128/ar.alafasy';
+  const cdn = 'https://cdn.islamic.network/quran/audio/128/ar.mahermuaiqly';
 
   test('114 sûrenin tamamı için ses adresi üretilir (akış, uygulamaya gömülü değil)', () {
-    expect(kQuranReciter.surahUrl(1).toString(), 'https://cdn.islamic.network/quran/audio-surah/128/ar.alafasy/1.mp3');
+    expect(kReciterAfasy.surahUrl(1).toString(), 'https://cdn.islamic.network/quran/audio-surah/128/ar.alafasy/1.mp3');
     expect(
-        kQuranReciter.surahUrl(114).toString(), 'https://cdn.islamic.network/quran/audio-surah/128/ar.alafasy/114.mp3');
-    final urls = {for (var i = 1; i <= 114; i++) kQuranReciter.surahUrl(i).toString()};
+        kReciterAfasy.surahUrl(114).toString(), 'https://cdn.islamic.network/quran/audio-surah/128/ar.alafasy/114.mp3');
+    final urls = {for (var i = 1; i <= 114; i++) kReciterAfasy.surahUrl(i).toString()};
     expect(urls, hasLength(114));
-    expect(kQuranAudioSource, contains('alquran.cloud'));
+    expect(quranAudioSource(), contains('alquran.cloud'));
+    expect(quranAudioSource(), contains('Mâhir el-Muaykılî')); // varsayılan kârî
   });
 
   test('global ayet numarası: 1:1 → 1, 2:255 → 262, 114:6 → 6236', () {
@@ -44,7 +46,7 @@ void main() {
     expect(globalAyahNumber(112, 1), 6222);
     expect(kSurahAyahCounts, hasLength(114));
     expect(kSurahAyahCounts.fold<int>(0, (a, b) => a + b), kTotalAyahs);
-    expect(kQuranReciter.ayahUrl(262).toString(), '$cdn/262.mp3');
+    expect(kReciterMaher.ayahUrl(262).toString(), '$cdn/262.mp3');
   });
 
   test('ayet sayıları uygulamanın Kur\'an verisiyle birebir aynı (ayet numaraları değişmez)', () async {
@@ -56,18 +58,18 @@ void main() {
   });
 
   test('çalma listesi: Fâtiha ve Tevbe besmelesiz, diğer sûrelerde başta besmele', () {
-    const fatiha = SurahPlaylist(1);
+    final fatiha = SurahPlaylist(1);
     expect(fatiha.hasBasmala, isFalse);
     expect(fatiha.length, 7);
     expect(fatiha.urls.first.toString(), '$cdn/1.mp3'); // 1:1 besmeledir
     expect(fatiha.ayahAt(0), 1);
     expect(fatiha.indexOf(7), 6);
 
-    const tevbe = SurahPlaylist(9);
+    final tevbe = SurahPlaylist(9);
     expect(tevbe.hasBasmala, isFalse);
     expect(tevbe.urls.first.toString(), '$cdn/1236.mp3');
 
-    const bakara = SurahPlaylist(2);
+    final bakara = SurahPlaylist(2);
     expect(bakara.length, 287);
     expect(bakara.urls[0].toString(), '$cdn/1.mp3'); // besmele
     expect(bakara.urls[1].toString(), '$cdn/8.mp3'); // 2:1
@@ -77,7 +79,7 @@ void main() {
     expect(bakara.indexOf(1), 0); // 1. ayetten başlarken besmele de okunur
     expect(bakara.indexOf(255), 255);
 
-    expect(const SurahPlaylist(114).urls.last.toString(), '$cdn/6236.mp3');
+    expect(SurahPlaylist(114).urls.last.toString(), '$cdn/6236.mp3');
   });
 
   test('kısa sûreler (78–114): her ayet kendi dosyasıyla, sırayla ve eksiksiz eşleşir', () {
@@ -131,7 +133,7 @@ void main() {
     await t.pump();
     expect(find.byType(SurahAudioBar), findsOneWidget);
     expect(bar(t).startAyah, 1);
-    expect(find.textContaining('Fâtiha Sûresi · Mişari'), findsOneWidget);
+    expect(find.textContaining('Fâtiha Sûresi · Mâhir'), findsOneWidget);
     // Bağlantı kurulamayınca anlaşılır hata ve "Tekrar dene" görünür
     expect(find.text('Tekrar dene'), findsOneWidget);
     expect(find.textContaining('İnternet bağlantınızı kontrol edip tekrar deneyin'), findsOneWidget);
@@ -203,7 +205,7 @@ void main() {
     await t.pumpAndSettle();
     expect(bar(t).surah, 114);
     expect(bar(t).startAyah, 1);
-    expect(find.textContaining('Nâs Sûresi · Mişari'), findsOneWidget);
+    expect(find.textContaining('Nâs Sûresi · Mâhir'), findsOneWidget);
     // Son sûre: sonraki sûreye geçiş yok, çalma durur
     expect(bar(t).onSurahFinished, isNull);
     expect(bar(t).onNextSurah, isNull);
@@ -222,5 +224,16 @@ void main() {
     await t.pump();
     expect(bar(t).startAyah, 2);
     expect(bar(t).startToken, greaterThan(token));
+  });
+
+  test('kârî seçimi: varsayılan Mâhir el-Muaykılî, Afâsî seçilebilir ve saklanır', () async {
+    expect(kQuranReciters.first, kReciterMaher);
+    expect(currentReciter(), kReciterMaher);
+    expect(SurahPlaylist(1).urls.first.toString(), 'https://cdn.islamic.network/quran/audio/128/ar.mahermuaiqly/1.mp3');
+    await AppPrefs.instance.setReciter(kReciterAfasy.id);
+    expect(currentReciter(), kReciterAfasy);
+    expect(SurahPlaylist(1).urls.first.toString(), 'https://cdn.islamic.network/quran/audio/128/ar.alafasy/1.mp3');
+    expect((await SharedPreferences.getInstance()).getString('kari'), 'ar.alafasy');
+    await AppPrefs.instance.setReciter(kReciterMaher.id);
   });
 }

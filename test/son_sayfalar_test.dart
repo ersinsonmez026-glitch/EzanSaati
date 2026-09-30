@@ -333,11 +333,11 @@ void main() {
       expect(gunlukDuaVideolari.map((v) => v.id).toSet().length, gunlukDuaVideolari.length);
       // Zamm-ı sure: başa besmele eklenir; Fâtiha'da eklenmez; tek ayetlik dua tek dosya.
       expect(duaAudioUrls(byTitle('Fîl Sûresi').audio).length, 6);
-      expect(duaAudioUrls(byTitle('Fîl Sûresi').audio).first, kQuranReciter.ayahUrl(1));
+      expect(duaAudioUrls(byTitle('Fîl Sûresi').audio).first, kReciterMaher.ayahUrl(1));
       expect(duaAudioUrls(byTitle('Fâtiha Sûresi').audio).length, 7);
       expect(duaAudioUrls(byTitle('Rabbenâ Duaları').audio), [
-        kQuranReciter.ayahUrl(globalAyahNumber(2, 201)),
-        kQuranReciter.ayahUrl(globalAyahNumber(14, 41)),
+        kReciterMaher.ayahUrl(globalAyahNumber(2, 201)),
+        kReciterMaher.ayahUrl(globalAyahNumber(14, 41)),
       ]);
     });
 

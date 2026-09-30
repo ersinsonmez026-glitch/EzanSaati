@@ -261,7 +261,7 @@ class _PrayerReadScreenState extends State<PrayerReadScreen> {
               d.fromMeal
                   ? 'Anlam, ayetin mealidir (Ruvvâd Tercüme Merkezi, QuranEnc.com). Kaynak: ${d.source}'
                   : 'Kaynak: ${d.source}',
-              if (d.hasAudio) 'Ses: ${kQuranReciter.name} (murattal); ayetin tamamı okunur.',
+              if (d.hasAudio) 'Ses: ${currentReciter().name} (murattal); ayetin tamamı okunur.',
             ].join('\n'),
             style: TextStyle(fontSize: 12, color: _pal.ink2),
           ),

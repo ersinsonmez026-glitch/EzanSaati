@@ -1,0 +1,48 @@
+name: Kur'an sesi kontrolü
+
+# Seçilebilen kârîlerin (lib/services/quran_audio.dart: kQuranReciters) ses dosyalarının
+# Islamic Network CDN'inde bulunduğunu doğrular: her sûrenin ilk ve son ayeti (228 dosya / kârî).
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main, claude/charming-davinci-6c5fkr]
+    paths:
+      - lib/services/quran_audio.dart
+      - .github/workflows/kuran-ses-kontrol.yml
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Ayet dosyalarını kontrol et
+        run: |
+          python3 - <<'EOF'
+          import re, sys, urllib.request
+          src = open('lib/services/quran_audio.dart', encoding='utf-8').read()
+          reciters = re.findall(r"QuranReciter\('([^']+)', '([^']+)', '[^']+', (\d+)\)", src)
+          counts = [int(x) for x in re.findall(r'\d+', src.split('kSurahAyahCounts = <int>[')[1].split('];')[0])]
+          assert len(counts) == 114 and sum(counts) == 6236, 'ayet sayıları okunamadı'
+          first, n = [], 1
+          for c in counts:
+              first.append(n); n += c
+          bad = 0
+          for rid, name, rate in reciters:
+              missing = []
+              for s in range(114):
+                  for num in {first[s], first[s] + counts[s] - 1}:
+                      url = f'https://cdn.islamic.network/quran/audio/{rate}/{rid}/{num}.mp3'
+                      try:
+                          req = urllib.request.Request(url, method='HEAD')
+                          with urllib.request.urlopen(req, timeout=30) as r:
+                              if r.status != 200: missing.append(num)
+                      except Exception:
+                          missing.append(num)
+              print(f'{name} ({rid}, {rate} kbps): {228 - len(missing)}/228 dosya var')
+              if missing:
+                  bad += 1
+                  print('::error::' + name + ' eksik ayet dosyaları: ' + ', '.join(map(str, sorted(missing)[:30])))
+          sys.exit(1 if bad else 0)
+          EOF

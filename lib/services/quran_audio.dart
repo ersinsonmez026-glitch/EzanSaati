@@ -1,3 +1,5 @@
+import 'app_prefs.dart';
+
 /// Sûrelerin sesli okunuşu: internetten akış (uygulamaya ses dosyası gömülmez).
 ///
 /// Kaynak: Islamic Network / Al Quran Cloud ses CDN'i (https://alquran.cloud/cdn).
@@ -31,9 +33,20 @@ class QuranReciter {
   }
 }
 
-const kQuranReciter = QuranReciter('ar.alafasy', 'Mişari Râşid el-Afâsî', 'Murattal', 128);
+/// Mekke Harem imamı Mâhir el-Muaykılî (varsayılan kârî).
+const kReciterMaher = QuranReciter('ar.mahermuaiqly', 'Mâhir el-Muaykılî', 'Murattal', 128);
+const kReciterAfasy = QuranReciter('ar.alafasy', 'Mişari Râşid el-Afâsî', 'Murattal', 128);
 
-const kQuranAudioSource = 'Ses: Mişari Râşid el-Afâsî (murattal) · Islamic Network / alquran.cloud — '
+/// Seçilebilen kârîler (Ayarlar > Kur'an Sesi); ilki varsayılan.
+const kQuranReciters = [kReciterMaher, kReciterAfasy];
+
+/// Kullanıcının seçtiği kârî.
+QuranReciter currentReciter() =>
+    kQuranReciters.firstWhere((r) => r.id == AppPrefs.instance.reciterId, orElse: () => kQuranReciters.first);
+
+/// Ses kaynağı notu (okuma sayfalarının altında).
+String quranAudioSource([QuranReciter? r]) =>
+    'Ses: ${(r ?? currentReciter()).name} (murattal) · Islamic Network / alquran.cloud — '
     'kişisel ve eğitim amaçlı akış izni; telif kârîye aittir.';
 
 /// Sûrelerin ayet sayıları (Hafs, Tanzil ile aynı; toplam 6236).
@@ -70,7 +83,7 @@ class SurahPlaylist {
   final int surah;
   final QuranReciter reciter;
 
-  const SurahPlaylist(this.surah, [this.reciter = kQuranReciter]);
+  SurahPlaylist(this.surah, [QuranReciter? reciter]) : reciter = reciter ?? currentReciter();
 
   bool get hasBasmala => surah != 1 && surah != 9;
   int get ayahCount => kSurahAyahCounts[surah - 1];
@@ -90,9 +103,12 @@ class SurahPlaylist {
 
 /// Kur'an'dan bir duanın ses listesi: verilen ayet aralıkları sırayla. Sûrenin tamamı okunuyorsa
 /// (zamm-ı sureler) başa besmele eklenir (Fâtiha ve Tevbe hariç).
-List<Uri> duaAudioUrls(List<(int, int, int)> refs, [QuranReciter reciter = kQuranReciter]) => [
-      for (final (s, a1, a2) in refs) ...[
-        if (a1 == 1 && a2 == kSurahAyahCounts[s - 1] && s != 1 && s != 9) reciter.ayahUrl(1),
-        for (var a = a1; a <= a2; a++) reciter.ayahUrl(globalAyahNumber(s, a)),
-      ],
-    ];
+List<Uri> duaAudioUrls(List<(int, int, int)> refs, [QuranReciter? r]) {
+  final reciter = r ?? currentReciter();
+  return [
+    for (final (s, a1, a2) in refs) ...[
+      if (a1 == 1 && a2 == kSurahAyahCounts[s - 1] && s != 1 && s != 9) reciter.ayahUrl(1),
+      for (var a = a1; a <= a2; a++) reciter.ayahUrl(globalAyahNumber(s, a)),
+    ],
+  ];
+}

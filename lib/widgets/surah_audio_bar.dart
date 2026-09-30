@@ -66,7 +66,10 @@ class _SurahAudioBarState extends State<SurahAudioBar> {
   bool _finished = false; // sûre sonu bir kez işlensin
   double? _drag; // ilerleme çubuğu sürüklenirken
 
-  SurahPlaylist get _list => SurahPlaylist(widget.surah);
+  /// Çalan kârî (Ayarlar'da değişirse sonraki çalmada yeni kârî yüklenir).
+  QuranReciter _reciter = currentReciter();
+
+  SurahPlaylist get _list => SurahPlaylist(widget.surah, _reciter);
 
   /// Okunan ayet (0 = besmele).
   int get _currentAyah => _list.ayahAt(_index);
@@ -173,6 +176,10 @@ class _SurahAudioBarState extends State<SurahAudioBar> {
     });
     try {
       final p = _ensure();
+      if (_reciter != currentReciter()) {
+        _reciter = currentReciter();
+        _loaded = null;
+      }
       final list = _list;
       if (_loaded != widget.surah) {
         // Hata sonrası "Tekrar dene" kalınan ayetten sürer.
@@ -257,7 +264,7 @@ class _SurahAudioBarState extends State<SurahAudioBar> {
                 const SizedBox(width: 6),
                 Expanded(
                   child: Text(
-                    '${widget.surahName} Sûresi · ${kQuranReciter.name}',
+                    '${widget.surahName} Sûresi · ${list.reciter.name}',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(color: RC.goldText, fontSize: 13, fontWeight: FontWeight.w700),

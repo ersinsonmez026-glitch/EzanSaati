@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../services/app_prefs.dart';
 import '../services/ezan_notifications.dart';
 import '../services/location_store.dart';
+import '../services/quran_audio.dart';
 import '../widgets/group_card.dart';
 import '../widgets/page_shell.dart';
 import '../widgets/reading_ui.dart';
@@ -10,7 +11,7 @@ import 'about_screen.dart';
 import 'city_picker_screen.dart';
 import 'notifications_screen.dart';
 
-/// Ayarlar: konum, ana ekran görünümü, hesaplama yöntemi, hakkında ve gizlilik.
+/// Ayarlar: konum, ana ekran görünümü, Kur'an sesi (kârî), bildirimler, hesaplama yöntemi, hakkında ve gizlilik.
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
 
@@ -127,6 +128,32 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 value: AppPrefs.instance.dayMode,
                 onChanged: (v) async {
                   await AppPrefs.instance.setDayMode(v);
+                  if (mounted) setState(() {});
+                },
+              ),
+            ),
+          ],
+        ),
+        gap,
+        GroupCard(
+          pal: _pal,
+          art: 'kuran',
+          title: "Kur'an Sesi",
+          expanded: _section == "Kur'an Sesi",
+          onToggle: () => _toggle("Kur'an Sesi"),
+          summary: currentReciter().name,
+          children: [
+            GroupItem(
+              pal: _pal,
+              art: 'ses',
+              title: 'Kârî',
+              subtitle: 'Sûreler, cüzler ve dualar bu kârînin sesiyle okunur',
+              below: ChoiceRow<String>(
+                pal: _pal,
+                options: [for (final r in kQuranReciters) (r.id, r.name)],
+                value: currentReciter().id,
+                onChanged: (v) async {
+                  await AppPrefs.instance.setReciter(v);
                   if (mounted) setState(() {});
                 },
               ),
