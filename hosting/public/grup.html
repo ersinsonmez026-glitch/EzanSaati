@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dua Grubu · Ezan Saati</title>
+<meta property="og:title" content="Ezan Saati dua grubu">
+<meta property="og:description" content="Ezan Saati uygulamasında dua grubuna katılmak için dokunun.">
+<meta property="og:image" content="https://ezansaati-premium-2026.web.app/logo.png">
+<meta name="robots" content="noindex">
+<style>
+  :root { --green:#05281B; --green2:#0A3D29; --gold:#E3C07A; --cream:#F6E3B0; }
+  * { box-sizing:border-box; }
+  body { margin:0; min-height:100vh; display:flex; align-items:center; justify-content:center;
+         background:radial-gradient(circle at 50% 20%, var(--green2), var(--green) 70%);
+         font-family:Georgia, "Times New Roman", serif; color:var(--cream); padding:16px; }
+  .card { width:100%; max-width:380px; text-align:center; padding:28px 22px;
+          border:1.5px solid var(--gold); border-radius:18px; background:rgba(0,0,0,.25); }
+  img { width:120px; height:auto; }
+  h1 { color:var(--gold); font-size:22px; margin:12px 0 6px; }
+  p { margin:6px 0 18px; line-height:1.45; font-size:15px; }
+  .btn { display:block; padding:14px; border-radius:99px; text-decoration:none; font-weight:bold;
+         font-size:16px; margin:10px 0; }
+  .open { background:linear-gradient(#F0DCA6,#C9A35E); color:#241802; }
+  .store { border:1.2px solid var(--gold); color:var(--gold); }
+  .code { font-family:monospace; font-size:18px; letter-spacing:2px; color:var(--gold); }
+  small { display:block; margin-top:14px; opacity:.75; font-size:12.5px; line-height:1.4; }
+</style>
+</head>
+<body>
+<div class="card">
+  <img src="/logo.png" alt="Ezan Saati">
+  <h1>Dua grubuna çağrıldınız</h1>
+  <p>Ezan Saati uygulamasında birlikte hatim, Yâsin ve salavat okuduğumuz dua grubuna katılmak için uygulamayı açın.</p>
+  <a id="open" class="btn open" href="#">Uygulamada aç</a>
+  <a id="store" class="btn store" href="https://play.google.com/store/apps/details?id=com.ezansaati.app">Uygulamayı indir</a>
+  <small id="codeInfo" hidden>Uygulamayı indirip açtığınızda gruba katılma ekranı gelir. Gelmezse
+    Dua Zinciri &gt; Gruplarım &gt; Kodla katıl bölümüne şu kodu yazın:<br><span id="code" class="code"></span></small>
+</div>
+<script>
+  // Bağlantı: /grup?k=KOD. Uygulama yüklüyse ezansaati://app/grup?k=KOD ile açılır; yüklü değilse
+  // Android tarayıcısı Play Store'a gider (referrer=grup=KOD: kurulumdan sonra uygulama gruba yönlenir).
+  var k = (new URLSearchParams(location.search).get('k') || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+  var store = 'https://play.google.com/store/apps/details?id=com.ezansaati.app' +
+      (k ? '&referrer=' + encodeURIComponent('grup=' + k) : '');
+  var android = /Android/i.test(navigator.userAgent);
+  var open = document.getElementById('open');
+  document.getElementById('store').href = store;
+  if (k.length === 6) {
+    document.getElementById('code').textContent = k.slice(0, 3) + ' ' + k.slice(3);
+    document.getElementById('codeInfo').hidden = false;
+  }
+  var app = 'ezansaati://app/grup?k=' + k;
+  var intent = 'intent://app/grup?k=' + k + '#Intent;scheme=ezansaati;package=com.ezansaati.app;' +
+      'S.browser_fallback_url=' + encodeURIComponent(store) + ';end';
+  open.href = android ? intent : app;
+  if (!k) open.style.display = 'none';
+  else if (android) location.href = intent; // WhatsApp'tan açılınca doğrudan uygulamaya geç
+</script>
+</body>
+</html>

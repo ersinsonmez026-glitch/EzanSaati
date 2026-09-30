@@ -23,6 +23,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
   final _location = LocationStore.instance;
   bool _busy = false;
 
+  /// Açık bölüm (aynı anda bir tane); hiçbiri açık değilse null.
+  String? _section;
+
+  void _toggle(String s) => setState(() => _section = _section == s ? null : s);
+
   @override
   void initState() {
     super.initState();
@@ -62,6 +67,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
           pal: _pal,
           art: 'cami_bulucu',
           title: 'Konum',
+          expanded: _section == 'Konum',
+          onToggle: () => _toggle('Konum'),
+          summary: loc?.name ?? 'Seçilmedi',
           children: [
             GroupItem(
               pal: _pal,
@@ -87,6 +95,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
           pal: _pal,
           art: 'ayarlar',
           title: 'Görünüm',
+          expanded: _section == 'Görünüm',
+          onToggle: () => _toggle('Görünüm'),
+          summary: '${AppPrefs.instance.tileStyle.label} · ${AppPrefs.instance.dayMode.label}',
           children: [
             GroupItem(
               pal: _pal,
@@ -127,6 +138,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
           pal: _pal,
           art: 'fener',
           title: 'Bildirimler',
+          expanded: _section == 'Bildirimler',
+          onToggle: () => _toggle('Bildirimler'),
+          summary: EzanNotifications.instance.settings.enabled ? 'Açık' : 'Kapalı',
           children: [
             GroupItem(
               pal: _pal,
@@ -144,6 +158,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
           pal: _pal,
           art: 'namaz_vakitleri',
           title: 'Hesaplama',
+          expanded: _section == 'Hesaplama',
+          onToggle: () => _toggle('Hesaplama'),
+          summary: 'Diyanet',
           children: [
             GroupItem(
               pal: _pal,
@@ -158,6 +175,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
           pal: _pal,
           art: 'dini_mesajlar',
           title: 'Hakkında',
+          expanded: _section == 'Hakkında',
+          onToggle: () => _toggle('Hakkında'),
+          summary: 'Sürüm ${AboutScreen.version}',
           children: [
             GroupItem(
               pal: _pal,

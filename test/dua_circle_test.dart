@@ -1,224 +1,220 @@
 import 'package:ezan_saati/screens/dua_circle_screen.dart';
-import 'package:ezan_saati/services/circle_people.dart';
-import 'package:ezan_saati/services/dua_circle_store.dart';
+import 'package:ezan_saati/services/prayer_groups.dart';
+import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-DuaCircle _circle({
-  required String id,
-  required DateTime created,
-  required DateTime end,
-  int total = 100,
-  List<CircleMember>? members,
-}) =>
-    DuaCircle(
-      id: id,
-      type: 'salavat',
-      name: 'Zincir $id',
-      total: total,
-      created: created,
-      end: end,
-      members: members ??
-          [
-            CircleMember(name: 'Ben', share: 50, status: MemberStatus.me, invitedAt: created),
-            CircleMember(name: 'Ali', phone: '0532 111 22 33', share: 50, invitedAt: created),
-          ],
-    );
-
+/// Gruplu Dua Zinciri: iki telefon (kurucu "alice", üye "bob") aynı Firestore'u sırayla kullanır.
+/// Güvenlik kuralları ayrıca emülatörde test edilir (test_rules/).
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  setUp(() => SharedPreferences.setMockInitialValues({}));
+  late FakeFirebaseFirestore db;
+  final sync = GroupSync.instance;
 
-  group('Dua Zinciri kuralları', () {
-    test('Eşit bölme: artan adet baştakilere verilir, toplam korunur', () {
-      expect(splitEvenly(110, 3), [37, 37, 36]);
-      expect(splitEvenly(41, 5).reduce((a, b) => a + b), 41);
-      expect(splitEvenly(10, 0), isEmpty);
-    });
-
-    test('WhatsApp numarası ülke koduyla yazılır', () {
-      expect(waNumber('0532 111 22 33'), '905321112233');
-      expect(waNumber('+90 (532) 111-22-33'), '905321112233');
-      expect(waNumber('5321112233'), '905321112233');
-      expect(waNumber('0049 151 2345678'), '491512345678');
-      expect(waNumber('123'), '');
-    });
-
-    test('24 saatte yanıt vermeyenin payı kurucuya döner', () {
-      final t0 = DateTime(2026, 10, 1, 9);
-      final c = _circle(id: 'a', created: t0, end: DateTime(2026, 10, 20));
-      final s = DuaCircleStore.instance..replaceAll([c]);
-      expect(s.cleanup(t0.add(const Duration(hours: 23))), isFalse);
-      expect(c.members.length, 2);
-      expect(s.cleanup(t0.add(const Duration(hours: 24))), isTrue);
-      expect(c.members.length, 1);
-      expect(c.me.share, 100);
-      expect(c.notice, contains('Ali'));
-    });
-
-    test('Kabul eden kişi 24 saatten sonra da zincirde kalır', () {
-      final t0 = DateTime(2026, 10, 1, 9);
-      final c = _circle(id: 'b', created: t0, end: DateTime(2026, 10, 20));
-      c.members[1].status = MemberStatus.accepted;
-      DuaCircleStore.instance
-        ..replaceAll([c])
-        ..cleanup(t0.add(const Duration(days: 2)));
-      expect(c.members.length, 2);
-    });
-
-    test('Son günü geçen tamamlanmamış zincir silinir, tamamlanan saklanır', () {
-      final t0 = DateTime(2026, 10, 1, 9);
-      final open = _circle(id: 'open', created: t0, end: DateTime(2026, 10, 5));
-      final done = _circle(id: 'done', created: t0, end: DateTime(2026, 10, 5), members: [
-        CircleMember(name: 'Ben', share: 100, done: 100, status: MemberStatus.me, invitedAt: t0),
-      ]);
-      final s = DuaCircleStore.instance..replaceAll([open, done]);
-      s.cleanup(DateTime(2026, 10, 5, 23, 59));
-      expect(s.circles.length, 2, reason: 'son gün bitmeden silinmez');
-      s.cleanup(DateTime(2026, 10, 6, 0, 1));
-      expect(s.circles.map((c) => c.id), ['done']);
-      expect(s.takeCleanupNote(), contains('Zincir open'));
-    });
-
-    test('Okumaya başlamamış kişi çıkarılınca payı kurucuya döner', () {
-      final t0 = DateTime(2026, 10, 1, 9);
-      final c = _circle(id: 'c', created: t0, end: DateTime(2026, 10, 20));
-      final s = DuaCircleStore.instance..replaceAll([c]);
-      s.removeMember(c, c.members[1]);
-      expect(c.members.length, 1);
-      expect(c.me.share, 100);
-    });
-
-    test('Davet mesajı kısa: pay ve niyet; en altta uygulama bağlantısı', () {
-      final t0 = DateTime(2026, 10, 1, 9);
-      final c = _circle(id: 'd', created: t0, end: DateTime(2026, 10, 20))..intent = 'Şifa için';
-      final msg = inviteMessage(c, c.members[1]);
-      expect(msg, startsWith('Selamün aleyküm, "')); // rehberdeki ad mesajda geçmez
-      expect(msg, isNot(contains('Ali')));
-      expect(msg, contains('Sana düşen: 50 salavat'));
-      expect(msg, contains('Niyet: Şifa için'));
-      expect(msg, isNot(contains('Son gün'))); // kısa mesaj: süre ve son gün yazılmaz
-      expect(msg, isNot(contains('saat geçerli')));
-      expect(msg, endsWith(kAppLink)); // bağlantı her zaman en altta
-      expect(trNum(70000), '70.000');
-    });
+  setUp(() async {
+    SharedPreferences.setMockInitialValues({});
+    db = FakeFirebaseFirestore();
+    sync.resetLocal();
   });
 
-  test('Kişilerim: aynı numara bir kez eklenir; kabul eden uygulamada sayılır', () {
-    final p = CirclePeople.instance..replaceAll([]);
-    p.add('Ali', '0532 111 22 33');
-    p.add('Ali Yılmaz', '+90 532 111 22 33'); // aynı numara: yalnız ad güncellenir
-    p.add('Numarasız', '');
-    expect(p.people.length, 1);
-    expect(p.people.single.name, 'Ali Yılmaz');
-    expect(p.isInApp('05321112233'), isFalse);
-    p.markInApp(['905321112233']);
-    expect(p.isInApp('0532 111 22 33'), isTrue);
+  tearDown(() => sync.stop());
+
+  Future<void> as(String uid, String name) async {
+    SharedPreferences.setMockInitialValues({'cember_ad': name});
+    await sync.startWith(db, uid, await SharedPreferences.getInstance());
+    await pumpEventQueue();
+  }
+
+  test('grup kodu ve bağlantısı', () {
+    final code = newGroupCode();
+    expect(code.length, 6);
+    expect(RegExp(r'^[A-Z2-9]{6}$').hasMatch(code), isTrue);
+    expect(formatCode('AB4K7P'), 'AB4 K7P');
+    expect(normalizeCode('ab4 k7p'), 'AB4K7P');
+    expect(groupLink('AB4K7P'), 'https://ezansaati-premium-2026.web.app/grup?k=AB4K7P');
+    final msg = groupInviteMessage(const PrayerGroup(
+        id: 'g', name: 'Aile', ownerUid: 'a', ownerName: 'Ali', code: 'AB4K7P', memberUids: ['a']));
+    expect(msg, contains('"Aile" dua grubuna'));
+    expect(msg, endsWith(groupLink('AB4K7P')));
+    expect(msg, isNot(contains('0532'))); // numara yok
     expect(appSuggestMessage(), endsWith(kAppLink));
   });
 
-  testWidgets('Davet bağlantısıyla açılınca Davetler bölümü açılır', (t) async {
-    t.view.physicalSize = const Size(390, 844);
-    t.view.devicePixelRatio = 1;
-    addTearDown(t.view.reset);
-    DuaCircleStore.instance.replaceAll([]);
+  test('grup kurulur, bob kodla katılır, hatimde cüz alır ve okur', () async {
+    await as('alice', 'Ali');
+    final g = await sync.createGroup('Aile');
+    await pumpEventQueue();
+    expect(sync.groups.single.name, 'Aile');
 
-    await t.pumpWidget(const MaterialApp(home: DuaCircleScreen(inviteCode: 'abcde-fghjk')));
-    await t.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 50)));
-    await t.pump();
-    await t.pump(const Duration(milliseconds: 500));
-    // Testte sunucuya bağlanılmaz: Davetler bölümü açık, bağlantı uyarısı çıkar (kod bağlanınca hazır bekler).
-    expect(find.textContaining('Bağlanınca "Kodu gir"'), findsOneWidget);
-    await t.pump(const Duration(seconds: 5));
+    await as('bob', 'Veli');
+    expect(sync.groups, isEmpty);
+    final info = await sync.lookupCode(formatCode(g.code));
+    expect(info, isNotNull);
+    expect(info!.$2, 'Aile');
+    expect(info.$3, 'Ali');
+    expect(await sync.lookupCode('ZZZZZZ'), isNull);
+    await sync.joinGroup(info.$1);
+    await pumpEventQueue();
+    expect(sync.groups.single.memberUids, ['alice', 'bob']);
+    expect(sync.groups.single.nameOf('alice'), 'Ali');
+
+    await as('alice', 'Ali');
+    final c = await sync.startChain(
+        groupId: g.id, type: 'hatim', name: 'Hatim', unit: 'cüz', total: 30, mode: 'pick', days: 7);
+    await pumpEventQueue();
+    expect(sync.chains.single.groupName, 'Aile');
+    expect(sync.chains.single.taken, 0);
+
+    await as('bob', 'Veli');
+    var hc = sync.chain(g.id, c.id)!;
+    await sync.takeParts(hc, [7, 8]);
+    await pumpEventQueue();
+    hc = sync.chain(g.id, c.id)!;
+    expect(hc.partsOf('bob'), [7, 8]);
+    expect(hc.slots[7]!.name, 'Veli');
+    await sync.markPart(hc, 7, true);
+    await pumpEventQueue();
+    hc = sync.chain(g.id, c.id)!;
+    expect(hc.done, 1);
+    expect(hc.taken, 2);
+    expect(hc.active, isTrue);
   });
 
-  testWidgets('Dua Zinciri: oluştur, toplam uyarısı, davet ve okuma ekleme', (t) async {
-    t.view.physicalSize = const Size(390, 844);
+  test('eşit bölmede cüzler ve adetler üyelere dağıtılır', () async {
+    await as('alice', 'Ali');
+    final g = await sync.createGroup('Cami cemaati');
+    await as('bob', 'Veli');
+    await sync.joinGroup(g.id);
+    await as('carol', 'Ayşe');
+    await sync.joinGroup(g.id);
+    await pumpEventQueue();
+
+    final h = await sync.startChain(
+        groupId: g.id, type: 'hatim', name: 'Hatim', unit: 'cüz', total: 30, mode: 'equal', days: 7);
+    final s = await sync.startChain(
+        groupId: g.id, type: 'salavat', name: '1.000 Salavat', unit: 'salavat', total: 1000, mode: 'equal', days: 3);
+    await pumpEventQueue();
+    final hc = sync.chain(g.id, h.id)!;
+    expect(hc.taken, 30);
+    expect(hc.partsOf('alice'), List.generate(10, (i) => i + 1));
+    expect(hc.partsOf('carol'), List.generate(10, (i) => i + 21));
+    final sc = sync.chain(g.id, s.id)!;
+    expect(sc.claims.values.map((x) => x.amount).toList()..sort(), [333, 333, 334]);
+    expect(sc.taken, 1000);
+
+    await sync.setDone(sc, 400); // payından fazlası yazılmaz
+    await pumpEventQueue();
+    expect(sync.chain(g.id, s.id)!.claimOf('carol')!.done, sc.claimOf('carol')!.amount);
+  });
+
+  test('sayılı zincirde pay alınır, değiştirilir; ayrılan grubu görmez', () async {
+    await as('alice', 'Ali');
+    final g = await sync.createGroup('Aile');
+    await as('bob', 'Veli');
+    await sync.joinGroup(g.id);
+    await pumpEventQueue();
+    final c = await sync.startChain(
+        groupId: g.id, type: 'yasin', name: '41 Yâsin', unit: 'Yâsin', total: 41, mode: 'pick', days: 7);
+    await pumpEventQueue();
+    await sync.setAmount(sync.chain(g.id, c.id)!, 5);
+    await pumpEventQueue();
+    await sync.setDone(sync.chain(g.id, c.id)!, 2);
+    await sync.setAmount(sync.chain(g.id, c.id)!, 7);
+    await pumpEventQueue();
+    final x = sync.chain(g.id, c.id)!;
+    expect(x.claimOf('bob')!.amount, 7);
+    expect(x.claimOf('bob')!.done, 2);
+    expect(x.free, 34);
+
+    await sync.leaveGroup(sync.group(g.id)!);
+    await pumpEventQueue();
+    expect(sync.groups, isEmpty);
+    expect(sync.chains, isEmpty);
+  });
+
+  test('kurucu grubu silince kod da silinir', () async {
+    await as('alice', 'Ali');
+    final g = await sync.createGroup('Aile');
+    await sync.startChain(groupId: g.id, type: 'hatim', name: 'Hatim', unit: 'cüz', total: 30, mode: 'pick', days: 7);
+    await pumpEventQueue();
+    await sync.leaveGroup(sync.group(g.id)!);
+    await pumpEventQueue();
+    expect(sync.groups, isEmpty);
+    expect(await sync.lookupCode(g.code), isNull);
+    expect((await db.collection('groups').doc(g.id).get()).exists, isFalse);
+  });
+
+  test('yalnız ben zinciri telefonda tutulur', () async {
+    SharedPreferences.setMockInitialValues({});
+    await sync.load();
+    final c = await sync.startChain(
+        groupId: null, type: 'istigfar', name: '100 İstiğfar', unit: 'istiğfar', total: 100, mode: 'pick', days: 3);
+    expect(c.solo, isTrue);
+    await sync.setDone(sync.chains.single, 60);
+    expect(sync.chains.single.done, 60);
+    final h = await sync.startChain(
+        groupId: null, type: 'hatim', name: 'Hatim', unit: 'cüz', total: 30, mode: 'pick', days: 30);
+    await sync.markPart(sync.chain(null, h.id)!, 3, true);
+    expect(sync.chain(null, h.id)!.done, 1);
+    // Yeniden açılınca kayıt yerinde.
+    sync.resetLocal();
+    await sync.load();
+    expect(sync.chains.length, 2);
+    expect(sync.chains.firstWhere((x) => x.type == 'istigfar').done, 60);
+  });
+
+  testWidgets('Dua Zinciri: sekmeler, yalnız ben zinciri başlatma', (t) async {
+    t.view.physicalSize = const Size(390, 1600);
     t.view.devicePixelRatio = 1;
     addTearDown(t.view.reset);
-    DuaCircleStore.instance.replaceAll([]);
-
+    await t.runAsync(() => sync.load());
     await t.pumpWidget(const MaterialApp(home: DuaCircleScreen()));
-    await t.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 50)));
-    await t.pumpAndSettle();
+    await t.pump();
+    expect(find.text('Zincirlerim'), findsOneWidget);
+    expect(find.text('Gruplarım'), findsOneWidget);
+    expect(find.text('Uygulamayı tavsiye et'), findsOneWidget);
     expect(find.textContaining('Henüz zinciriniz yok'), findsOneWidget);
 
-    await t.tap(find.text('Yeni Zincir').first);
-    await t.pumpAndSettle();
-    // Sayfa içeriği tembel kurulur; öğe görünene kadar kaydırılır.
-    Future<void> show(Finder f) async {
-      // Açık klavye odağı, imleci göstermek için sayfayı geri kaydırmasın.
-      FocusManager.instance.primaryFocus?.unfocus();
-      await t.pumpAndSettle();
-      await t.scrollUntilVisible(f, 200, scrollable: find.byType(Scrollable).first);
-      await t.ensureVisible(f);
-      await t.pumpAndSettle();
-    }
-
-    // Tek kişiyle kaydedilemez
-    await show(find.text('Zinciri oluştur ve davet gönder'));
-    await t.tap(find.text('Zinciri oluştur ve davet gönder'));
+    await t.tap(find.text('Gruplarım'));
     await t.pump();
-    expect(find.text('Rehberden en az bir kişi ekleyin'), findsOneWidget);
-    t.state<ScaffoldMessengerState>(find.byType(ScaffoldMessenger)).clearSnackBars(); // uyarı kapansın
-    await t.pumpAndSettle();
+    expect(find.text('Grup kur'), findsOneWidget);
+    expect(find.text('Kodla katıl'), findsOneWidget);
 
-    // Kişi yalnız rehberden eklenir (numarayla ekleme yok)
-    expect(find.text('Numarayla ekle'), findsNothing);
-    t.binding.defaultBinaryMessenger.setMockMethodCallHandler(
-      const MethodChannel('ezan_saati/contacts'),
-      (call) async => {'name': 'Ali Yılmaz', 'phone': '0532 111 22 33'},
-    );
-    addTearDown(() => t.binding.defaultBinaryMessenger
-        .setMockMethodCallHandler(const MethodChannel('ezan_saati/contacts'), null));
-    await show(find.text('Rehber'));
-    await t.tap(find.text('Rehber'));
-    await t.pumpAndSettle();
-    expect(find.text('Ali Yılmaz'), findsOneWidget);
-    expect(find.text('110 / 110'), findsOneWidget);
-    // Rehberden eklenen kişi Kişilerim'e kaydedilir
-    expect(CirclePeople.instance.find('0532 111 22 33')?.name, 'Ali Yılmaz');
-
-    // Payı elle değiştir: toplam tutmazsa uyarı
-    final myShare = find.byKey(const ValueKey('share:me'));
-    await t.enterText(myShare, '50');
-    await t.pumpAndSettle();
-    expect(find.text('105 / 110'), findsOneWidget);
-    expect(find.text('Toplam tutmuyor: 5 salavat dağıtılmadı.'), findsOneWidget);
-    await show(find.text('Zinciri oluştur ve davet gönder'));
-    await t.tap(find.text('Zinciri oluştur ve davet gönder'));
+    await t.tap(find.text('Zincirlerim'));
     await t.pump();
-    expect(find.textContaining('hedefle (110) aynı olmalı'), findsOneWidget);
-    t.state<ScaffoldMessengerState>(find.byType(ScaffoldMessenger)).clearSnackBars(); // uyarı kapansın
+    await t.tap(find.byKey(const Key('startChain')));
     await t.pumpAndSettle();
-
-    // Eşit olmak zorunda değil: 60 / 50
-    await t.enterText(myShare, '60');
-    await t.enterText(find.byKey(const ValueKey('share:Ali Yılmaz')), '50');
+    expect(find.text('Yalnız ben'), findsOneWidget);
+    await t.tap(find.text('İstiğfar'));
+    await t.pump();
+    await t.runAsync(() async {
+      await t.tap(find.byKey(const Key('doStart')));
+      await Future<void>.delayed(const Duration(milliseconds: 200));
+    });
     await t.pumpAndSettle();
-    expect(find.text('110 / 110'), findsOneWidget);
-    await show(find.text('Zinciri oluştur ve davet gönder'));
-    await t.tap(find.text('Zinciri oluştur ve davet gönder'));
-    await t.pumpAndSettle();
-
-    // Davet ekranı
-    expect(find.text('Davet Gönder'), findsOneWidget);
-    expect(find.text('Görevi: 50 salavat'), findsOneWidget);
-    expect(find.textContaining('Sana düşen: 50 salavat'), findsOneWidget);
-    await show(find.text('Zincire git'));
-    await t.tap(find.text('Zincire git'));
-    await t.pumpAndSettle();
-
-    // Zincir kartı
-    expect(find.text('110 Salavat'), findsWidgets);
-    expect(find.text('0 / 60'), findsOneWidget);
-    expect(find.textContaining('1 kişi henüz kabul etmedi'), findsOneWidget);
+    expect(find.text('100 İstiğfar'), findsWidgets);
+    expect(find.text('0 / 100'), findsOneWidget);
     await t.tap(find.text('+10'));
     await t.pumpAndSettle();
-    expect(find.text('10 / 60'), findsOneWidget);
-    expect(DuaCircleStore.instance.circles.single.me.done, 10);
+    expect(find.text('10 / 100'), findsOneWidget);
+  });
+
+  testWidgets('grup bağlantısı katılma ekranını açar', (t) async {
+    await t.pumpWidget(MaterialApp(
+      onGenerateRoute: (s) {
+        final uri = Uri.parse(s.name ?? '/');
+        if (uri.path == '/grup') {
+          return MaterialPageRoute<void>(builder: (_) => GroupJoinScreen(code: uri.queryParameters['k'] ?? ''));
+        }
+        return MaterialPageRoute<void>(builder: (_) => const SizedBox());
+      },
+      initialRoute: '/grup?k=AB',
+    ));
+    await t.pumpAndSettle();
+    expect(find.byType(GroupJoinScreen), findsOneWidget);
+    expect(find.textContaining('grup kodu eksik'), findsOneWidget);
+    expect(find.text('Tekrar dene'), findsOneWidget);
   });
 }

@@ -122,6 +122,107 @@ await t('kurucu çemberi tüm üyeleriyle siler', assertSucceeds((async () => {
   return b.commit();
 })()));
 
+// ================================================================ Dua grupları
+console.log('Grup kurma');
+const G = 'g1', CODE = 'AB4K7P';
+function groupData(extra = {}) {
+  return { ownerUid: 'alice', ownerName: 'Ali', name: 'Aile', code: CODE, memberUids: ['alice'],
+    created: ts(now), updatedAt: ts(now), ...extra };
+}
+function chainData(extra = {}) {
+  return { creatorUid: 'alice', creatorName: 'Ali', type: 'hatim', name: 'Hatim', unit: 'cüz', intent: '',
+    total: 30, mode: 'pick', created: ts(now), deadline: ts(now + 7 * day), ...extra };
+}
+await t('kurucu grubu, adını ve kodunu birlikte yazar', assertSucceeds((async () => {
+  const a = db('alice'); const b = writeBatch(a);
+  b.set(doc(a, 'groups', G), groupData());
+  b.set(doc(a, 'groups', G, 'members', 'alice'), { name: 'Ali', joinedAt: ts(now) });
+  b.set(doc(a, 'groupCodes', CODE), { gid: G, name: 'Aile', ownerName: 'Ali' });
+  return b.commit();
+})()));
+await t('başkası adına grup kurulamaz', assertFails(setDoc(doc(db('eve'), 'groups', 'g2'), groupData())));
+await t('başka grubun koduna kod belgesi yazılamaz', assertFails(setDoc(doc(db('eve'), 'groupCodes', 'ZZZZZZ'), { gid: G, name: 'X', ownerName: 'E' })));
+await t('üye olmayan grubu okuyamaz', assertFails(getDoc(doc(db('bob'), 'groups', G))));
+await t('kodu bilen kod belgesini okur', assertSucceeds(getDoc(doc(db('bob'), 'groupCodes', CODE))));
+await t('kod listesi alınamaz', assertFails(getDocs(collection(db('bob'), 'groupCodes'))));
+await t('giriş yapmamış kişi kodu okuyamaz', assertFails(getDoc(doc(anon, 'groupCodes', CODE))));
+
+console.log('Gruba katılma');
+await t('bob gruba katılır (yalnız kendini ekler)', assertSucceeds((async () => {
+  const d = db('bob'); const b = writeBatch(d);
+  b.update(doc(d, 'groups', G), { memberUids: arrayUnion('bob'), updatedAt: ts(now) });
+  b.set(doc(d, 'groups', G, 'members', 'bob'), { name: 'Veli', joinedAt: ts(now) });
+  return b.commit();
+})()));
+await t('eve başkasını gruba ekleyemez', assertFails(updateDoc(doc(db('eve'), 'groups', G), { memberUids: arrayUnion('mallory') })));
+await t('üye olmayan üye adı yazamaz', assertFails(setDoc(doc(db('eve'), 'groups', G, 'members', 'eve'), { name: 'E', joinedAt: ts(now) })));
+await t('bob başkasının adını değiştiremez', assertFails(setDoc(doc(db('bob'), 'groups', G, 'members', 'alice'), { name: 'X', joinedAt: ts(now) })));
+await t('üye grubu ve üyeleri okur', assertSucceeds(getDocs(collection(db('bob'), 'groups', G, 'members'))));
+await t('üye gruplarını sorgular', assertSucceeds(getDocs(query(collection(db('bob'), 'groups'), where('memberUids', 'array-contains', 'bob')))));
+await t('üye grubun adını değiştiremez', assertFails(updateDoc(doc(db('bob'), 'groups', G), { name: 'X' })));
+await t('üye grubu silemez', assertFails(deleteDoc(doc(db('bob'), 'groups', G))));
+
+console.log('Hatim zinciri');
+await t('üye zincir başlatır', assertSucceeds(setDoc(doc(db('alice'), 'groups', G, 'chains', 'h1'), chainData())));
+await t('üye olmayan zincir başlatamaz', assertFails(setDoc(doc(db('eve'), 'groups', G, 'chains', 'h2'), chainData({ creatorUid: 'eve' }))));
+await t('hatim 30 cüzden farklı olamaz', assertFails(setDoc(doc(db('alice'), 'groups', G, 'chains', 'h3'), chainData({ total: 29 }))));
+await t('30 günden uzun zincir olmaz', assertFails(setDoc(doc(db('alice'), 'groups', G, 'chains', 'h4'), chainData({ deadline: ts(now + 40 * day) }))));
+await t('bob 7. cüzü alır', assertSucceeds(setDoc(doc(db('bob'), 'groups', G, 'chains', 'h1', 'slots', '7'), { uid: 'bob', name: 'Veli', done: false })));
+await t('alınmış cüzü başkası alamaz', assertFails(setDoc(doc(db('alice'), 'groups', G, 'chains', 'h1', 'slots', '7'), { uid: 'alice', name: 'Ali', done: false })));
+await t('31. cüz alınamaz', assertFails(setDoc(doc(db('bob'), 'groups', G, 'chains', 'h1', 'slots', '31'), { uid: 'bob', name: 'Veli', done: false })));
+await t('başkası adına cüz alınamaz', assertFails(setDoc(doc(db('bob'), 'groups', G, 'chains', 'h1', 'slots', '8'), { uid: 'alice', name: 'Ali', done: false })));
+await t('bob cüzünü okudu yapar', assertSucceeds(updateDoc(doc(db('bob'), 'groups', G, 'chains', 'h1', 'slots', '7'), { done: true })));
+await t('alice bobun cüzünü işaretleyemez', assertFails(updateDoc(doc(db('alice'), 'groups', G, 'chains', 'h1', 'slots', '7'), { done: false })));
+await t('başlatan eşit bölmede cüzleri üyelere dağıtır', assertSucceeds((async () => {
+  const a = db('alice'); const b = writeBatch(a);
+  b.set(doc(a, 'groups', G, 'chains', 'h5'), chainData({ mode: 'equal' }));
+  b.set(doc(a, 'groups', G, 'chains', 'h5', 'slots', '1'), { uid: 'alice', name: 'Ali', done: false });
+  b.set(doc(a, 'groups', G, 'chains', 'h5', 'slots', '16'), { uid: 'bob', name: 'Veli', done: false });
+  return b.commit();
+})()));
+await t('grupta olmayana cüz verilemez', assertFails(setDoc(doc(db('alice'), 'groups', G, 'chains', 'h5', 'slots', '2'), { uid: 'eve', name: 'E', done: false })));
+await t('üye olmayan zinciri okuyamaz', assertFails(getDocs(collection(db('eve'), 'groups', G, 'chains', 'h1', 'slots'))));
+
+console.log('Sayılı zincir');
+await t('üye salavat zinciri başlatır', assertSucceeds(setDoc(doc(db('bob'), 'groups', G, 'chains', 's1'),
+  chainData({ creatorUid: 'bob', creatorName: 'Veli', type: 'salavat', name: '1000 Salavat', unit: 'salavat', total: 1000 }))));
+await t('alice 300 salavat alır', assertSucceeds(setDoc(doc(db('alice'), 'groups', G, 'chains', 's1', 'claims', 'alice'), { name: 'Ali', amount: 300, done: 0 })));
+await t('hedeften fazla pay alınamaz', assertFails(setDoc(doc(db('bob'), 'groups', G, 'chains', 's1', 'claims', 'bob'), { name: 'Veli', amount: 1001, done: 0 })));
+await t('alice okuduğunu yazar', assertSucceeds(updateDoc(doc(db('alice'), 'groups', G, 'chains', 's1', 'claims', 'alice'), { done: 120 })));
+await t('payından fazla okundu yazılamaz', assertFails(updateDoc(doc(db('alice'), 'groups', G, 'chains', 's1', 'claims', 'alice'), { done: 301 })));
+await t('başkasının okuması değiştirilemez', assertFails(updateDoc(doc(db('bob'), 'groups', G, 'chains', 's1', 'claims', 'alice'), { done: 300 })));
+await t('başkası adına pay alınamaz (başlatan değilse)', assertFails(setDoc(doc(db('alice'), 'groups', G, 'chains', 's1', 'claims', 'bob'), { name: 'Veli', amount: 10, done: 0 })));
+
+console.log('Ayrılma ve silme');
+await t('üye zinciri silemez (başlatan değil)', assertFails(deleteDoc(doc(db('bob'), 'groups', G, 'chains', 'h1'))));
+await t('bob kendi başlattığı zinciri siler', assertSucceeds((async () => {
+  const d = db('bob'); const b = writeBatch(d);
+  b.delete(doc(d, 'groups', G, 'chains', 's1', 'claims', 'alice'));
+  b.delete(doc(d, 'groups', G, 'chains', 's1'));
+  return b.commit();
+})()));
+await t('bob başkasını gruptan çıkaramaz', assertFails(updateDoc(doc(db('bob'), 'groups', G), { memberUids: ['bob'] })));
+await t('bob gruptan ayrılır', assertSucceeds((async () => {
+  const d = db('bob'); const b = writeBatch(d);
+  b.delete(doc(d, 'groups', G, 'members', 'bob'));
+  b.update(doc(d, 'groups', G), { memberUids: ['alice'], updatedAt: ts(now) });
+  return b.commit();
+})()));
+await t('ayrılan grubu okuyamaz', assertFails(getDoc(doc(db('bob'), 'groups', G))));
+await t('ayrılan cüz alamaz', assertFails(setDoc(doc(db('bob'), 'groups', G, 'chains', 'h1', 'slots', '9'), { uid: 'bob', name: 'Veli', done: false })));
+await t('kurucu grubu kodu ve zincirleriyle siler', assertSucceeds((async () => {
+  const a = db('alice'); const b = writeBatch(a);
+  b.delete(doc(a, 'groups', G, 'chains', 'h1', 'slots', '7'));
+  b.delete(doc(a, 'groups', G, 'chains', 'h1'));
+  b.delete(doc(a, 'groups', G, 'chains', 'h5', 'slots', '1'));
+  b.delete(doc(a, 'groups', G, 'chains', 'h5', 'slots', '16'));
+  b.delete(doc(a, 'groups', G, 'chains', 'h5'));
+  b.delete(doc(a, 'groups', G, 'members', 'alice'));
+  b.delete(doc(a, 'groupCodes', CODE));
+  b.delete(doc(a, 'groups', G));
+  return b.commit();
+})()));
+
 await env.cleanup();
 console.log(`\n${pass} geçti, ${fail} başarısız`);
 process.exit(fail ? 1 : 0);

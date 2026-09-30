@@ -20,7 +20,6 @@ dependencies:
   firebase_core: ^4.15.0
   firebase_auth: ^6.7.0
   cloud_firestore: ^6.10.0
-  crypto: ^3.0.6               # Telefon numarasını sunucuya açık yazmadan eşleştirmek için özet
   just_audio: ^0.10.6          # Kur'an: sûrelerin ayet ayet sesli okunuşu (internetten akış)
   hijri: ^3.0.1                # Hicrî takvim (Ümmü'l-Kurâ); Diyanet 2026-27 dinî günleriyle aynı
   flutter_local_notifications: ^22.3.1
@@ -28,6 +27,7 @@ dependencies:
   flutter_timezone: ^5.1.0
   youtube_player_iframe: ^6.0.2
   workmanager: ^0.10.10
+  play_install_referrer: ^0.5.0  # Grup bağlantısından Play Store'a gidip kuranlar ilk açılışta gruba yönlenir
 
 dev_dependencies:
   flutter_test:

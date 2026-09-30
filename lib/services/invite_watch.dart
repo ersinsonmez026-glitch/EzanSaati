@@ -7,16 +7,15 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:workmanager/workmanager.dart';
 
 import '../firebase_options.dart';
-import 'circle_sync.dart';
 
-/// Uygulama kapalıyken Dua Zinciri davetlerini kontrol eder: telefon yaklaşık 30 dakikada bir
-/// (Android izin verdikçe) kendi numarasına gelen yeni davet var mı diye bakar, varsa bildirim gösterir.
-/// Numara kaydedilmemişse sunucuya hiç bağlanmaz. Uygulama açıkken davetler zaten anında görünür.
+/// Uygulama kapalıyken Dua Zinciri gruplarını kontrol eder: telefon yaklaşık 30 dakikada bir
+/// (Android izin verdikçe) üye olduğu gruplarda başkasının başlattığı yeni zincir var mı diye bakar,
+/// varsa bildirim gösterir. Hiç gruba katılmamışsa sunucuya bağlanmaz.
 class InviteWatch {
   static const _task = 'davet_kontrol';
-  static const _seenKey = 'cember_bildirilen_davetler';
+  static const _lastKey = 'zincir_son_kontrol';
 
-  /// Bildirime dokununca açılacak yer (uygulama Davetler'i açar).
+  /// Bildirime dokununca açılacak yer (Dua Zinciri).
   static const payload = 'davet';
 
   /// Uygulama açılışında bir kez çağrılır; görev zaten kuruluysa aynen kalır.
@@ -32,59 +31,60 @@ class InviteWatch {
         existingWorkPolicy: ExistingPeriodicWorkPolicy.keep,
       );
     } catch (_) {
-      // Arka plan görevi kurulamazsa davetler yine uygulama açıkken görünür.
+      // Arka plan görevi kurulamazsa zincirler yine uygulama açılınca görünür.
     }
   }
 
-  /// Arka plandaki kontrol: yeni (daha önce bildirilmemiş, süresi geçmemiş) davetler için bildirim.
+  /// Arka plandaki kontrol: son kontrolden sonra gruplarımda başlatılan zincirler için bildirim.
   static Future<void> check() async {
     final prefs = await SharedPreferences.getInstance();
-    final hash = phoneHash(prefs.getString('cember_tel') ?? '');
-    if (hash.isEmpty) return;
+    if ((prefs.getString('cember_ad') ?? '').isEmpty) return; // hiç gruba katılmamış
     if (Firebase.apps.isEmpty) await Firebase.initializeApp(options: DefaultFirebaseOptions.android);
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return; // Dua Zinciri hiç açılmamış
-    final snap = await FirebaseFirestore.instance.collectionGroup('members').where('phoneHash', isEqualTo: hash).get();
-    final seen = [...?prefs.getStringList(_seenKey)];
     final now = DateTime.now();
-    final fresh = <(String, String)>[]; // (davet kodu, bildirim metni)
-    for (final d in snap.docs) {
-      final m = d.data();
-      if (m['status'] != 'pending' || m['uid'] != null || m['ownerUid'] == user.uid) continue;
-      final exp = (m['expiresAt'] as Timestamp?)?.toDate();
-      if (exp != null && !exp.isAfter(now)) continue;
-      if (seen.contains(d.id)) continue;
-      final owner = (m['ownerName'] as String? ?? '').trim();
-      final circle = (m['circleName'] as String? ?? '').trim();
-      fresh.add((d.id, '${owner.isEmpty ? 'Bir yakınınız' : owner} sizi "$circle" dua zincirine davet etti.'));
+    final lastMs = prefs.getInt(_lastKey);
+    await prefs.setInt(_lastKey, now.millisecondsSinceEpoch);
+    if (lastMs == null) return; // ilk kontrol: yalnız başlangıç zamanını kaydet
+    final since = Timestamp.fromMillisecondsSinceEpoch(lastMs);
+    final db = FirebaseFirestore.instance;
+    final groups = await db.collection('groups').where('memberUids', arrayContains: user.uid).get();
+    final fresh = <(String, String)>[]; // (zincir kimliği, bildirim metni)
+    for (final g in groups.docs) {
+      final gname = g.data()['name'] as String? ?? '';
+      final chains = await g.reference.collection('chains').where('created', isGreaterThan: since).get();
+      for (final c in chains.docs) {
+        final m = c.data();
+        if (m['creatorUid'] == user.uid) continue;
+        final who = (m['creatorName'] as String? ?? '').trim();
+        fresh.add((c.id, '${who.isEmpty ? 'Bir üye' : who} "$gname" grubunda ${m['name'] ?? 'yeni bir'} zinciri başlattı.'));
+      }
     }
     if (fresh.isEmpty) return;
     final plugin = FlutterLocalNotificationsPlugin();
     await plugin.initialize(
       settings: const InitializationSettings(android: AndroidInitializationSettings('@mipmap/ic_launcher')),
     );
-    for (final (code, text) in fresh) {
+    for (final (id, text) in fresh) {
       await plugin.show(
-        id: code.hashCode & 0x3fffffff,
-        title: 'Dua Zinciri daveti',
+        id: id.hashCode & 0x3fffffff,
+        title: 'Dua Zinciri',
         body: text,
         payload: payload,
         notificationDetails: const NotificationDetails(
           android: AndroidNotificationDetails(
             'dua_zinciri_davet',
-            'Dua Zinciri davetleri',
-            channelDescription: 'Size gelen dua zinciri davetleri',
+            'Dua Zinciri',
+            channelDescription: 'Gruplarınızda başlatılan yeni dua zincirleri',
             importance: Importance.high,
             priority: Priority.high,
           ),
         ),
       );
-      seen.add(code);
     }
-    await prefs.setStringList(_seenKey, seen.length > 50 ? seen.sublist(seen.length - 50) : seen);
   }
 
-  /// Android 13+ bildirim izni (numara kaydedilince istenir).
+  /// Android 13+ bildirim izni (ad kaydedilince istenir).
   static Future<void> requestPermission() async {
     if (kIsWeb || defaultTargetPlatform != TargetPlatform.android) return;
     try {

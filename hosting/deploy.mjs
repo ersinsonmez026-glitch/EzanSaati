@@ -1,4 +1,4 @@
-// Davet sayfasını (public/) Firebase Hosting'e yayınlar: Hosting REST API ile sürüm oluştur,
+// Grup ve davet sayfalarını (public/) Firebase Hosting'e yayınlar: Hosting REST API ile sürüm oluştur,
 // dosyaları yükle, sürümü yayına al. Kimlik: GOOGLE_APPLICATION_CREDENTIALS (hizmet hesabı).
 // Kullanım: node deploy.mjs <site-adı>
 import { createHash } from 'node:crypto';
@@ -53,4 +53,4 @@ for (const [path, v] of gz) {
 }
 await call('PATCH', `${api}/${version.name}?update_mask=status`, { status: 'FINALIZED' });
 const rel = await call('POST', `${api}/sites/${site}/releases?versionName=${encodeURIComponent(version.name)}`, {});
-console.log('yayında:', rel.name, `https://${site}.web.app/davet`);
+console.log('yayında:', rel.name, `https://${site}.web.app/grup`);

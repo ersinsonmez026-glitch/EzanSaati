@@ -236,9 +236,20 @@ void main() {
     addTearDown(t.view.reset);
     await t.pumpWidget(const MaterialApp(home: SettingsScreen()));
     await t.pump();
-    for (final l in ['Konum', 'Görünüm', 'Bildirimler', 'Hesaplama', 'Hakkında', 'Görsel', 'Krem', 'Yeşil', 'Otomatik', 'Gündüz', 'Gece']) {
+    // Bölümler kapalı açılır: yalnız başlıklar görünür.
+    for (final l in ['Konum', 'Görünüm', 'Bildirimler', 'Hesaplama', 'Hakkında']) {
       expect(find.text(l), findsWidgets, reason: l);
     }
+    expect(find.text('Krem'), findsNothing);
+    await t.tap(find.text('Görünüm'));
+    await t.pumpAndSettle();
+    for (final l in ['Görsel', 'Krem', 'Yeşil', 'Otomatik', 'Gündüz', 'Gece']) {
+      expect(find.text(l), findsWidgets, reason: l);
+    }
+    // Bir bölüm açılınca diğeri kapanır.
+    await t.tap(find.text('Hakkında'));
+    await t.pumpAndSettle();
+    expect(find.text('Krem'), findsNothing);
     await t.tap(find.text('Gizlilik ve kaynaklar'));
     await t.pumpAndSettle();
     expect(find.byType(AboutScreen), findsOneWidget);

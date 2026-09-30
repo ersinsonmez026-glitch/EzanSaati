@@ -12,6 +12,12 @@ class GroupCard extends StatelessWidget {
   final Widget? trailing;
   final List<Widget> children;
 
+  /// Verilirse kart açılır-kapanır olur: başlığa dokununca [onToggle] çağrılır, kapalıyken yalnız başlık
+  /// ve [summary] (ör. seçili şehir) görünür.
+  final bool? expanded;
+  final VoidCallback? onToggle;
+  final String? summary;
+
   const GroupCard({
     super.key,
     required this.pal,
@@ -20,10 +26,57 @@ class GroupCard extends StatelessWidget {
     required this.title,
     required this.children,
     this.trailing,
+    this.expanded,
+    this.onToggle,
+    this.summary,
   });
 
   @override
   Widget build(BuildContext context) {
+    final foldable = expanded != null;
+    final open = expanded ?? true;
+    Widget header = Container(
+      padding: EdgeInsets.symmetric(horizontal: 12, vertical: foldable ? 10 : 6),
+      decoration: BoxDecoration(
+        gradient: RC.darkPanel,
+        border: open ? Border(bottom: BorderSide(color: RC.gold(0.6), width: 1.5)) : null,
+      ),
+      child: Row(
+        children: [
+          art != null ? ArtIcon(art!, size: 26) : GoldIcon(icon!, size: 20),
+          const SizedBox(width: 10),
+          Expanded(
+            flex: foldable ? 0 : 1,
+            child: GoldText(title, maxLines: 1, style: const TextStyle(fontSize: 17.5, fontWeight: FontWeight.w600)),
+          ),
+          if (trailing != null) trailing!,
+          if (foldable) const SizedBox(width: 8),
+          if (foldable)
+            Expanded(
+              child: Text(open ? '' : summary ?? '',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.right,
+                  style: const TextStyle(color: RC.creamSoft, fontSize: 13)),
+            ),
+          if (foldable) ...[
+            const SizedBox(width: 6),
+            AnimatedRotation(
+              turns: open ? 0.5 : 0,
+              duration: const Duration(milliseconds: 200),
+              child: const Icon(Icons.expand_more, color: RC.goldIcon, size: 24),
+            ),
+          ],
+        ],
+      ),
+    );
+    if (foldable) {
+      header = Semantics(
+        button: true,
+        expanded: open,
+        child: GestureDetector(behavior: HitTestBehavior.opaque, onTap: onToggle, child: header),
+      );
+    }
     return Container(
       clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
@@ -35,25 +88,14 @@ class GroupCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              gradient: RC.darkPanel,
-              border: Border(bottom: BorderSide(color: RC.gold(0.6), width: 1.5)),
-            ),
-            child: Row(
-              children: [
-                art != null ? ArtIcon(art!, size: 26) : GoldIcon(icon!, size: 20),
-                const SizedBox(width: 10),
-                Expanded(
-                  child:
-                      GoldText(title, maxLines: 1, style: const TextStyle(fontSize: 17.5, fontWeight: FontWeight.w600)),
-                ),
-                if (trailing != null) trailing!,
-              ],
-            ),
+          header,
+          AnimatedSize(
+            duration: const Duration(milliseconds: 200),
+            alignment: Alignment.topCenter,
+            child: open
+                ? Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: withDividers(children, pal.line))
+                : const SizedBox(width: double.infinity),
           ),
-          ...withDividers(children, pal.line),
         ],
       ),
     );

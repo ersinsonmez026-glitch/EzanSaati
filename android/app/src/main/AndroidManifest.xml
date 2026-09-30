@@ -33,11 +33,13 @@
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
-            <!-- Dua Zinciri davet bağlantısı: ezansaati://app/davet?k=KOD (davet sayfası uygulamayı böyle açar) -->
+            <!-- Dua Zinciri grup bağlantısı: ezansaati://app/grup?k=KOD (grup sayfası uygulamayı böyle açar);
+                 /davet eski davet bağlantıları içindir. -->
             <intent-filter>
                 <action android:name="android.intent.action.VIEW"/>
                 <category android:name="android.intent.category.DEFAULT"/>
                 <category android:name="android.intent.category.BROWSABLE"/>
+                <data android:scheme="ezansaati" android:host="app" android:pathPrefix="/grup"/>
                 <data android:scheme="ezansaati" android:host="app" android:pathPrefix="/davet"/>
             </intent-filter>
             <meta-data android:name="flutter_deeplinking_enabled" android:value="true"/>
