@@ -357,7 +357,7 @@ class _HeaderDelegate extends SliverPersistentHeaderDelegate {
                     maxLines: 1,
                     textAlign: TextAlign.center,
                     tone: GoldTone.onPhoto,
-                    style: TextStyle(fontSize: 26 - 6 * p, fontWeight: FontWeight.w600, fontFamily: 'EBGaramond'),
+                    style: TextStyle(fontSize: 26 - 6 * p, fontWeight: FontWeight.w600, fontFamily: 'Lora'),
                   ),
                 ),
               ),

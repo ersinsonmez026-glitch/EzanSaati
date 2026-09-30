@@ -85,7 +85,7 @@ class CountdownBanner extends StatelessWidget {
     final text = Text(
       time,
       style: TextStyle(
-        fontFamily: 'EBGaramond',
+        fontFamily: 'Lora',
         fontSize: 14 * k,
         fontWeight: FontWeight.w700,
         color: current ? const Color(0xFF241802) : _cream,
@@ -137,7 +137,7 @@ class RemainingLine extends StatelessWidget {
         ]),
         maxLines: 1,
         style: TextStyle(
-          fontFamily: 'EBGaramond',
+          fontFamily: 'Lora',
           fontSize: 15.5 * k,
           fontWeight: FontWeight.w600,
           color: Colors.white,

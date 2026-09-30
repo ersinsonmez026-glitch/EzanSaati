@@ -129,7 +129,7 @@ class MessageCard extends StatelessWidget {
     final shadows = _paper ? null : const [Shadow(color: Color(0x80000000), blurRadius: 8)];
 
     TextStyle st(double size, Color c, FontWeight w, double lh, {bool italic = false}) => TextStyle(
-          fontFamily: 'EBGaramond',
+          fontFamily: 'Lora',
           fontSize: size,
           fontWeight: w,
           color: c,
@@ -189,7 +189,7 @@ class MessageCard extends StatelessWidget {
             Icon(Icons.nightlight_round, size: 24, color: color),
             const SizedBox(width: 6),
             Text('Ezan Saati',
-                style: TextStyle(fontFamily: 'EBGaramond', fontSize: 24, fontWeight: FontWeight.w600, color: color)),
+                style: TextStyle(fontFamily: 'Lora', fontSize: 24, fontWeight: FontWeight.w600, color: color)),
           ],
         ),
       ),
@@ -218,7 +218,7 @@ class MessageCard extends StatelessWidget {
               children: [
                 Text('Ezan Saati',
                     style: TextStyle(
-                        fontFamily: 'EBGaramond', fontSize: 42, fontWeight: FontWeight.w700, color: Color(0xFFF3D27A))),
+                        fontFamily: 'Lora', fontSize: 42, fontWeight: FontWeight.w700, color: Color(0xFFF3D27A))),
               ],
             ),
           ],

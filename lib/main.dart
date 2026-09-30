@@ -17,10 +17,11 @@ import 'widgets/page_shell.dart' show AppRoute, DesignScale, kAppPageTransitions
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Arapça yazı tiplerinin (Amiri, Amiri Quran) lisansı
+  // Yazı tiplerinin (Amiri, Amiri Quran, Lora) lisansı
   LicenseRegistry.addLicense(() async* {
     final ofl = await rootBundle.loadString('assets/fonts/OFL.txt');
     yield LicenseEntryWithLineBreaks(['Amiri', 'Amiri Quran'], ofl);
+    yield LicenseEntryWithLineBreaks(['Lora'], await rootBundle.loadString('assets/fonts/Lora-OFL.txt'));
   });
 
   await SystemChrome.setPreferredOrientations([
@@ -74,7 +75,7 @@ class EzanSaatiApp extends StatelessWidget {
           secondary: AppColors.green,
           surface: AppColors.greenSurface,
         ),
-        fontFamily: 'EBGaramond',
+        fontFamily: 'Lora',
         pageTransitionsTheme: kAppPageTransitions,
         snackBarTheme: const SnackBarThemeData(
           backgroundColor: AppColors.green,

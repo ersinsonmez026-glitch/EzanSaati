@@ -57,7 +57,7 @@ class AboutScreen extends StatelessWidget {
               ('Hadisler', 'HadeethEnc.com (Nebevi Hadisler Ansiklopedisi Tercümesi), metinler değiştirilmeden'),
               ('Harita verisi', '© OpenStreetMap katkıcıları (ODbL)'),
               ('Arapça yazı tipi', 'Amiri (SIL Open Font License)'),
-              ('Yazı tipi', 'EB Garamond (SIL Open Font License)'),
+              ('Yazı tipi', 'Lora (SIL Open Font License)'),
               ('Ezan sesi 1', 'Wikimedia Commons, "Beautiful adhan.ogg", Adam-synagda (CC0)'),
               (
                 'Ezan sesi 2',

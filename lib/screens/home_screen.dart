@@ -114,12 +114,12 @@ class _HomeScreenState extends State<HomeScreen> {
     final loc = _location.current;
     const shadow = [Shadow(color: Colors.black87, blurRadius: 5, offset: Offset(1, 1))];
 
-    // Ana ekran eski yazı tipiyle kalır; diğer sayfalar EB Garamond kullanır.
+    // Uygulamanın yazı tipi Lora.
     final theme = Theme.of(context);
     return Theme(
       data: theme.copyWith(
-        textTheme: theme.textTheme.apply(fontFamily: 'EBGaramond'),
-        primaryTextTheme: theme.primaryTextTheme.apply(fontFamily: 'EBGaramond'),
+        textTheme: theme.textTheme.apply(fontFamily: 'Lora'),
+        primaryTextTheme: theme.primaryTextTheme.apply(fontFamily: 'Lora'),
       ),
       child: Scaffold(
         backgroundColor: isDaytime() ? const Color(0xFFD8C59C) : const Color(0xFF03170F), // koyu krem / gece yeşili
@@ -308,7 +308,7 @@ class _HomeScreenState extends State<HomeScreen> {
       ]),
       style: TextStyle(
         color: Colors.white,
-        fontFamily: 'serif',
+        fontFamily: 'Lora',
         fontSize: 11 * k,
         fontWeight: FontWeight.w600,
         height: 1.25,
@@ -370,7 +370,7 @@ class _LocationSheetState extends State<_LocationSheet> {
               color: AppColors.gold,
               fontSize: 24,
               fontWeight: FontWeight.w700,
-              fontFamily: 'EBGaramond',
+              fontFamily: 'Lora',
             ),
           ),
           const SizedBox(height: 8),

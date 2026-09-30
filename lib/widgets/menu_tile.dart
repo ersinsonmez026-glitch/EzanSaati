@@ -38,7 +38,7 @@ class MenuTile extends StatelessWidget {
     for (final t in titles) {
       final p = TextPainter(
         text: TextSpan(
-            text: t, style: const TextStyle(fontFamily: 'EBGaramond', fontWeight: FontWeight.w600, fontSize: probe)),
+            text: t, style: const TextStyle(fontFamily: 'Lora', fontWeight: FontWeight.w600, fontSize: probe)),
         textDirection: TextDirection.ltr,
         maxLines: 1,
       )..layout();
@@ -60,7 +60,7 @@ class MenuTile extends StatelessWidget {
         TileStyle.krem => GoldTone.onLight,
         TileStyle.yesil => GoldTone.onDark,
       },
-      style: const TextStyle(fontFamily: 'EBGaramond', fontWeight: FontWeight.w600, fontSize: 16.5, letterSpacing: 0.1),
+      style: const TextStyle(fontFamily: 'Lora', fontWeight: FontWeight.w600, fontSize: 16.5, letterSpacing: 0.1),
     );
     // Görselli tuşta isim, çift altın çizgili koyu yeşil levhanın içinde.
     // Görselli tuşta isim, altın kenarlı yeşil kartuş levhanın içinde (assets/images/levha.webp).
@@ -83,7 +83,7 @@ class MenuTile extends StatelessWidget {
                   textAlign: TextAlign.center,
                   tone: GoldTone.onDark,
                   style: TextStyle(
-                      fontFamily: 'EBGaramond', fontWeight: FontWeight.w600, fontSize: labelSize, letterSpacing: 0),
+                      fontFamily: 'Lora', fontWeight: FontWeight.w600, fontSize: labelSize, letterSpacing: 0),
                 ),
               ),
             ),
