@@ -13,7 +13,7 @@ import '../widgets/page_shell.dart';
 import 'city_picker_screen.dart';
 import 'dhikr_screen.dart';
 import 'dua_circle_screen.dart';
-import 'hadiths_screen.dart';
+import 'tracking_screen.dart';
 import 'learn_namaz_screen.dart';
 import 'messages_screen.dart';
 import 'mosque_finder_screen.dart';
@@ -52,7 +52,7 @@ class _HomeScreenState extends State<HomeScreen> {
     _MenuItem('kible_bulucu', 'Kıble Bulucu', 'kible_bulucu', () => const QiblaScreen()),
     _MenuItem('cami_bulucu', 'Cami Bulucu', 'cami_bulucu', () => const MosqueFinderScreen()),
     _MenuItem('dua_cemberi', 'Dua Zinciri', 'dua_cemberi', () => const DuaCircleScreen()),
-    _MenuItem('hadisler', 'Hadisler', 'hadisler', () => const HadithsScreen()),
+    _MenuItem('takibim', 'Takibim', 'takvim', () => const TrackingScreen()),
     _MenuItem('ramazan', 'Ramazan', 'fener', () => const RamadanScreen()),
     _MenuItem('namaz_ogren', 'Namaz Öğren', 'cami', () => const LearnNamazScreen()),
     _MenuItem('dini_mesajlar', 'Dini Mesajlar', 'dini_mesajlar', () => const MessagesScreen()),

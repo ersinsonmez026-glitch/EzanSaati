@@ -314,6 +314,8 @@ object Zikir {
         counts.put(id, org.json.JSONArray().put(n).put(rounds))
         val dn = o.optJSONObject("dn") ?: JSONObject().also { o.put("dn", it) }
         dn.put(id, dn.optInt(id, 0) + 1)
+        val h = o.optJSONObject("h") ?: JSONObject().also { o.put("h", it) } // günlük toplam (Takibim)
+        h.put(day, h.optInt(day, 0) + 1)
         o.put("sel", id)
         save(ctx, o)
         return round

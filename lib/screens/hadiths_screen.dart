@@ -12,7 +12,11 @@ class HadithsScreen extends StatefulWidget {
   /// Testlerde sahte kaynak verilebilir.
   final HadithStore? store;
 
-  const HadithsScreen({super.key, this.store});
+  /// Dualar sayfasının "Hadisler" sekmesinde: sayfa başlığı ve kendi arama kutusu olmadan, [query] ile.
+  final bool embedded;
+  final String query;
+
+  const HadithsScreen({super.key, this.store, this.embedded = false, this.query = ''});
 
   @override
   State<HadithsScreen> createState() => _HadithsScreenState();
@@ -78,6 +82,22 @@ class _HadithsScreenState extends State<HadithsScreen> {
   @override
   Widget build(BuildContext context) {
     final items = _items;
+    if (widget.embedded) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: items == null
+            ? [
+                if (_error == null)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 30),
+                    child: Center(child: CircularProgressIndicator(color: _pal.gold)),
+                  )
+                else
+                  _errorBox(),
+              ]
+            : _content(items),
+      );
+    }
     return PageShell(
       title: 'Hadisler',
       background: _pal.background,
@@ -118,7 +138,7 @@ class _HadithsScreenState extends State<HadithsScreen> {
   List<Widget> _content(List<Hadith> items) {
     const gap = SizedBox(height: 10);
     final favs = _favs;
-    final q = trSearchKey(_query.trim());
+    final q = trSearchKey((widget.embedded ? widget.query : _query).trim());
     final shown = [
       for (var i = 0; i < items.length; i++)
         if ((!_onlyFav || favs.contains(items[i].id)) &&
@@ -145,8 +165,10 @@ class _HadithsScreenState extends State<HadithsScreen> {
         ],
       ),
       gap,
-      SearchBox(pal: _pal, hint: 'Hadislerde ara', onChanged: (v) => setState(() => _query = v)),
-      gap,
+      if (!widget.embedded) ...[
+        SearchBox(pal: _pal, hint: 'Hadislerde ara', onChanged: (v) => setState(() => _query = v)),
+        gap,
+      ],
       PaperBox(
         pal: _pal,
         child: shown.isEmpty

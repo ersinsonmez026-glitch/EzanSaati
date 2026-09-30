@@ -20,7 +20,7 @@ void main() {
   const order = [
     'Namaz Vakitleri', 'Sureler', 'Dualar', //
     'Zikir Sayacı', 'Kıble Bulucu', 'Cami Bulucu', //
-    'Dua Zinciri', 'Hadisler', 'Ramazan', //
+    'Dua Zinciri', 'Takibim', 'Ramazan', //
     'Namaz Öğren', 'Dini Mesajlar', 'Ayarlar',
   ];
 

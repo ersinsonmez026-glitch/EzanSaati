@@ -68,6 +68,7 @@ class DhikrState {
   bool vibrate = true;
   String day = '';
   final Map<String, int> today = {}; // bugün çekilen (zikir başına)
+  final Map<String, int> history = {}; // gün → o gün çekilen toplam (Takibim sayfası; son 120 gün)
 
   /// Tesbihat modu: null = kapalı, 0–2 = sıradaki zikir, 3 = tevhid.
   int? tesbihat;
@@ -91,10 +92,12 @@ class DhikrState {
 
   int get todayTotal => today.values.fold(0, (a, b) => a + b);
 
-  String _dayKey() {
-    final d = _now();
-    return '${d.year}-${d.month}-${d.day}';
-  }
+  String _dayKey() => dayKeyOf(_now());
+
+  static String dayKeyOf(DateTime d) => '${d.year}-${d.month}-${d.day}';
+
+  /// O gün çekilen toplam zikir.
+  int onDay(DateTime d) => history[dayKeyOf(d)] ?? 0;
 
   void _rollDay() {
     final k = _dayKey();
@@ -113,6 +116,7 @@ class DhikrState {
     if (t > 0 && c.n >= t) c.n = 0;
     c.n++;
     today[z.id] = (today[z.id] ?? 0) + 1;
+    history[day] = (history[day] ?? 0) + 1;
     var hit = DhikrHit.counted;
     if (t > 0 && c.n == t) {
       c.rounds++;
@@ -131,6 +135,7 @@ class DhikrState {
     if (c.n == 0) return false;
     c.n--;
     today[selected] = ((today[selected] ?? 0) - 1).clamp(0, 1 << 30);
+    history[day] = ((history[day] ?? 0) - 1).clamp(0, 1 << 30);
     save();
     return true;
   }
@@ -240,6 +245,7 @@ class DhikrState {
     vibrate = j['vib'] as bool? ?? true;
     day = j['day'] as String? ?? '';
     (j['dn'] as Map? ?? const {}).forEach((k, v) => today[k as String] = (v as num).toInt());
+    (j['h'] as Map? ?? const {}).forEach((k, v) => history[k as String] = (v as num).toInt());
   }
 
   Map<String, dynamic> toJson() => {
@@ -252,7 +258,20 @@ class DhikrState {
         'vib': vibrate,
         'day': day,
         'dn': today,
+        'h': _recentHistory(),
       };
+
+  Map<String, int> _recentHistory() {
+    final limit = _now().subtract(const Duration(days: 120));
+    return {
+      for (final e in history.entries)
+        if (() {
+          final p = e.key.split('-').map(int.tryParse).toList();
+          return p.length == 3 && p.every((x) => x != null) && DateTime(p[0]!, p[1]!, p[2]!).isAfter(limit);
+        }())
+          e.key: e.value,
+    };
+  }
 
   void save() {
     _p?.setString(_key, jsonEncode(toJson()));

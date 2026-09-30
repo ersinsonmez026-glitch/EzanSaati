@@ -5,11 +5,13 @@ import 'package:flutter/material.dart';
 import '../services/ezan_notifications.dart';
 import '../services/location_store.dart';
 import '../services/prayer_calc.dart';
+import '../services/prayer_log.dart';
 import '../services/takvim.dart';
 import '../widgets/page_shell.dart';
 import '../widgets/reading_ui.dart';
 import 'city_picker_screen.dart';
 import 'notifications_screen.dart';
+import 'tracking_screen.dart';
 import '../widgets/gold_icon.dart';
 
 enum _View { main, imsakiye, hicri, miladi }
@@ -26,6 +28,7 @@ class PrayerTimesScreen extends StatefulWidget {
 class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
   PagePalette get _pal => PagePalette.current(); // Gündüz/Gece değişince hemen yenilensin
   final _location = LocationStore.instance;
+  final _log = PrayerLog.instance;
   final _scroll = ScrollController();
   Timer? _ticker;
   TakvimData? _takvim;
@@ -51,6 +54,8 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
   void initState() {
     super.initState();
     _location.addListener(_refresh);
+    _log.addListener(_refresh);
+    _log.load();
     _ticker = Timer.periodic(const Duration(seconds: 1), (_) => _refresh());
     TakvimData.load().then((t) {
       if (mounted) setState(() => _takvim = t);
@@ -61,6 +66,7 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
   void dispose() {
     _ticker?.cancel();
     _location.removeListener(_refresh);
+    _log.removeListener(_refresh);
     _scroll.dispose();
     super.dispose();
   }
@@ -197,6 +203,8 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
           ],
         ),
       ),
+      gap,
+      _summary(shown),
       gap,
       _dayButtons(shown),
       gap,
@@ -342,8 +350,24 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
     final cur = _offset == 0 && i == ci && !(i == 5 && beforeImsak);
     final past = _offset < 0 || (_offset == 0 && !slot.time.isAfter(now) && !cur);
     const curInk = Color(0xFF231805);
+    final p = PrayerLog.slotIndex.indexOf(i); // takip edilen namaz sırası; Güneş -1
+    final shownDay = DateTime(now.year, now.month, now.day + _offset);
+    final trackable = p >= 0 && (past || cur) && _offset <= 0;
     Widget? pill;
-    if (cur) {
+    if (trackable) {
+      final on = _log.prayed(shownDay, p);
+      pill = GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () => _log.toggle(shownDay, p),
+        child: Row(mainAxisSize: MainAxisSize.min, children: [
+          Icon(on ? Icons.check_circle : Icons.radio_button_unchecked,
+              size: 17, color: on ? (cur ? curInk : RC.bronzeText) : (cur ? curInk : _pal.gold)),
+          const SizedBox(width: 4),
+          Text(on ? 'Kıldım' : 'Kıldım mı?',
+              style: TextStyle(color: on && !cur ? RC.bronzeText : (cur ? curInk : _pal.ink))),
+        ]),
+      );
+    } else if (cur) {
       pill = Row(mainAxisSize: MainAxisSize.min, children: [
         const Icon(Icons.hourglass_bottom, size: 16, color: curInk),
         const SizedBox(width: 3),
@@ -422,7 +446,13 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
               alignment: Alignment.center,
               decoration: pill == null
                   ? null
-                  : BoxDecoration(
+                  : trackable && _log.prayed(shownDay, p) && !cur
+                      ? BoxDecoration(
+                          gradient: RC.bronze,
+                          borderRadius: BorderRadius.circular(99),
+                          border: Border.all(color: RC.bronzeBorder),
+                        )
+                      : BoxDecoration(
                       color: cur ? const Color(0x8CFFF8E1) : _pal.pill,
                       borderRadius: BorderRadius.circular(99),
                       border: cur ? Border.all(color: const Color(0x595A3C0A)) : null,
@@ -441,6 +471,52 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  // ================================================================= namaz takibi
+
+  /// Gün satırının altındaki özet: "Bugün 3/5 kılındı · 12 gün seri".
+  Widget _summary(DateTime shown) {
+    if (_offset > 0) return const SizedBox.shrink();
+    final n = _log.count(shown);
+    final streak = _log.streak(DateTime.now());
+    return GestureDetector(
+      onTap: () => Navigator.of(context).push(AppRoute(builder: (_) => const TrackingScreen())),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        decoration: BoxDecoration(
+          color: _pal.chip,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: _pal.line),
+        ),
+        child: Row(children: [
+          Icon(Icons.task_alt, size: 16, color: _pal.gold),
+          const SizedBox(width: 6),
+          Expanded(
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerLeft,
+              child: Text.rich(TextSpan(style: TextStyle(color: _pal.ink2, fontSize: 13), children: [
+                TextSpan(text: _offset == 0 ? 'Bugün ' : 'O gün '),
+                TextSpan(text: '$n/5', style: TextStyle(color: _pal.ink, fontSize: 13.5, fontWeight: FontWeight.w800)),
+                const TextSpan(text: ' kılındı'),
+              ])),
+            ),
+          ),
+          Icon(Icons.local_fire_department, size: 16, color: _pal.gold),
+          const SizedBox(width: 3),
+          Flexible(
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text('$streak gün seri',
+                  style: TextStyle(color: _pal.gold, fontSize: 13, fontWeight: FontWeight.w700)),
+            ),
+          ),
+          const SizedBox(width: 2),
+          Icon(Icons.chevron_right, size: 18, color: _pal.ink2),
+        ]),
       ),
     );
   }
