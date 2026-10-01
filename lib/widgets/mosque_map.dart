@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
@@ -47,7 +48,7 @@ class _MosqueMapState extends State<MosqueMap> {
         onPageStarted: (_) => _set(loading: true, failed: false),
         onPageFinished: (_) => _set(loading: false),
         onWebResourceError: (e) {
-          if (e.isForMainFrame ?? true) _set(loading: false, failed: true);
+          if (e.isForMainFrame ?? false) _set(loading: false, failed: true);
         },
         onNavigationRequest: (r) {
           // Harita her zaman uygulamanın içinde kalır. Google haritayı açarken kendi içinde başka adreslere
@@ -57,8 +58,20 @@ class _MosqueMapState extends State<MosqueMap> {
               ? NavigationDecision.navigate
               : NavigationDecision.prevent;
         },
-      ))
-      ..loadRequest(widget.url);
+      ));
+    _show(widget.url);
+  }
+
+  /// Google gömülü haritayı yalnız bir iframe içinde gösteriyor; harita, küçük bir sayfanın içindeki
+  /// iframe'e yüklenir.
+  void _show(Uri url) {
+    final src = const HtmlEscape(HtmlEscapeMode.attribute).convert(url.toString());
+    _c?.loadHtmlString(
+      '<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1">'
+      '<style>html,body{margin:0;height:100%;background:#0B2A1E}iframe{border:0;width:100%;height:100%;display:block}</style>'
+      '</head><body><iframe src="$src" allowfullscreen referrerpolicy="no-referrer-when-downgrade"></iframe></body></html>',
+      baseUrl: 'https://ezansaati-premium-2026.web.app/',
+    );
   }
 
   void _set({bool? loading, bool? failed}) {
@@ -72,7 +85,7 @@ class _MosqueMapState extends State<MosqueMap> {
   @override
   void didUpdateWidget(MosqueMap old) {
     super.didUpdateWidget(old);
-    if (old.url != widget.url) _c?.loadRequest(widget.url);
+    if (old.url != widget.url) _show(widget.url);
   }
 
   @override
