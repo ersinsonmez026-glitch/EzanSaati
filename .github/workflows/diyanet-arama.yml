@@ -1,0 +1,62 @@
+name: Diyanet hadis kaynağı (inceleme)
+
+# Diyanet'in resmî hadis sitelerinin yapısını inceler (hangi sayfalar var, hadisler nasıl duruyor).
+# Yalnız okur; sonuç diyanet-sayfalar paketinde. Uygulamaya bir şey eklemez.
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [claude/charming-davinci-6c5fkr]
+    paths:
+      - .github/workflows/diyanet-arama.yml
+
+jobs:
+  incele:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Sayfaları indir
+        run: |
+          mkdir -p out
+          python3 - <<'PY'
+          import re, urllib.request, urllib.parse
+          urls = [
+              'https://hadislerleislam.diyanet.gov.tr/',
+              'https://hadislerleislam.diyanet.gov.tr/robots.txt',
+              'https://hadis.diyanet.gov.tr/',
+              'https://hadis.diyanet.gov.tr/robots.txt',
+              'https://www.diyanet.gov.tr/tr-TR/Kurumsal/Detay/11/hadislerle-islam',
+              'https://dinibilgiler.diyanet.gov.tr/',
+          ]
+          seen = set()
+          for n, u in enumerate(urls):
+              if u in seen: continue
+              seen.add(u)
+              try:
+                  req = urllib.request.Request(u, headers={'User-Agent': 'Mozilla/5.0 EzanSaati/1.0'})
+                  with urllib.request.urlopen(req, timeout=30) as r:
+                      body = r.read().decode('utf-8', 'replace')
+                      print(f'\n=== {u} -> {r.status} {r.geturl()} ({len(body)} bayt)')
+              except Exception as e:
+                  print(f'\n=== {u} -> HATA {e}'); continue
+              open(f'out/sayfa{n}.html', 'w').write(body)
+              title = re.search(r'<title[^>]*>(.*?)</title>', body, re.S)
+              print('başlık:', title.group(1).strip() if title else '-')
+              if u.endswith('robots.txt'):
+                  print(body[:1500]); continue
+              links = sorted(set(re.findall(r'href="([^"#]+)"', body)))
+              print('bağlantı', len(links))
+              for l in links[:150]: print('  ', l)
+              # Sitenin ilk birkaç alt sayfasını da indir (yapıyı görmek için).
+              base = u
+              sub = [urllib.parse.urljoin(base, l) for l in links
+                     if re.search(r'hadis|kitap|bolum|konu|detay|cilt', l, re.I)]
+              for s in sub[:6]:
+                  if s not in seen: urls.append(s)
+          PY
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: diyanet-sayfalar
+          path: out
+          retention-days: 7
