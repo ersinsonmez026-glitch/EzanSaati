@@ -61,7 +61,10 @@ jobs:
           jobs = []
           for cilt in range(1, 8):
               first = get(f'{ROOT}?CILT={cilt}&SAYFA=1')
-              last = max([int(x) for x in re.findall(rf'CILT={cilt}&(?:amp;)?SAYFA=(\d+)', first)] or [0])
+              nums = re.findall(r'<option[^>]*>\s*(\d+)\s*</option>', first) + re.findall(r'SAYFA=(\d+)', first)
+              last = max(int(x) for x in nums) if nums else 0
+              if last < 50:
+                  print('sayfa listesi bulunamadı:', first[first.find('Sayfa:'):][:800])
               print('cilt', cilt, 'sayfa', last)
               jobs += [(cilt, p) for p in range(1, last + 1)]
           found = []
