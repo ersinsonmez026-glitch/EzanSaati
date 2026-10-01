@@ -55,7 +55,8 @@ jobs:
               grade = (h.get('grade') or '').strip()
               if not re.search(books, attr, re.I): continue
               if not re.search(r'sahih|sahîh|hasen|hasan', grade, re.I): continue
-              if len(text) > 160: continue
+              if len(text) > 300: continue
+              if not re.search(r'buyur|şöyle dedi|demiştir|dedi', text): continue
               keep.append({'id': str(h.get('id', i)), 'text': text, 'attribution': attr, 'grade': grade,
                            'title': (h.get('title') or '').strip()})
               time.sleep(0.15)
