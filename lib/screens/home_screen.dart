@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 
 import '../services/app_prefs.dart';
 import '../services/location_store.dart';
+import '../services/prayer_groups.dart';
 import '../services/prayer_calc.dart';
 import '../theme.dart';
 import '../widgets/countdown_banner.dart';
@@ -91,9 +92,24 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
-  /// İlk açılışta konum seçilmemişse sorar.
+  /// İlk açılışta önce adı (Dua Zinciri'nde görünecek ad), sonra konumu sorar.
   Future<void> _askLocationIfNeeded() async {
     if (_location.current != null || !mounted) return;
+    await GroupSync.instance.load();
+    if (GroupSync.instance.myName.isEmpty && mounted) {
+      await showModalBottomSheet<void>(
+        context: context,
+        isDismissible: false,
+        enableDrag: false,
+        isScrollControlled: true,
+        backgroundColor: AppColors.darkGreen,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        builder: (ctx) => const _NameSheet(),
+      );
+    }
+    if (!mounted) return;
     await showModalBottomSheet<void>(
       context: context,
       isDismissible: false,
@@ -142,7 +158,10 @@ class _HomeScreenState extends State<HomeScreen> {
             final roomTile = (h - _heroMin(w, k) - (_rows - 1) * gap - pad - 2) / _rows;
             final tileH = math.min(fullTileH, math.max(fullTileH * 0.8, roomTile));
             final gridH = gridFor(tileH);
-            final labelSize = MenuTile.fitLabelSize(_items.map((e) => e.title), tileW);
+            // Tüm isimler aynı boyutta; boyutu en uzun isim değil ikinci en uzun isim belirler (en uzun isim
+            // levhaya sığmak için kendiliğinden biraz küçülür), böylece yazılar gereğinden küçük kalmaz.
+            final fits = [for (final e in _items) MenuTile.fitLabelSize([e.title], tileW)]..sort();
+            double labelSize(String _) => fits[1];
             final heroH = math.max(_heroMin(w, k), h - gridH) + topInset;
             // Çok kısa ekranlarda (ör. yatay) sığmazsa kaydırılabilir; normalde kaydırma yok.
             final scrolls = heroH - topInset + gridH > h + 0.5;
@@ -174,7 +193,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           title: item.title,
                           icon: item.icon,
                           style: AppPrefs.instance.tileStyle,
-                          labelSize: labelSize,
+                          labelSize: labelSize(item.title),
                           onTap: () => _onTap(item),
                         );
                       },
@@ -215,12 +234,12 @@ class _HomeScreenState extends State<HomeScreen> {
           Positioned(
             left: 0,
             right: 0,
-            top: topInset + 4 * k,
+            top: topInset + 26 * k,
             child: Center(child: RemainingLine(status: _status, k: k)),
           ),
           Positioned(
             right: 10,
-            top: topInset + 6 * k,
+            top: topInset + 64 * k,
             child: _locationLabel(loc, k, shadow),
           ),
           Column(
@@ -281,12 +300,12 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            GoldIcon(Icons.location_on, size: 13 * k),
+            GoldIcon(Icons.location_on, size: 17 * k),
             const SizedBox(width: 2),
             Text(
               loc?.name ?? 'Konum Seç',
               maxLines: 1,
-              style: TextStyle(color: Colors.white, fontSize: 14.5 * k, fontWeight: FontWeight.w700, shadows: shadow),
+              style: TextStyle(color: Colors.white, fontSize: 17.5 * k, fontWeight: FontWeight.w700, shadows: shadow),
             ),
           ],
         ),
@@ -319,6 +338,102 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+}
+
+/// İlk açılışta çıkan "adınız" penceresi: Dua Zinciri gruplarında görünecek ad.
+class _NameSheet extends StatefulWidget {
+  const _NameSheet();
+
+  @override
+  State<_NameSheet> createState() => _NameSheetState();
+}
+
+class _NameSheetState extends State<_NameSheet> {
+  final _ctrl = TextEditingController();
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  Future<void> _save() async {
+    final n = _ctrl.text.trim();
+    if (n.isEmpty) return;
+    final navigator = Navigator.of(context);
+    await GroupSync.instance.saveName(n);
+    navigator.pop();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.fromLTRB(24, 24, 24, 24 + MediaQuery.viewInsetsOf(context).bottom),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const ArtIcon('cami', size: 60),
+          const SizedBox(height: 12),
+          const Text(
+            'Hoş Geldiniz',
+            style: TextStyle(color: AppColors.gold, fontSize: 24, fontWeight: FontWeight.w700, fontFamily: 'Lora'),
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            'Adınız nedir? Dua Zinciri\'nde gruplarınızdaki kişiler sizi bu adla görür. '
+            'Sonradan değiştirebilirsiniz.',
+            textAlign: TextAlign.center,
+            style: TextStyle(color: Colors.white70, fontSize: 15, height: 1.35),
+          ),
+          const SizedBox(height: 16),
+          TextField(
+            controller: _ctrl,
+            autofocus: true,
+            textCapitalization: TextCapitalization.words,
+            textInputAction: TextInputAction.done,
+            maxLength: 40,
+            onChanged: (_) => setState(() {}),
+            onSubmitted: (_) => _save(),
+            style: const TextStyle(color: Colors.white, fontSize: 17),
+            decoration: InputDecoration(
+              hintText: 'Örn. Ayşe Demir',
+              hintStyle: const TextStyle(color: Colors.white38),
+              counterText: '',
+              filled: true,
+              fillColor: Colors.white.withValues(alpha: 0.08),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(color: AppColors.gold.withValues(alpha: 0.5)),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: AppColors.gold, width: 1.5),
+              ),
+            ),
+          ),
+          const SizedBox(height: 14),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: _ctrl.text.trim().isEmpty ? null : _save,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.gold,
+                foregroundColor: Colors.black,
+                disabledBackgroundColor: AppColors.gold.withValues(alpha: 0.35),
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+              ),
+              child: const Text('Devam'),
+            ),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Şimdilik geç', style: TextStyle(color: Colors.white60, fontSize: 14)),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 /// İlk açılışta çıkan "konumunu seç" penceresi.

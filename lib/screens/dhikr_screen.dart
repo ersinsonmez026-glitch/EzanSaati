@@ -1,10 +1,10 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../services/dhikr_store.dart';
+import '../services/vibration.dart';
 import '../widgets/page_shell.dart';
 import '../widgets/reading_ui.dart';
 import '../widgets/gold_icon.dart';
@@ -58,10 +58,10 @@ class _DhikrScreenState extends State<DhikrScreen> with SingleTickerProviderStat
   void _buzz({bool strong = false}) {
     if (!(_s?.vibrate ?? false)) return;
     if (strong) {
-      HapticFeedback.heavyImpact();
-      Timer(const Duration(milliseconds: 160), HapticFeedback.heavyImpact);
+      Vibration.heavy();
+      Timer(const Duration(milliseconds: 180), Vibration.heavy);
     } else {
-      HapticFeedback.lightImpact();
+      Vibration.light();
     }
   }
 
@@ -575,7 +575,7 @@ class _DhikrScreenState extends State<DhikrScreen> with SingleTickerProviderStat
             iconBtn(Icons.vibration, 'Titreşim', () {
               setState(() => s.toggleVibrate());
               showNote(context, s.vibrate ? 'Titreşim açık' : 'Titreşim kapalı');
-              if (s.vibrate) HapticFeedback.mediumImpact();
+              if (s.vibrate) Vibration.medium();
             }, on: s.vibrate),
           ],
         ),

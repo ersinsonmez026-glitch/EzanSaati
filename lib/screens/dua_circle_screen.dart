@@ -15,10 +15,10 @@ import '../services/app_theme.dart';
 /// Dua Zinciri: uygulama içinde dua grupları ve gruplarda birlikte okunan zincirler.
 /// WhatsApp yalnız grup bağlantısını bir kez paylaşmak ve uygulamayı önermek için kullanılır.
 class DuaCircleScreen extends StatefulWidget {
-  /// 0: Zincirlerim · 1: Gruplarım
-  final int tab;
+  /// 0: Zincirlerim · 1: Gruplarım. Verilmezse: grubu olmayan kişi önce Gruplarım'ı görür.
+  final int? tab;
 
-  const DuaCircleScreen({super.key, this.tab = 0});
+  const DuaCircleScreen({super.key, this.tab});
 
   @override
   State<DuaCircleScreen> createState() => _DuaCircleScreenState();
@@ -294,7 +294,7 @@ String _partsText(List<int> parts) {
 // ============================================================ ana sayfa
 
 class _DuaCircleScreenState extends State<DuaCircleScreen> {
-  late int _tab = widget.tab;
+  late int _tab = widget.tab ?? (_sync.groups.isEmpty && _sync.chains.isEmpty ? 1 : 0);
 
   @override
   void initState() {
@@ -322,8 +322,8 @@ class _DuaCircleScreenState extends State<DuaCircleScreen> {
       padding: const EdgeInsets.fromLTRB(12, 12, 12, 24),
       children: [
         Row(children: [
-          for (final (i, t) in [(0, 'Zincirlerim'), (1, 'Gruplarım')]) ...[
-            if (i > 0) const SizedBox(width: 8),
+          for (final (i, t) in [(1, 'Gruplarım'), (0, 'Zincirlerim')]) ...[
+            if (i == 0) const SizedBox(width: 8),
             Expanded(
               child: PillButton(
                 pal: p,
@@ -358,6 +358,10 @@ class _DuaCircleScreenState extends State<DuaCircleScreen> {
             style: TextStyle(color: _pal.ink2, fontSize: 13.5, height: 1.45),
           ),
         ),
+      ],
+      if (_sync.groups.isEmpty) ...[
+        const SizedBox(height: 10),
+        _goldButton('Önce grup kur', () => setState(() => _tab = 1), icon: Icons.group_add),
       ],
       if (active.isNotEmpty) _label('Devam edenler'),
       for (final c in active) ...[_ChainCard(c), const SizedBox(height: 8)],

@@ -6,7 +6,6 @@ import 'package:ezan_saati/screens/messages_screen.dart';
 import 'package:ezan_saati/screens/prayers_screen.dart';
 import 'package:ezan_saati/screens/ramadan_screen.dart';
 import 'package:ezan_saati/screens/surahs_screen.dart';
-import 'package:ezan_saati/screens/video_screen.dart';
 import 'package:ezan_saati/services/content_store.dart';
 import 'package:ezan_saati/services/fasting_log.dart';
 import 'package:flutter/material.dart';
@@ -176,14 +175,12 @@ void main() {
       expect(find.text('İFTAR DUASI'), findsOneWidget);
     });
 
-    testWidgets("Dualar: Esmâü'l-Hüsnâ sekmesi ve sesli dinleme", (t) async {
+    testWidgets("Dualar: Esmâü'l-Hüsnâ sekmesi", (t) async {
       await pump(t, const PrayersScreen(), height: 1600);
       await t.tap(find.text("Esmâü'l-Hüsnâ").first);
       await t.pump();
       expect(find.text('er-Rahmân'), findsOneWidget);
-      await t.tap(find.text('Sesli Dinle (ritimli okunuş)'));
-      await t.pumpAndSettle();
-      expect(find.byType(VideoScreen), findsOneWidget);
+      expect(find.text('Sesli Dinle (ritimli okunuş)'), findsNothing);
     });
   });
 }

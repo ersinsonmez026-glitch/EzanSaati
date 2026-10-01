@@ -99,12 +99,6 @@ const gunlukDuaVideolari = <NamazVideo>[
 ];
 
 /// Esmâü'l-Hüsnâ'nın sesli, ritimli okunuşu. İlk ikisi DiyanetTV'nin, üçüncüsü enstrümansız koro kıraatidir.
-const esmaVideolari = <NamazVideo>[
-  NamazVideo('Ur5xFzutNXE', 'Esmâ-i Hüsnâ', 'DiyanetTV', '9:22', 'esma'),
-  NamazVideo('HW5yzThjqEM', 'Esma-i Hüsna - 2022', 'DiyanetTV', '9:51', 'esma'),
-  NamazVideo('Q_fK_S4PXsY', 'Enstrümansız Koro Halinde Esma-ül Hüsna Kıraati', 'Dr. Akif Akça', '3:32', 'esma'),
-];
-
 /// Kimliği verilen video (namaz ya da günlük dua videoları arasında).
 NamazVideo? videoById(String id) {
   for (final v in [...namazVideolari, ...gunlukDuaVideolari]) {

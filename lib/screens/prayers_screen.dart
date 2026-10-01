@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
 
-import '../data/namaz_videolari.dart';
 import '../services/content_store.dart';
 import '../widgets/page_shell.dart';
 import '../widgets/reading_ui.dart';
 import 'hadiths_screen.dart';
 import 'prayer_read_screen.dart';
-import 'video_screen.dart';
 
 /// Dualar: günün duası, Namaz Duaları / Diğer Dualar / Esmâü'l-Hüsnâ / Hadisler sekmeleri, arama ve favoriler.
 /// Tasarım: onizleme/04-dualar.html · Veri: assets/data/dualar.json (106 dua)
@@ -114,13 +112,6 @@ class _PrayersScreenState extends State<PrayersScreen> {
 
   List<Widget> _esmaView() {
     return [
-      DarkButton(
-        label: 'Sesli Dinle (ritimli okunuş)',
-        onTap: () => Navigator.of(context).push(
-          AppRoute(builder: (_) => const VideoScreen(videos: esmaVideolari)),
-        ),
-      ),
-      const SizedBox(height: 10),
       SectionHead(pal: _pal, title: "Esmâü'l-Hüsnâ"),
       const SizedBox(height: 6),
       PaperBox(
@@ -137,7 +128,7 @@ class _PrayersScreenState extends State<PrayersScreen> {
         pal: _pal,
         text: "İsimler ve sırası Tirmizî'nin rivayetine göredir (Deavât, 82). İsim listesinin hadise râvi "
             'tarafından eklendiği görüşü de vardır (TDV İslâm Ansiklopedisi, "Esmâ-i Hüsnâ"). Anlamlar TDV İslâm '
-            'Ansiklopedisi maddelerinden kısaltılmıştır. Sesli okunuş YouTube videosudur; internet gerekir.',
+            'Ansiklopedisi maddelerinden kısaltılmıştır.',
       ),
     ];
   }

@@ -29,7 +29,7 @@ class MenuTile extends StatelessWidget {
   static const photoAspect = 508 / 600;
 
   /// Levhada, uçlardaki motiflerin arasında yazıya kalan genişlik oranı.
-  static const _textArea = 0.8;
+  static const _textArea = 0.73;
 
   /// Verilen tuş genişliğinde, isimlerin hepsinin levhaya sığdığı en büyük yazı boyutu (en çok 20).
   static double fitLabelSize(Iterable<String> titles, double tileWidth) {
@@ -45,7 +45,7 @@ class MenuTile extends StatelessWidget {
       )..layout();
       if (p.width > widest) widest = p.width;
     }
-    return widest == 0 ? probe : (probe * avail / widest * 0.92).clamp(10.0, probe);
+    return widest == 0 ? probe : (probe * avail / widest).clamp(10.0, 20.0);
   }
 
   @override

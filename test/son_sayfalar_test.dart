@@ -375,7 +375,6 @@ void main() {
       expect(e.first.reading, 'Allah');
       expect(e.last.reading, 'es-Sabûr');
       expect(e.every((x) => x.arabic.isNotEmpty && x.meaning.isNotEmpty), isTrue);
-      expect(esmaVideolari.where((v) => v.channel == 'DiyanetTV').length, 2);
     });
 
     testWidgets('Ramazan: günün cüzü, oruç rehberi, fitre ve zekât hesabı', (t) async {

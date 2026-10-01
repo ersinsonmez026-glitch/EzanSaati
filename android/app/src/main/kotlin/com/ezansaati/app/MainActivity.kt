@@ -25,6 +25,23 @@ class MainActivity : FlutterActivity() {
     // Dua Çemberi: telefonun kişi seçicisinden dönecek sonuç
     private var pendingContact: MethodChannel.Result? = null
 
+    private fun vibrate(ms: Int, amp: Int) {
+        val v = if (android.os.Build.VERSION.SDK_INT >= 31) {
+            (getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as android.os.VibratorManager).defaultVibrator
+        } else {
+            @Suppress("DEPRECATION")
+            getSystemService(Context.VIBRATOR_SERVICE) as android.os.Vibrator
+        }
+        if (!v.hasVibrator()) return
+        if (android.os.Build.VERSION.SDK_INT >= 26) {
+            val a = if (v.hasAmplitudeControl()) amp.coerceIn(1, 255) else android.os.VibrationEffect.DEFAULT_AMPLITUDE
+            v.vibrate(android.os.VibrationEffect.createOneShot(ms.toLong(), a))
+        } else {
+            @Suppress("DEPRECATION")
+            v.vibrate(ms.toLong())
+        }
+    }
+
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
         val messenger = flutterEngine.dartExecutor.binaryMessenger
@@ -43,6 +60,16 @@ class MainActivity : FlutterActivity() {
         }
 
         EventChannel(messenger, "ezan_saati/compass").setStreamHandler(CompassStream())
+
+        // Titreşim: dokunma geri bildirimi telefon ayarında kapalı olsa da zikir sayacı titresin.
+        MethodChannel(messenger, "ezan_saati/titresim").setMethodCallHandler { call, result ->
+            if (call.method == "vibrate") {
+                vibrate(call.argument<Int>("ms") ?: 30, call.argument<Int>("amp") ?: 160)
+                result.success(null)
+            } else {
+                result.notImplemented()
+            }
+        }
 
         // Ana ekran widget'ları: veri değişince yeniden çiz; uygulamada sûre dinlenince widget çaları dursun.
         MethodChannel(messenger, "ezan_saati/widget").setMethodCallHandler { call, result ->

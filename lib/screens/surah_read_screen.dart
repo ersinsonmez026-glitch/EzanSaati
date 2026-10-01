@@ -325,22 +325,35 @@ class _SurahReadScreenState extends State<SurahReadScreen> {
       if (_showArabic && s.no != 1 && s.no != 9) ...[
         Builder(builder: (_) {
           final lit = _audio && _playingAyah == 0;
+          // Besmele de ayetler gibi çerçeve içinde; okunurken ışık çerçevenin tamamını kaplar.
           final text = Text(
             _besmele,
             textAlign: TextAlign.center,
             textDirection: TextDirection.rtl,
-            style: TextStyle(fontFamily: kQuranFont, fontSize: 26, color: lit && !_pal.night ? _pal.ink : _pal.gold),
+            style: TextStyle(fontFamily: kQuranFont, fontSize: 26 * _fs, height: 2.0, color: lit ? _pal.ink : _pal.gold),
           );
-          if (!lit) return Padding(padding: const EdgeInsets.symmetric(vertical: 4), child: text);
-          return Container(
-            padding: const EdgeInsets.fromLTRB(10, 8, 10, 4),
-            foregroundDecoration: _playingDecoration(),
-            decoration: BoxDecoration(
-              gradient: _litGradient,
-              borderRadius: BorderRadius.circular(14),
-              boxShadow: [BoxShadow(color: _pal.gold.withValues(alpha: 0.5), blurRadius: 18, spreadRadius: 1)],
+          if (!lit) {
+            return PaperBox(pal: _pal, radius: 14, padding: const EdgeInsets.fromLTRB(10, 4, 10, 14), child: text);
+          }
+          return Semantics(
+            label: 'Besmele okunuyor',
+            child: Container(
+              foregroundDecoration: _playingDecoration(),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(14),
+                boxShadow: [BoxShadow(color: _pal.gold.withValues(alpha: _pal.night ? 0.55 : 0.5), blurRadius: 18, spreadRadius: 1)],
+              ),
+              child: Container(
+                padding: const EdgeInsets.fromLTRB(10, 8, 10, 14),
+                clipBehavior: Clip.antiAlias,
+                decoration: BoxDecoration(
+                  gradient: _litGradient,
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: _pal.gold),
+                ),
+                child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [_nowReading(s, 0), text]),
+              ),
             ),
-            child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [_nowReading(s, 0), text]),
           );
         }),
         const SizedBox(height: 8),

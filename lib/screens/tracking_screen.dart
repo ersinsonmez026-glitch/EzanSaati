@@ -159,9 +159,10 @@ class _TrackingScreenState extends State<TrackingScreen> {
   List<Widget> _prayers(Widget gap) {
     final now = _now;
     final today = DateTime(now.year, now.month, now.day);
-    final monday = DateTime(today.year, today.month, today.day - (today.weekday - 1));
-    final week = [for (var i = 0; i < 7; i++) DateTime(monday.year, monday.month, monday.day + i)];
-    final (wDone, wTotal) = _log.range(monday, today);
+    // Tablo son 7 günü gösterir (bugün en sağda); takvim haftası olsaydı haftanın ilk günlerinde
+    // yalnız birkaç gün işaretlenebilirdi.
+    final week = [for (var i = 6; i >= 0; i--) DateTime(today.year, today.month, today.day - i)];
+    final (wDone, wTotal) = _log.range(week.first, today);
     final (mDone, mTotal) = _log.range(DateTime(today.year, today.month), today);
     final pct = mTotal == 0 ? 0 : (mDone * 100 / mTotal).round();
 
@@ -233,7 +234,7 @@ class _TrackingScreenState extends State<TrackingScreen> {
           Row(children: [
             _stat('${_log.streak(now)} gün', 'Seri', Icons.local_fire_department),
             const SizedBox(width: 6),
-            _stat('$wDone/$wTotal', 'Bu hafta', Icons.date_range),
+            _stat('$wDone/$wTotal', 'Son 7 gün', Icons.date_range),
             const SizedBox(width: 6),
             _stat('%$pct', _months[today.month - 1], Icons.insights),
           ]),
@@ -243,7 +244,7 @@ class _TrackingScreenState extends State<TrackingScreen> {
             for (var i = 0; i < 7; i++)
               Expanded(
                 child: Column(children: [
-                  Text(_days[i],
+                  Text(_days[week[i].weekday - 1],
                       style: TextStyle(
                           color: week[i] == today ? _pal.gold : _pal.ink2,
                           fontSize: 11.5,

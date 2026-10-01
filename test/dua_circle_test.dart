@@ -173,14 +173,17 @@ void main() {
     await t.pumpWidget(const MaterialApp(home: DuaCircleScreen()));
     await t.pump();
     expect(find.text('Zincirlerim'), findsOneWidget);
-    expect(find.text('Gruplarım'), findsOneWidget);
-    expect(find.text('Uygulamayı tavsiye et'), findsOneWidget);
-    expect(find.textContaining('Henüz zinciriniz yok'), findsOneWidget);
-
-    await t.tap(find.text('Gruplarım'));
-    await t.pump();
+    expect(find.text('Gruplarım'), findsWidgets);
+    // Grubu olmayan kişi önce Gruplarım'ı görür; Gruplarım solda.
+    expect(t.getTopLeft(find.text('Gruplarım').first).dx, lessThan(t.getTopLeft(find.text('Zincirlerim')).dx));
     expect(find.text('Grup kur'), findsOneWidget);
     expect(find.text('Kodla katıl'), findsOneWidget);
+
+    await t.tap(find.text('Zincirlerim'));
+    await t.pump();
+    expect(find.text('Uygulamayı tavsiye et'), findsOneWidget);
+    expect(find.textContaining('Henüz zinciriniz yok'), findsOneWidget);
+    expect(find.text('Önce grup kur'), findsOneWidget);
 
     await t.tap(find.text('Zincirlerim'));
     await t.pump();
