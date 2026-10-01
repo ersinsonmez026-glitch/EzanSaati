@@ -380,7 +380,7 @@ class _NameSheetState extends State<_NameSheet> {
           ),
           const SizedBox(height: 8),
           const Text(
-            'Adınız nedir? Dua Zinciri\'nde gruplarınızdaki kişiler sizi bu adla görür. '
+            'Adınız nedir? Dua Zinciri\'nde birlikte okuduğunuz kişiler sizi bu adla görür. '
             'Sonradan değiştirebilirsiniz.',
             textAlign: TextAlign.center,
             style: TextStyle(color: Colors.white70, fontSize: 15, height: 1.35),

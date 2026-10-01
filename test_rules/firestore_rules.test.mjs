@@ -223,6 +223,96 @@ await t('kurucu grubu kodu ve zincirleriyle siler', assertSucceeds((async () => 
   return b.commit();
 })()));
 
+// ================================================================ bağlantılı zincirler
+console.log('Bağlantılı zincir: başlatma');
+const CH = 'Zc4Kq9LmP2rT7vWx1yAb', CS = 'Sd5Lr0MnQ3sU8wXy2zBc';
+function linkChain(extra = {}) {
+  return { creatorUid: 'alice', creatorName: 'Ali', type: 'hatim', name: 'Hatim', unit: 'cüz', total: 30, taken: 0,
+    created: ts(now), deadline: ts(now + 7 * day), memberUids: ['alice'], ...extra };
+}
+await t('alice hatim zinciri başlatır', assertSucceeds(setDoc(doc(db('alice'), 'chains', CH), linkChain())));
+await t('başkası adına zincir başlatılamaz', assertFails(setDoc(doc(db('eve'), 'chains', 'x1'), linkChain())));
+await t('30 günden uzun zincir başlatılamaz', assertFails(setDoc(doc(db('alice'), 'chains', 'x2'), linkChain({ deadline: ts(now + 40 * day) }))));
+await t('başka kişiler listesiyle başlatılamaz', assertFails(setDoc(doc(db('alice'), 'chains', 'x3'), linkChain({ memberUids: ['alice', 'bob'] }))));
+await t('alice salavat zinciri başlatır (100)', assertSucceeds(setDoc(doc(db('alice'), 'chains', CS),
+  linkChain({ type: 'salavat', name: '100 Salavat', unit: 'salavat', total: 100 }))));
+
+console.log('Bağlantılı zincir: okuma ve katılma');
+await t('bağlantıyı bilen zinciri okur', assertSucceeds(getDoc(doc(db('bob'), 'chains', CH))));
+await t('giriş yapmamış kişi okuyamaz', assertFails(getDoc(doc(anon, 'chains', CH))));
+await t('katılmadığı zincirleri listeleyemez', assertFails(getDocs(collection(db('eve'), 'chains'))));
+await t('katıldığı zincirleri listeler', assertSucceeds(getDocs(query(collection(db('alice'), 'chains'), where('memberUids', 'array-contains', 'alice')))));
+await t('bob kendini ekler', assertSucceeds(updateDoc(doc(db('bob'), 'chains', CH), { memberUids: arrayUnion('bob') })));
+await t('bob başkasını ekleyemez', assertFails(updateDoc(doc(db('bob'), 'chains', CH), { memberUids: arrayUnion('eve') })));
+await t('bob zincirin adını değiştiremez', assertFails(updateDoc(doc(db('bob'), 'chains', CH), { name: 'X' })));
+
+console.log('Bağlantılı zincir: hatim');
+await t('bob 5. cüzü alır', assertSucceeds(setDoc(doc(db('bob'), 'chains', CH, 'slots', '5'), { uid: 'bob', name: 'Veli', done: false })));
+await t('eve katılmadan cüz alamaz', assertFails(setDoc(doc(db('eve'), 'chains', CH, 'slots', '6'), { uid: 'eve', name: 'E', done: false })));
+await t('eve katılıp aynı yazmada cüz alır', assertSucceeds((async () => {
+  const d = db('eve'); const b = writeBatch(d);
+  b.update(doc(d, 'chains', CH), { memberUids: arrayUnion('eve') });
+  b.set(doc(d, 'chains', CH, 'slots', '6'), { uid: 'eve', name: 'E', done: false });
+  return b.commit();
+})()));
+await t('alınmış cüz başkasınca alınamaz', assertFails(setDoc(doc(db('eve'), 'chains', CH, 'slots', '5'), { uid: 'eve', name: 'E', done: false })));
+await t('başkası adına cüz alınamaz', assertFails(setDoc(doc(db('bob'), 'chains', CH, 'slots', '7'), { uid: 'alice', name: 'Ali', done: false })));
+await t('31. cüz yok', assertFails(setDoc(doc(db('bob'), 'chains', CH, 'slots', '31'), { uid: 'bob', name: 'Veli', done: false })));
+await t('bob cüzünü okudu yapar', assertSucceeds(updateDoc(doc(db('bob'), 'chains', CH, 'slots', '5'), { done: true })));
+await t('eve bob\'un cüzünü okudu yapamaz', assertFails(updateDoc(doc(db('eve'), 'chains', CH, 'slots', '5'), { done: false })));
+await t('eve cüzünü bırakır', assertSucceeds(deleteDoc(doc(db('eve'), 'chains', CH, 'slots', '6'))));
+await t('eve zincirden ayrılır', assertSucceeds(updateDoc(doc(db('eve'), 'chains', CH), { memberUids: ['alice', 'bob'] })));
+await t('başlatan zincirden ayrılamaz', assertFails(updateDoc(doc(db('alice'), 'chains', CH), { memberUids: ['bob'] })));
+
+console.log('Bağlantılı zincir: sayılı (hedef aşılamaz, dolunca alınamaz)');
+async function take(uid, name, amount, join = true) {
+  const d = db(uid); const b = writeBatch(d);
+  b.set(doc(d, 'chains', CS, 'claims', uid), { name, amount, done: 0 });
+  b.update(doc(d, 'chains', CS), join ? { taken: increment(amount), memberUids: arrayUnion(uid) } : { taken: increment(amount) });
+  return b.commit();
+}
+await t('bob 60 salavat alır (katılarak)', assertSucceeds(take('bob', 'Veli', 60)));
+await t('sayaç artmadan pay alınamaz', assertFails(setDoc(doc(db('eve'), 'chains', CS, 'claims', 'eve'), { name: 'E', amount: 10, done: 0 })));
+await t('pay olmadan sayaç artırılamaz', assertFails(updateDoc(doc(db('eve'), 'chains', CS), { taken: increment(10), memberUids: arrayUnion('eve') })));
+await t('sayaç paydan farklı artırılamaz', assertFails((async () => {
+  const d = db('eve'); const b = writeBatch(d);
+  b.set(doc(d, 'chains', CS, 'claims', 'eve'), { name: 'E', amount: 10, done: 0 });
+  b.update(doc(d, 'chains', CS), { taken: increment(1), memberUids: arrayUnion('eve') });
+  return b.commit();
+})()));
+await t('kalan 40\'tan fazlası alınamaz (zincir taşmaz)', assertFails(take('eve', 'E', 41)));
+await t('eve kalan 40\'ı alır', assertSucceeds(take('eve', 'E', 40)));
+await t('zincir doldu: yeni pay alınamaz', assertFails(take('carl', 'C', 1)));
+await t('bob okuduğunu yazar', assertSucceeds(updateDoc(doc(db('bob'), 'chains', CS, 'claims', 'bob'), { done: 30 })));
+await t('payından fazla okundu yazılamaz', assertFails(updateDoc(doc(db('bob'), 'chains', CS, 'claims', 'bob'), { done: 61 })));
+await t('pay miktarı sonradan değiştirilemez', assertFails(updateDoc(doc(db('bob'), 'chains', CS, 'claims', 'bob'), { amount: 1 })));
+await t('başkasının okuması değiştirilemez', assertFails(updateDoc(doc(db('eve'), 'chains', CS, 'claims', 'bob'), { done: 60 })));
+await t('okumaya başlanan pay bırakılamaz', assertFails((async () => {
+  const d = db('bob'); const b = writeBatch(d);
+  b.delete(doc(d, 'chains', CS, 'claims', 'bob'));
+  b.update(doc(d, 'chains', CS), { taken: increment(-60) });
+  return b.commit();
+})()));
+await t('eve okumadığı payını bırakır (sayaç azalır)', assertSucceeds((async () => {
+  const d = db('eve'); const b = writeBatch(d);
+  b.delete(doc(d, 'chains', CS, 'claims', 'eve'));
+  b.update(doc(d, 'chains', CS), { taken: increment(-40) });
+  return b.commit();
+})()));
+await t('yer açılınca carl pay alır', assertSucceeds(take('carl', 'C', 40)));
+
+console.log('Bağlantılı zincir: silme');
+await t('katılan zinciri silemez', assertFails(deleteDoc(doc(db('bob'), 'chains', CS))));
+await t('başlatan zinciri payları ile siler', assertSucceeds((async () => {
+  const a = db('alice'); const b = writeBatch(a);
+  b.delete(doc(a, 'chains', CS, 'claims', 'bob'));
+  b.delete(doc(a, 'chains', CS, 'claims', 'carl'));
+  b.delete(doc(a, 'chains', CS));
+  b.delete(doc(a, 'chains', CH, 'slots', '5'));
+  b.delete(doc(a, 'chains', CH));
+  return b.commit();
+})()));
+
 await env.cleanup();
 console.log(`\n${pass} geçti, ${fail} başarısız`);
 process.exit(fail ? 1 : 0);

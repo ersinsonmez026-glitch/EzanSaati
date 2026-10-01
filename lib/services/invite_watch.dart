@@ -13,13 +13,12 @@ import 'location_store.dart';
 import 'mosque_mode.dart';
 import 'premium.dart';
 
-/// Uygulama kapalıyken Dua Zinciri gruplarını kontrol eder: telefon yaklaşık 30 dakikada bir
-/// (Android izin verdikçe) üye olduğu gruplarda başkasının başlattığı yeni zincir var mı diye bakar,
-/// varsa bildirim gösterir. Hiç gruba katılmamışsa sunucuya bağlanmaz.
+/// Uygulama kapalıyken Dua Zinciri'ni kontrol eder: telefon yaklaşık 30 dakikada bir (Android izin
+/// verdikçe) katıldığı zincirlerden tamamlanan var mı diye bakar, varsa bir kez bildirim gösterir.
+/// Hiç zincire katılmamışsa sunucuya bağlanmaz.
 class InviteWatch {
   static const _task = 'davet_kontrol';
-  static const _lastKey = 'zincir_son_kontrol';
-  static const _notifiedKey = 'zincir_bildirilenler';
+  static const _notifiedKey = 'zincir_tamam_bildirilenler';
 
   /// Bildirime dokununca açılacak yer (Dua Zinciri).
   static const payload = 'davet';
@@ -41,39 +40,40 @@ class InviteWatch {
     }
   }
 
-  /// Arka plandaki kontrol: son kontrolden sonra gruplarımda başlatılan zincirler için bildirim.
+  /// Arka plandaki kontrol: katıldığım zincirlerden tamamlananlar için (her zincire bir kez) bildirim.
   static Future<void> check() async {
     final prefs = await SharedPreferences.getInstance();
-    if ((prefs.getString('cember_ad') ?? '').isEmpty) return; // hiç gruba katılmamış
+    if ((prefs.getString('cember_ad') ?? '').isEmpty) return; // Dua Zinciri hiç kullanılmamış
     if (Firebase.apps.isEmpty) await Firebase.initializeApp(options: DefaultFirebaseOptions.android);
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return; // Dua Zinciri hiç açılmamış
-    final now = DateTime.now();
-    final lastMs = prefs.getInt(_lastKey);
-    if (lastMs == null) {
-      await prefs.setInt(_lastKey, now.millisecondsSinceEpoch); // ilk kontrol: yalnız başlangıç zamanı
-      return;
-    }
-    // Zinciri başlatanın telefon saati geri olabilir: bir saat geriden bakılır, bildirilenler tekrar bildirilmez.
-    final since = Timestamp.fromMillisecondsSinceEpoch(lastMs - const Duration(hours: 1).inMilliseconds);
     final notified = (prefs.getStringList(_notifiedKey) ?? const <String>[]).toSet();
     final db = FirebaseFirestore.instance;
-    // Yalnız sunucudan okunur: çevrimdışı önbellekten eksik sonuç gelirse zincir kaçmasın.
+    // Yalnız sunucudan okunur: çevrimdışı önbellekten eksik sonuç gelirse tamamlanan zincir kaçmasın.
     const server = GetOptions(source: Source.server);
-    final groups = await db.collection('groups').where('memberUids', arrayContains: user.uid).get(server);
+    final chains = await db.collection('chains').where('memberUids', arrayContains: user.uid).get(server);
+    final since = DateTime.now().subtract(const Duration(days: 2));
     final fresh = <(String, String)>[]; // (zincir kimliği, bildirim metni)
-    for (final g in groups.docs) {
-      final gname = g.data()['name'] as String? ?? '';
-      final chains = await g.reference.collection('chains').where('created', isGreaterThan: since).get(server);
-      for (final c in chains.docs) {
-        final m = c.data();
-        if (m['creatorUid'] == user.uid || notified.contains(c.id)) continue;
-        final who = (m['creatorName'] as String? ?? '').trim();
-        fresh.add((c.id, '${who.isEmpty ? 'Bir üye' : who} "$gname" grubunda ${m['name'] ?? 'yeni bir'} zinciri başlattı.'));
+    for (final c in chains.docs) {
+      final m = c.data();
+      if (notified.contains(c.id)) continue;
+      final deadline = m['deadline'];
+      if (deadline is Timestamp && deadline.toDate().isBefore(since)) continue; // eski zincirler okunmaz
+      final total = (m['total'] as num?)?.toInt() ?? 0;
+      var done = 0;
+      if (m['type'] == 'hatim') {
+        done = (await c.reference.collection('slots').where('done', isEqualTo: true).get(server)).docs.length;
+      } else {
+        for (final x in (await c.reference.collection('claims').get(server)).docs) {
+          final amount = (x.data()['amount'] as num?)?.toInt() ?? 0;
+          done += ((x.data()['done'] as num?)?.toInt() ?? 0).clamp(0, amount);
+        }
+      }
+      if (total > 0 && done >= total) {
+        fresh.add((c.id, '"${m['name'] ?? 'Dua'}" zinciri tamamlandı. Allah kabul etsin.'));
       }
     }
-    // Sorgular başarıyla bitti: zaman ve bildirilenler ancak şimdi kaydedilir (hata olursa bir dahakine tekrar bakılır).
-    await prefs.setInt(_lastKey, now.millisecondsSinceEpoch);
+    // Sorgular başarıyla bitti: bildirilenler ancak şimdi kaydedilir.
     final keep = [...notified, for (final (id, _) in fresh) id];
     await prefs.setStringList(_notifiedKey, keep.length > 200 ? keep.sublist(keep.length - 200) : keep);
     if (fresh.isEmpty) return;
@@ -91,7 +91,7 @@ class InviteWatch {
           android: AndroidNotificationDetails(
             'dua_zinciri_davet',
             'Dua Zinciri',
-            channelDescription: 'Gruplarınızda başlatılan yeni dua zincirleri',
+            channelDescription: 'Katıldığınız dua zincirleri tamamlanınca',
             importance: Importance.high,
             priority: Priority.high,
           ),

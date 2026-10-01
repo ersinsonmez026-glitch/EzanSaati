@@ -1,7 +1,7 @@
-name: Grup sayfasını yayınla
+name: Zincir sayfasını yayınla
 
-# hosting/public içindeki Dua Zinciri grup sayfasını Firebase Hosting'e (ücretsiz Spark planı) yükler:
-# https://ezansaati-premium-2026.web.app/grup?k=KOD
+# hosting/public içindeki Dua Zinciri bağlantı sayfalarını Firebase Hosting'e (ücretsiz Spark planı) yükler:
+# https://ezansaati-premium-2026.web.app/zincir?k=KİMLİK (grup.html eski bağlantılar için)
 # Firestore'a ve güvenlik kurallarına dokunmaz. Gerekli sır: FIREBASE_SERVICE_ACCOUNT (değiştirilmez).
 
 on:

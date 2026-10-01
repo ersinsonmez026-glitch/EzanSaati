@@ -17,7 +17,7 @@ import 'services/ezan_notifications.dart';
 import 'services/home_widgets.dart';
 import 'services/invite_watch.dart';
 import 'services/location_store.dart';
-import 'services/prayer_groups.dart' show normalizeCode;
+import 'services/prayer_groups.dart' show validChainId;
 import 'theme.dart';
 import 'widgets/page_shell.dart' show AppRoute, DesignScale, kAppPageTransitions, rebuildAllPages;
 
@@ -66,7 +66,7 @@ Future<void> main() async {
   LocationStore.instance.addListener(HomeWidgets.syncSoon);
   AppPrefs.instance.addListener(HomeWidgets.syncSoon);
 
-  // Dua Zinciri: uygulama kapalıyken yaklaşık 30 dakikada bir gruplarda yeni zincir kontrolü.
+  // Dua Zinciri: uygulama kapalıyken yaklaşık 30 dakikada bir tamamlanan zincir kontrolü.
   unawaited(InviteWatch.schedule());
   // Zincir bildirimine dokununca Dua Zinciri açılır (uygulama açıkken ya da bildirimden açılınca).
   EzanNotifications.onTap = _openFromNotification;
@@ -80,8 +80,8 @@ Future<void> main() async {
   unawaited(_openInstallReferrer());
 }
 
-/// Uygulama grup bağlantısından Play Store'a gidilerek kurulduysa (referrer=grup=KOD), ilk açılışta
-/// gruba katılma ekranı kendiliğinden açılır. Yalnız bir kez bakılır.
+/// Uygulama zincir bağlantısından Play Store'a gidilerek kurulduysa (referrer=zincir=KİMLİK), ilk açılışta
+/// o zincir kendiliğinden açılır. Yalnız bir kez bakılır.
 Future<void> _openInstallReferrer() async {
   if (kIsWeb || defaultTargetPlatform != TargetPlatform.android) return;
   const key = 'kurulum_kaynagi_bakildi';
@@ -90,8 +90,8 @@ Future<void> _openInstallReferrer() async {
     if (prefs.getBool(key) ?? false) return;
     await prefs.setBool(key, true);
     final ref = (await PlayInstallReferrer.installReferrer).installReferrer ?? '';
-    final code = normalizeCode(Uri.splitQueryString(Uri.decodeComponent(ref))['grup'] ?? '');
-    if (code.length == 6) kNavigatorKey.currentState?.pushNamed('/grup?k=$code');
+    final id = Uri.splitQueryString(Uri.decodeComponent(ref))['zincir'] ?? '';
+    if (validChainId(id)) kNavigatorKey.currentState?.pushNamed('/zincir?k=$id');
   } catch (_) {
     // Play Store dışından kurulduysa kaynak bilgisi yoktur.
   }
@@ -139,13 +139,16 @@ class EzanSaatiApp extends StatelessWidget {
       // Her ekran aynı tasarımı orantılı gösterir (bkz. DesignScale).
       builder: (context, child) => DesignScale(child: child!),
       home: const HomeScreen(),
-      // Grup bağlantısı (ezansaati://app/grup?k=KOD) gruba katılma ekranını, zincir bildirimi (/zincir)
-      // ve eski davet bağlantıları (/davet) Dua Zinciri'ni açar.
+      // Zincir bağlantısı (ezansaati://app/zincir?k=KİMLİK) o zinciri açar; zincir bildirimi (/zincir) ve
+      // eski grup/davet bağlantıları (/grup, /davet) Dua Zinciri'ni açar.
       onGenerateRoute: (settings) {
         final uri = Uri.tryParse(settings.name ?? '');
         if (uri == null) return null;
-        if (uri.path == '/grup') return AppRoute(builder: (_) => GroupJoinScreen(code: uri.queryParameters['k'] ?? ''));
-        if (uri.path == '/zincir' || uri.path == '/davet') return AppRoute(builder: (_) => const DuaCircleScreen());
+        final id = uri.queryParameters['k'] ?? '';
+        if (uri.path == '/zincir' && validChainId(id)) return AppRoute(builder: (_) => ChainScreen(chainId: id));
+        if (const {'/zincir', '/grup', '/davet'}.contains(uri.path)) {
+          return AppRoute(builder: (_) => const DuaCircleScreen());
+        }
         return null;
       },
       onUnknownRoute: (_) => AppRoute(builder: (_) => const HomeScreen()),

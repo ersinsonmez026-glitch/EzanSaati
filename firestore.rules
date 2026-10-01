@@ -331,5 +331,130 @@ service cloud.firestore {
         && groupAfter(request.resource.data.gid).data.code == code;
       allow delete: if signedIn() && group(resource.data.gid).data.ownerUid == request.auth.uid;
     }
+
+    // ================================================================
+    // Dua zincirleri (bağlantıyla paylaşılır; grup yok, telefon numarası yok)
+    //
+    // chains/{cid}              : bağlantıyı (kimliği) bilen okur; kişi yalnız katıldığı zincirleri listeler;
+    //                             başlatan oluşturur ve siler; kişi yalnız kendini ekler ya da çıkarır;
+    //                             alınan toplam (taken) yalnız kişinin kendi payıyla aynı yazmada değişir
+    //                             ve hedefi aşamaz (zincir dolunca yeni pay alınamaz)
+    // chains/{cid}/slots/{n}    : hatimde cüz alma (n 1-30, her cüzü bir kişi alır)
+    // chains/{cid}/claims/{uid} : sayılı zincirde kişinin payı ve okuduğu
+    // ================================================================
+
+    function linkChain(cid) {
+      return get(/databases/$(database)/documents/chains/$(cid));
+    }
+
+    function linkChainAfter(cid) {
+      return getAfter(/databases/$(database)/documents/chains/$(cid));
+    }
+
+    function myClaim(cid) {
+      return /databases/$(database)/documents/chains/$(cid)/claims/$(request.auth.uid);
+    }
+
+    function validLinkChain(d) {
+      return d.keys().hasOnly(['creatorUid', 'creatorName', 'type', 'name', 'unit', 'total', 'taken',
+                               'created', 'deadline', 'memberUids'])
+        && d.creatorUid is string
+        && d.creatorName is string && d.creatorName.size() <= 60
+        && d.type in ['hatim', 'yasin', 'salavat', 'ihlas', 'istigfar', 'ozel']
+        && d.name is string && d.name.size() > 0 && d.name.size() <= 60
+        && d.unit is string && d.unit.size() <= 20
+        && d.total is int && d.total > 0 && d.total <= 10000000
+        && (d.type != 'hatim' || d.total == 30)
+        && d.taken is int && d.taken >= 0 && d.taken <= d.total
+        && d.created is timestamp
+        && d.deadline is timestamp
+        && d.deadline <= d.created + duration.value(32, 'd')
+        && d.memberUids is list && d.memberUids.size() <= 200;
+    }
+
+    function joinsSelf() {
+      return request.resource.data.memberUids.toSet()
+        == resource.data.memberUids.toSet().union([request.auth.uid].toSet());
+    }
+
+    function leavesSelf() {
+      return resource.data.creatorUid != request.auth.uid
+        && request.resource.data.memberUids.toSet()
+             == resource.data.memberUids.toSet().difference([request.auth.uid].toSet());
+    }
+
+    match /chains/{cid} {
+      allow get: if signedIn();
+      allow list: if signedIn() && request.auth.uid in resource.data.memberUids;
+      allow create: if signedIn()
+        && request.resource.data.creatorUid == request.auth.uid
+        && request.resource.data.memberUids == [request.auth.uid]
+        && request.resource.data.taken == 0
+        && request.resource.data.created < request.time + duration.value(1, 'd')
+        && validLinkChain(request.resource.data);
+      allow update: if signedIn() && validLinkChain(request.resource.data) && (
+        // Katılma ya da ayrılma: yalnız kendini.
+        (changed().hasOnly(['memberUids']) && (joinsSelf() || leavesSelf()))
+        // Pay alma: kişinin pay belgesi aynı yazmada oluşur, alınan toplam tam o kadar artar.
+        || (changed().hasOnly(['taken', 'memberUids'])
+          && (request.resource.data.memberUids == resource.data.memberUids || joinsSelf())
+          && request.time < resource.data.deadline
+          && !exists(myClaim(cid))
+          && existsAfter(myClaim(cid))
+          && getAfter(myClaim(cid)).data.amount == request.resource.data.taken - resource.data.taken)
+        // Pay bırakma: kişinin pay belgesi aynı yazmada silinir, alınan toplam tam o kadar azalır.
+        || (changed().hasOnly(['taken'])
+          && exists(myClaim(cid))
+          && !existsAfter(myClaim(cid))
+          && get(myClaim(cid)).data.amount == resource.data.taken - request.resource.data.taken));
+      allow delete: if signedIn() && resource.data.creatorUid == request.auth.uid;
+
+      match /slots/{n} {
+        allow read: if signedIn();
+        allow create: if signedIn()
+          && n in ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15',
+                   '16', '17', '18', '19', '20', '21', '22', '23', '24', '25', '26', '27', '28', '29', '30']
+          && linkChainAfter(cid).data.type == 'hatim'
+          && request.time < linkChainAfter(cid).data.deadline
+          && request.auth.uid in linkChainAfter(cid).data.memberUids
+          && request.resource.data.keys().hasOnly(['uid', 'name', 'done'])
+          && request.resource.data.uid == request.auth.uid
+          && request.resource.data.done == false
+          && validName(request.resource.data.name);
+        allow update: if signedIn() && resource.data.uid == request.auth.uid
+          && changed().hasOnly(['done'])
+          && request.resource.data.done is bool;
+        allow delete: if signedIn()
+          && (resource.data.uid == request.auth.uid || linkChain(cid).data.creatorUid == request.auth.uid);
+      }
+
+      match /claims/{uid} {
+        allow read: if signedIn();
+        allow create: if signedIn() && uid == request.auth.uid
+          && linkChainAfter(cid).data.type != 'hatim'
+          && request.time < linkChainAfter(cid).data.deadline
+          && request.auth.uid in linkChainAfter(cid).data.memberUids
+          && request.resource.data.keys().hasOnly(['name', 'amount', 'done'])
+          && validName(request.resource.data.name)
+          && request.resource.data.amount is int
+          && request.resource.data.amount > 0
+          && request.resource.data.done == 0
+          && linkChainAfter(cid).data.taken == linkChain(cid).data.taken + request.resource.data.amount;
+        allow update: if signedIn() && uid == request.auth.uid
+          && changed().hasOnly(['name', 'done'])
+          && validName(request.resource.data.name)
+          && request.resource.data.done is int
+          && request.resource.data.done >= 0
+          && request.resource.data.done <= resource.data.amount;
+        allow delete: if signedIn() && (
+          // Kişi okumaya başlamadığı payını bırakır (alınan toplam aynı yazmada azalır).
+          (uid == request.auth.uid
+            && resource.data.done == 0
+            && linkChainAfter(cid).data.taken == linkChain(cid).data.taken - resource.data.amount)
+          // Başlatan zinciri silerken bütün paylar da silinir.
+          || (linkChain(cid).data.creatorUid == request.auth.uid
+            && !existsAfter(/databases/$(database)/documents/chains/$(cid))));
+      }
+    }
   }
 }
