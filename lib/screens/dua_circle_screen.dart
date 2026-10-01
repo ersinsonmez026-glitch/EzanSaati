@@ -10,6 +10,7 @@ import '../services/invite_watch.dart';
 import '../services/prayer_groups.dart';
 import '../widgets/page_shell.dart';
 import '../widgets/reading_ui.dart';
+import 'chain_counter_screen.dart';
 import 'surah_read_screen.dart';
 import '../services/app_theme.dart';
 
@@ -537,6 +538,10 @@ class ChainScreen extends StatefulWidget {
 
 class _ChainScreenState extends State<ChainScreen> {
   bool _opening = false;
+  bool _busy = false;
+  final _picked = <int>{}; // hatimde okumak için seçilen boş cüzler
+  final _amount = TextEditingController();
+  bool _amountSet = false; // önerilen adet bir kez yazılır
 
   @override
   void initState() {
@@ -559,6 +564,7 @@ class _ChainScreenState extends State<ChainScreen> {
   @override
   void dispose() {
     _sync.removeListener(_changed);
+    _amount.dispose();
     super.dispose();
   }
 
@@ -667,6 +673,117 @@ class _ChainScreenState extends State<ChainScreen> {
     );
   }
 
+  // ---------------- ortak
+
+  /// "Şu ana kadar: 6.250 / 10.000" özeti.
+  Widget _summary(GroupChain c) {
+    final p = _pal;
+    return PaperBox(
+      pal: p,
+      padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        Text('Şu ana kadar', style: TextStyle(color: p.ink2, fontSize: 12.5)),
+        Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
+          Expanded(
+            child: Text('${trNum(c.done)} / ${trNum(c.total)}${c.isHatim ? ' cüz' : ''}',
+                style: TextStyle(color: p.ink, fontSize: 22, fontWeight: FontWeight.w700)),
+          ),
+          Text(c.full ? 'Bütün paylar alındı' : '${trNum(c.free)} ${c.unit} boşta',
+              style: TextStyle(color: p.ink2, fontSize: 12.5)),
+        ]),
+        const SizedBox(height: 6),
+        _bar(c.progress),
+      ]),
+    );
+  }
+
+  /// Katılma: "Şimdi oku" ya da "Daha sonra".
+  Widget _joinButtons({required VoidCallback? now, required VoidCallback? later}) => Row(children: [
+        Expanded(child: _goldButton(_busy ? 'Bekleyin…' : 'Şimdi oku', _busy ? null : now, key: const Key('readNow'))),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Opacity(
+            opacity: later == null || _busy ? 0.45 : 1,
+            child: _plainButton('Daha sonra', _busy || later == null ? () {} : later, h: 44, key: const Key('readLater')),
+          ),
+        ),
+      ]);
+
+  Future<bool> _join(BuildContext context, Future<void> Function() take) async {
+    if (!await _ensureName(context) || !context.mounted) return false;
+    setState(() => _busy = true);
+    final ok = await _run(context, take);
+    if (mounted) setState(() => _busy = false);
+    return ok;
+  }
+
+  /// Katılanlar: her kişinin okuduğu, ilerleme çubuğu, bitirince yeşil tik; altta toplam.
+  Widget _people(GroupChain c, List<(String, int, int, String)> rows) {
+    final p = _pal;
+    const green = Color(0xFF2E9E57);
+    return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+      _label('Katılanlar'),
+      PaperBox(
+        pal: p,
+        padding: const EdgeInsets.fromLTRB(12, 6, 12, 8),
+        child: Column(children: [
+          for (var i = 0; i < rows.length; i++) ...[
+            if (i > 0) DashedLine(color: p.line),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 7),
+              child: Row(children: [
+                Expanded(
+                  flex: 5,
+                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    Text(rows[i].$1,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(color: p.ink, fontSize: 14.5, fontWeight: FontWeight.w600)),
+                    if (rows[i].$4.isNotEmpty) Text(rows[i].$4, style: TextStyle(color: p.ink2, fontSize: 11.5)),
+                  ]),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  flex: 4,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(99),
+                    child: LinearProgressIndicator(
+                      value: rows[i].$3 == 0 ? 0 : rows[i].$2 / rows[i].$3,
+                      minHeight: 6,
+                      backgroundColor: p.line.withValues(alpha: 0.25),
+                      color: rows[i].$2 >= rows[i].$3 ? green : p.gold,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                SizedBox(
+                  width: 92,
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: Alignment.centerRight,
+                    child: Text('${trNum(rows[i].$2)}/${trNum(rows[i].$3)}',
+                        maxLines: 1, style: TextStyle(color: p.ink2, fontSize: 13, fontWeight: FontWeight.w600)),
+                  ),
+                ),
+                const SizedBox(width: 4),
+                SizedBox(
+                  width: 20,
+                  child: rows[i].$2 >= rows[i].$3 ? const Icon(Icons.check_circle, size: 18, color: green) : null,
+                ),
+              ]),
+            ),
+          ],
+          if (rows.isNotEmpty) Divider(color: p.line, height: 10),
+          Row(children: [
+            Expanded(child: Text('Toplam', style: TextStyle(color: p.ink, fontSize: 14.5, fontWeight: FontWeight.w700))),
+            Text('${trNum(c.done)} / ${trNum(c.total)}${c.isHatim ? ' cüz' : ''}',
+                style: TextStyle(color: p.ink, fontSize: 14.5, fontWeight: FontWeight.w700)),
+          ]),
+        ]),
+      ),
+    ]);
+  }
+
   // ---------------- hatim
 
   List<Widget> _hatim(BuildContext context, GroupChain c) {
@@ -674,37 +791,40 @@ class _ChainScreenState extends State<ChainScreen> {
     final me = _sync.uid ?? '';
     final mine = c.partsOf(me);
     final open = c.active;
+    final picking = mine.isEmpty && open && !c.full; // ilk kez gelen: hangi cüzü okuyacağını seçer
     Widget cell(int n) {
       final s = c.slots[n];
       final own = s != null && s.uid == me;
+      final picked = _picked.contains(n);
       final done = s?.done ?? false;
-      final label = s == null ? (open ? 'Al' : '') : (own ? 'Siz' : s.name.split(' ').first);
+      final label = s == null ? (picked ? 'Seçildi' : (open ? 'Al' : '')) : (own ? 'Siz' : s.name.split(' ').first);
       return Semantics(
         button: true,
         label: '$n. cüz',
         child: GestureDetector(
-          onTap: () => _tapPart(context, c, n),
+          onTap: () => _tapPart(context, c, n, picking: picking),
           child: Container(
             decoration: BoxDecoration(
-              gradient: own && !done ? RC.bronze : null,
-              color: done ? p.gold.withValues(alpha: 0.28) : (own ? null : (s == null ? Colors.transparent : p.chip)),
+              gradient: (own && !done) || picked ? RC.bronze : null,
+              color: done ? p.gold.withValues(alpha: 0.28) : (own || picked ? null : (s == null ? Colors.transparent : p.chip)),
               borderRadius: BorderRadius.circular(9),
               border: Border.all(
-                  color: own ? RC.bronzeBorder : (s == null && open ? p.gold : p.line), width: s == null && open ? 1.4 : 1),
+                  color: own || picked ? RC.bronzeBorder : (s == null && open ? p.gold : p.line),
+                  width: s == null && open ? 1.4 : 1),
             ),
             padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 2),
             child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
               Row(mainAxisAlignment: MainAxisAlignment.center, children: [
                 Text('$n',
                     style: TextStyle(
-                        color: own && !done ? RC.bronzeText : p.ink, fontSize: 16, fontWeight: FontWeight.w700)),
+                        color: (own && !done) || picked ? RC.bronzeText : p.ink, fontSize: 16, fontWeight: FontWeight.w700)),
                 if (done) ...[const SizedBox(width: 2), Icon(Icons.check, size: 13, color: p.gold)],
               ]),
               Text(label,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                      color: own && !done ? RC.bronzeText : (s == null ? p.gold : p.ink2),
+                      color: (own && !done) || picked ? RC.bronzeText : (s == null ? p.gold : p.ink2),
                       fontSize: 10.5,
                       fontWeight: s == null ? FontWeight.w700 : FontWeight.w500)),
             ]),
@@ -713,31 +833,33 @@ class _ChainScreenState extends State<ChainScreen> {
       );
     }
 
-    Widget key(Color? col, String t, {Gradient? g, Color? b}) => Row(mainAxisSize: MainAxisSize.min, children: [
-          Container(
-              width: 13,
-              height: 13,
-              decoration: BoxDecoration(
-                  color: col, gradient: g, borderRadius: BorderRadius.circular(3), border: Border.all(color: b ?? p.line))),
-          const SizedBox(width: 4),
-          Text(t, style: TextStyle(color: p.ink2, fontSize: 11.5)),
-        ]);
-
     final unread = mine.where((n) => !(c.slots[n]?.done ?? false)).toList();
+    final byPerson = <String, List<int>>{};
+    for (final e in c.slots.entries) {
+      byPerson.putIfAbsent(e.value.uid, () => []).add(e.key);
+    }
+    final rows = [
+      for (final e in byPerson.entries)
+        (
+          e.key == me ? 'Siz' : c.slots[e.value.first]!.name,
+          e.value.where((n) => c.slots[n]!.done).length,
+          e.value.length,
+          '${_partsText(e.value..sort())} cüz',
+        ),
+    ]..sort((a, b) => a.$1 == 'Siz' ? -1 : (b.$1 == 'Siz' ? 1 : b.$3.compareTo(a.$3)));
     return [
+      _summary(c),
+      const SizedBox(height: 10),
       PaperBox(
         pal: p,
         padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
         child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-          Row(children: [
-            Expanded(
-                child: Text('${c.done} cüz okundu',
-                    style: TextStyle(color: p.ink, fontSize: 16, fontWeight: FontWeight.w700))),
-            Text('${c.taken}/30 alındı', style: TextStyle(color: p.ink2, fontSize: 13)),
-          ]),
-          const SizedBox(height: 6),
-          _bar(c.progress),
-          const SizedBox(height: 10),
+          if (picking) ...[
+            Text('Hangi cüzü okuyacaksın?', style: TextStyle(color: p.ink, fontSize: 16, fontWeight: FontWeight.w700)),
+            const SizedBox(height: 2),
+            Text('Boş cüzlere dokunarak seçin (birden çok seçebilirsiniz).', style: TextStyle(color: p.ink2, fontSize: 12.5)),
+            const SizedBox(height: 10),
+          ],
           GridView.count(
             crossAxisCount: 6,
             shrinkWrap: true,
@@ -748,16 +870,33 @@ class _ChainScreenState extends State<ChainScreen> {
             childAspectRatio: 0.95,
             children: [for (var i = 1; i <= 30; i++) cell(i)],
           ),
-          const SizedBox(height: 8),
-          Wrap(spacing: 12, runSpacing: 4, children: [
-            key(Colors.transparent, 'Boş (Al)', b: p.gold),
-            key(p.chip, 'Alındı'),
-            key(p.gold.withValues(alpha: 0.28), 'Okundu'),
-            key(null, 'Sizin', g: RC.bronze, b: RC.bronzeBorder),
-          ]),
-          const SizedBox(height: 4),
-          Text('Boş cüze dokunarak alın; kendi cüzünüze dokunarak okuyun ya da işaretleyin.',
-              style: TextStyle(color: p.ink2, fontSize: 11.5)),
+          if (picking) ...[
+            const SizedBox(height: 12),
+            _joinButtons(
+              now: _picked.isEmpty
+                  ? null
+                  : () async {
+                      final parts = (_picked.toList()..sort());
+                      if (await _join(context, () => _sync.takeParts(c, parts)) && context.mounted) {
+                        setState(_picked.clear);
+                        _read(context, parts.first);
+                      }
+                    },
+              later: _picked.isEmpty
+                  ? null
+                  : () async {
+                      final parts = (_picked.toList()..sort());
+                      if (await _join(context, () => _sync.takeParts(c, parts)) && context.mounted) {
+                        setState(_picked.clear);
+                        showNote(context, 'Cüzleriniz ayrıldı. Dilediğinizde buradan okuyabilirsiniz.');
+                      }
+                    },
+            ),
+          ] else ...[
+            const SizedBox(height: 6),
+            Text('Kendi cüzünüze dokunarak okuyun ya da okudum diye işaretleyin.',
+                style: TextStyle(color: p.ink2, fontSize: 11.5)),
+          ],
         ]),
       ),
       if (mine.isNotEmpty) ...[
@@ -791,6 +930,7 @@ class _ChainScreenState extends State<ChainScreen> {
           ]),
         ),
       ],
+      if (rows.isNotEmpty) _people(c, rows),
     ];
   }
 
@@ -799,13 +939,17 @@ class _ChainScreenState extends State<ChainScreen> {
     _push(context, SurahReadScreen(surah: surah, startAyah: ayah));
   }
 
-  Future<void> _tapPart(BuildContext context, GroupChain c, int n) async {
+  Future<void> _tapPart(BuildContext context, GroupChain c, int n, {bool picking = false}) async {
     final me = _sync.uid ?? '';
     final s = c.slots[n];
     if (s == null) {
       if (!c.active) return;
+      if (picking) {
+        setState(() => _picked.contains(n) ? _picked.remove(n) : _picked.add(n));
+        return;
+      }
       if (!await _ensureName(context) || !context.mounted) return;
-      if (await _confirm(context, '$n. cüz', '$n. cüzü okumak için alıyor musunuz?', ok: 'Al') && context.mounted) {
+      if (await _confirm(context, '$n. cüz', '$n. cüzü de okumak için alıyor musunuz?', ok: 'Al') && context.mounted) {
         await _run(context, () => _sync.takeParts(c, [n]));
       }
     } else if (s.uid == me) {
@@ -845,150 +989,123 @@ class _ChainScreenState extends State<ChainScreen> {
 
   // ---------------- sayılı zincir
 
-  /// Yâsin ve İhlâs zincirlerinde sûreyi açar.
-  int? _surahOf(GroupChain c) => switch (c.type) { 'yasin' => 36, 'ihlas' => 112, _ => null };
+  void _openCounter(BuildContext context, GroupChain c) => _push(context, ChainCounterScreen(chainId: c.id));
 
   List<Widget> _count(BuildContext context, GroupChain c) {
     final p = _pal;
     final me = _sync.uid ?? '';
     final mine = c.claimOf(me);
-    final surah = _surahOf(c);
-    final others = c.claims.values.where((x) => x.uid != me).toList()..sort((a, b) => b.amount.compareTo(a.amount));
+    final rows = [
+      for (final x in c.claims.values) (x.uid == me ? 'Siz' : x.name, min(x.done, x.amount), x.amount, ''),
+    ]..sort((a, b) => a.$1 == 'Siz' ? -1 : (b.$1 == 'Siz' ? 1 : b.$3.compareTo(a.$3)));
+    if (!_amountSet && c.free > 0) {
+      _amountSet = true;
+      _amount.text = '${min(c.free, max(1, (c.total / 10).ceil()))}';
+    }
+    int? wanted() {
+      final n = int.tryParse(_amount.text);
+      if (n == null || n <= 0) {
+        showNote(context, 'Kaç ${c.unit} okuyacağınızı yazın.');
+        return null;
+      }
+      final now = _sync.chain(c.id) ?? c; // bu arada başkası almış olabilir
+      if (n > now.free) {
+        showNote(context, now.full ? 'Zincir doldu, bütün paylar alındı.' : 'En fazla ${trNum(now.free)} alabilirsiniz.');
+        return null;
+      }
+      return n;
+    }
+
     return [
-      PaperBox(
-        pal: p,
-        padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-          Row(children: [
-            Expanded(
-              child: Text('${trNum(c.done)} / ${trNum(c.total)} ${c.unit} okundu',
-                  style: TextStyle(color: p.ink, fontSize: 16, fontWeight: FontWeight.w700)),
-            ),
-            Text(c.full ? 'Doldu' : '${trNum(c.free)} boşta', style: TextStyle(color: p.ink2, fontSize: 13)),
-          ]),
-          const SizedBox(height: 6),
-          _bar(c.progress),
-        ]),
-      ),
-      if (mine != null || (c.active && !c.full)) ...[
+      _summary(c),
+      if (mine == null && c.active && !c.full) ...[
         const SizedBox(height: 10),
         PaperBox(
           pal: p,
           padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
-          child: mine == null
-              ? Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-                  Text('Payınızı alın', style: TextStyle(color: p.ink, fontSize: 15.5, fontWeight: FontWeight.w700)),
-                  const SizedBox(height: 4),
-                  Text('Okuyabileceğiniz kadarını alın. Boşta: ${trNum(c.free)} ${c.unit}',
-                      style: TextStyle(color: p.ink2, fontSize: 12.5)),
-                  const SizedBox(height: 10),
-                  _goldButton('Pay al', () => _take(context, c), key: const Key('takeShare')),
-                ])
-              : Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-                  Row(children: [
-                    Expanded(
-                      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                        Text('Sizin payınız', style: TextStyle(color: p.ink2, fontSize: 12.5)),
-                        Text('${trNum(mine.done)} / ${trNum(mine.amount)}',
-                            style: TextStyle(color: p.ink, fontSize: 20, fontWeight: FontWeight.w700)),
-                      ]),
-                    ),
-                    if (surah != null)
-                      PillButton(
-                        pal: p,
-                        selected: false,
-                        height: 36,
-                        onTap: () => _push(context, SurahReadScreen(surah: surah)),
-                        child: const Text('Oku'),
-                      ),
-                  ]),
-                  const SizedBox(height: 6),
-                  _bar(mine.amount == 0 ? 0 : mine.done / mine.amount),
-                  const SizedBox(height: 10),
-                  if (mine.done < mine.amount)
-                    Row(children: [
-                      for (final add in [1, if (mine.amount >= 10) 10, if (mine.amount >= 100) 100]) ...[
-                        Expanded(
-                          child: _plainButton(
-                              '+$add', () => _run(context, () => _sync.setDone(c, min(mine.amount, mine.done + add))),
-                              h: 40),
-                        ),
-                        const SizedBox(width: 6),
-                      ],
-                      Expanded(
-                        flex: 2,
-                        child: _goldButton('Okudum', () => _writeDone(context, c, mine), h: 40, key: const Key('writeDone')),
-                      ),
-                    ])
-                  else
-                    Center(
-                        child: Text('Payınızı tamamladınız · Allah kabul etsin',
-                            style: TextStyle(color: p.gold, fontSize: 13.5))),
-                  if (mine.done == 0 && c.active)
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: TextButton(
-                        onPressed: () => _run(context, () => _sync.releaseAmount(c)),
-                        child: Text('Payı bırak', style: TextStyle(color: p.ink2, fontSize: 12.5)),
-                      ),
-                    ),
-                ]),
-        ),
-      ],
-      if (others.isNotEmpty) ...[
-        _label('Katılanlar'),
-        PaperBox(
-          pal: p,
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-          child: Column(children: [
-            for (var i = 0; i < others.length; i++) ...[
-              if (i > 0) DashedLine(color: p.line),
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 7),
-                child: Row(children: [
-                  Icon(Icons.person, size: 18, color: p.gold),
-                  const SizedBox(width: 8),
-                  Expanded(child: Text(others[i].name, style: TextStyle(color: p.ink, fontSize: 14.5))),
-                  Text('${trNum(others[i].done)} / ${trNum(others[i].amount)}',
-                      style: TextStyle(color: p.ink2, fontSize: 13.5, fontWeight: FontWeight.w600)),
-                  if (others[i].done >= others[i].amount) ...[
-                    const SizedBox(width: 4),
-                    Icon(Icons.check_circle, size: 16, color: p.gold),
-                  ],
-                ]),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+            Text('Kaç ${c.unit} okuyacaksın?', style: TextStyle(color: p.ink, fontSize: 16, fontWeight: FontWeight.w700)),
+            const SizedBox(height: 8),
+            Row(children: [
+              SizedBox(
+                width: 140,
+                child: TextField(
+                  key: const Key('amount'),
+                  controller: _amount,
+                  keyboardType: TextInputType.number,
+                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                  maxLength: 8,
+                  style: TextStyle(color: p.ink, fontSize: 18, fontWeight: FontWeight.w700),
+                  decoration: _deco(hint: 'Adet'),
+                ),
               ),
-            ],
+              const SizedBox(width: 10),
+              Expanded(child: Text('Boşta: ${trNum(c.free)}', style: TextStyle(color: p.ink2, fontSize: 13))),
+            ]),
+            const SizedBox(height: 10),
+            _joinButtons(
+              now: () async {
+                final n = wanted();
+                if (n == null) return;
+                if (await _join(context, () => _sync.takeAmount(_sync.chain(c.id) ?? c, n)) && context.mounted) {
+                  _openCounter(context, c);
+                }
+              },
+              later: () async {
+                final n = wanted();
+                if (n == null) return;
+                if (await _join(context, () => _sync.takeAmount(_sync.chain(c.id) ?? c, n)) && context.mounted) {
+                  showNote(context, "Payınız Zikir Sayacı'na eklendi; dilediğinizde okuyabilirsiniz.");
+                }
+              },
+            ),
           ]),
         ),
       ],
+      if (mine != null) ...[
+        const SizedBox(height: 10),
+        PaperBox(
+          pal: p,
+          padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+            Row(children: [
+              Expanded(
+                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Text('Sizin payınız', style: TextStyle(color: p.ink2, fontSize: 12.5)),
+                  Text('${trNum(mine.done)} / ${trNum(mine.amount)} ${c.unit}',
+                      style: TextStyle(color: p.ink, fontSize: 20, fontWeight: FontWeight.w700)),
+                ]),
+              ),
+              if (mine.done < mine.amount)
+                PillButton(
+                  key: const Key('continueRead'),
+                  pal: p,
+                  selected: true,
+                  height: 38,
+                  onTap: () => _openCounter(context, c),
+                  child: Text(mine.done == 0 ? 'Okumaya başla' : 'Devam et'),
+                )
+              else
+                const Icon(Icons.check_circle, color: Color(0xFF2E9E57)),
+            ]),
+            const SizedBox(height: 6),
+            _bar(mine.amount == 0 ? 0 : mine.done / mine.amount),
+            if (mine.done >= mine.amount) ...[
+              const SizedBox(height: 6),
+              Center(child: Text('Payınızı tamamladınız · Allah kabul etsin', style: TextStyle(color: p.gold, fontSize: 13.5))),
+            ],
+            if (mine.done == 0 && c.active)
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton(
+                  onPressed: () => _run(context, () => _sync.releaseAmount(c)),
+                  child: Text('Payı bırak', style: TextStyle(color: p.ink2, fontSize: 12.5)),
+                ),
+              ),
+          ]),
+        ),
+      ],
+      if (rows.isNotEmpty) _people(c, rows),
     ];
-  }
-
-  Future<void> _take(BuildContext context, GroupChain c) async {
-    if (!await _ensureName(context) || !context.mounted) return;
-    final free = c.free;
-    final suggest = min(free, max(1, (c.total / 10).ceil()));
-    final v = await _askText(context, 'Pay al',
-        message: 'Kaç ${c.unit} okuyacaksınız? Boşta: ${trNum(free)}', initial: '$suggest', number: true, maxLength: 8, ok: 'Al');
-    final n = int.tryParse(v ?? '');
-    if (n == null || n <= 0 || !context.mounted) return;
-    final now = _sync.chain(c.id) ?? c; // bu arada başkası almış olabilir
-    if (n > now.free) {
-      showNote(context, now.full ? 'Zincir doldu, bütün paylar alındı.' : 'En fazla ${trNum(now.free)} alabilirsiniz.');
-      return;
-    }
-    final ok = await _run(context, () => _sync.takeAmount(now, n));
-    if (!ok && context.mounted) {
-      final after = _sync.chain(c.id);
-      if (after != null && after.full) showNote(context, 'Zincir doldu, bütün paylar alındı.');
-    }
-  }
-
-  Future<void> _writeDone(BuildContext context, GroupChain c, ChainClaim mine) async {
-    final v = await _askText(context, 'Okudum',
-        message: 'Şimdiye kadar toplam kaç ${c.unit} okudunuz?', initial: '${mine.amount}', number: true, maxLength: 8, ok: 'Kaydet');
-    final n = int.tryParse(v ?? '');
-    if (n == null || !context.mounted) return;
-    await _run(context, () => _sync.setDone(c, min(n, mine.amount)), ok: n >= mine.amount ? 'Allah kabul etsin' : null);
   }
 }

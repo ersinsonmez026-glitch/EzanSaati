@@ -4,10 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../services/dhikr_store.dart';
+import '../services/prayer_groups.dart';
 import '../services/vibration.dart';
 import '../widgets/page_shell.dart';
 import '../widgets/reading_ui.dart';
 import '../widgets/gold_icon.dart';
+import 'chain_counter_screen.dart';
+import 'dua_circle_screen.dart';
 
 /// Zikir Sayacı (onizleme/06-zikir-sayaci.html): solda zikir listesi, sağda tesbih taneli
 /// sayaç kartı. Karta dokunmak sayar; hedef, geri alma, titreşim ve namaz sonrası tesbihat.
@@ -32,6 +35,15 @@ class _DhikrScreenState extends State<DhikrScreen> with SingleTickerProviderStat
     DhikrState.load().then((s) {
       if (mounted) setState(() => _s = s);
     });
+    // Dua Zinciri'nde alınmış ama okunmamış paylar en üstte gösterilir (zincir kullanan kişide).
+    GroupSync.instance.addListener(_chainsChanged);
+    SharedPreferences.getInstance().then((p) {
+      if (p.getBool(GroupSync.usedKey) ?? false) GroupSync.instance.start();
+    });
+  }
+
+  void _chainsChanged() {
+    if (mounted) setState(() {});
   }
 
   /// Ana ekrandaki zikir widget'ında sayılanlar uygulamaya dönünce görünsün.
@@ -45,6 +57,7 @@ class _DhikrScreenState extends State<DhikrScreen> with SingleTickerProviderStat
 
   @override
   void dispose() {
+    GroupSync.instance.removeListener(_chainsChanged);
     WidgetsBinding.instance.removeObserver(this);
     _beads.dispose();
     super.dispose();
@@ -146,6 +159,7 @@ class _DhikrScreenState extends State<DhikrScreen> with SingleTickerProviderStat
               ),
             ]
           : [
+              for (final c in GroupSync.instance.pendingReadings) ...[_chainCard(c), const SizedBox(height: 8)],
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -176,6 +190,65 @@ class _DhikrScreenState extends State<DhikrScreen> with SingleTickerProviderStat
                     '33 Allâhü ekber ve tevhid (Müslim, Mesâcid 146).',
               ),
             ],
+    );
+  }
+
+  // ---------------------------------------------------------------- zincirdeki payım
+
+  /// "Dua Zinciri · 10.000 Salavat · Payınız 12 / 50 · Oku" kartı.
+  Widget _chainCard(GroupChain c) {
+    final p = _pal;
+    final me = GroupSync.instance.uid ?? '';
+    final m = c.claimOf(me);
+    final parts = c.partsOf(me);
+    final read = c.isHatim ? parts.where((n) => c.slots[n]?.done ?? false).length : (m?.done ?? 0);
+    final total = c.isHatim ? parts.length : (m?.amount ?? 0);
+    return Semantics(
+      button: true,
+      child: GestureDetector(
+        onTap: () => Navigator.of(context).push(AppRoute(
+            builder: (_) => c.isHatim ? ChainScreen(chainId: c.id) : ChainCounterScreen(chainId: c.id))),
+        child: Container(
+          padding: const EdgeInsets.fromLTRB(12, 9, 10, 9),
+          decoration: BoxDecoration(
+            gradient: p.paperGradient,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: p.gold, width: 1.3),
+          ),
+          child: Row(children: [
+            GoldIcon(Icons.link, size: 22, light: !p.night),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Text('Dua Zinciri · ${c.name}',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(color: p.ink, fontSize: 14.5, fontWeight: FontWeight.w700)),
+                Text(c.isHatim ? 'Cüzleriniz: $read / $total okundu' : 'Payınız: $read / $total',
+                    style: TextStyle(color: p.ink2, fontSize: 12.5)),
+                const SizedBox(height: 4),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(99),
+                  child: LinearProgressIndicator(
+                      value: total == 0 ? 0 : read / total,
+                      minHeight: 5,
+                      backgroundColor: p.line.withValues(alpha: 0.25),
+                      color: p.gold),
+                ),
+              ]),
+            ),
+            const SizedBox(width: 10),
+            PillButton(
+              pal: p,
+              selected: true,
+              height: 34,
+              onTap: () => Navigator.of(context).push(AppRoute(
+                  builder: (_) => c.isHatim ? ChainScreen(chainId: c.id) : ChainCounterScreen(chainId: c.id))),
+              child: const Text('Oku'),
+            ),
+          ]),
+        ),
+      ),
     );
   }
 

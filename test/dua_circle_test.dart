@@ -34,8 +34,10 @@ void main() {
     expect(validChainId('kisa'), isFalse);
     expect(chainLink(c.id), 'https://ezansaati-premium-2026.web.app/zincir?k=${c.id}');
     final msg = chainInviteMessage(c);
-    expect(msg, contains('1.000 Salavat'));
-    expect(msg, endsWith(chainLink(c.id)));
+    expect(msg, '🤲 Dua Zincirimize Katılır mısın?\n\n'
+        '1.000 Salavat için başlattığımız zincire sen de katılabilirsin.\n\n'
+        '🔗 Zincire Katıl: ${chainLink(c.id)}\n\n'
+        'Allah kabul etsin. 🌿');
     expect(msg, isNot(contains('Ali'))); // kişinin adı ya da numarası mesaja yazılmaz
     expect(appSuggestMessage(), endsWith(kAppLink));
   });
@@ -145,24 +147,36 @@ void main() {
     await t.pumpAndSettle();
     expect(find.text('Zincir hazır'), findsOneWidget);
     expect(find.text("WhatsApp'tan davet gönder"), findsOneWidget);
-    expect(find.text('0 / 100 istiğfar okundu'), findsOneWidget);
+    expect(find.text('0 / 100'), findsOneWidget); // şu ana kadar
+    expect(find.text('Kaç istiğfar okuyacaksın?'), findsOneWidget);
 
-    await t.tap(find.byKey(const Key('takeShare')));
-    await t.pumpAndSettle();
-    await t.enterText(find.byKey(const Key('askText')), '20');
+    // "Daha sonra": pay alınır, okunması bekleyen paylara eklenir.
+    await t.enterText(find.byKey(const Key('amount')), '20');
     await t.runAsync(() async {
-      await t.tap(find.text('Al'));
-      await Future<void>.delayed(const Duration(milliseconds: 100));
+      await t.tap(find.byKey(const Key('readLater')));
+      await Future<void>.delayed(const Duration(milliseconds: 150));
     });
     await t.pumpAndSettle();
-    expect(find.text('0 / 20'), findsOneWidget);
-    expect(find.text('80 boşta'), findsOneWidget);
+    expect(find.text('0 / 20 istiğfar'), findsOneWidget);
+    expect(sync.pendingReadings.single.name, '100 İstiğfar');
+    expect(find.text('Siz'), findsOneWidget); // katılanlar listesinde
+    expect(find.text('Toplam'), findsOneWidget);
+
+    // Sayaç: her dokunuş bir sayar, zincire yazılır.
+    await t.tap(find.byKey(const Key('continueRead')));
+    await t.pumpAndSettle();
+    expect(find.text('/ 20 istiğfar'), findsOneWidget);
+    for (var i = 0; i < 3; i++) {
+      await t.tap(find.byKey(const Key('chainTap')));
+      await t.pump();
+    }
+    expect(find.text('3'), findsOneWidget);
     await t.runAsync(() async {
-      await t.tap(find.text('+10'));
-      await Future<void>.delayed(const Duration(milliseconds: 100));
+      await t.pump(const Duration(seconds: 3)); // yazma gecikmesi
+      await Future<void>.delayed(const Duration(milliseconds: 150));
     });
     await t.pumpAndSettle();
-    expect(find.text('10 / 20'), findsOneWidget);
+    expect(sync.pendingReadings.single.claimOf('alice')!.done, 3);
   });
 
   testWidgets('dolu zincir bağlantısı: "Zincir doldu" yazar, pay alınamaz', (t) async {

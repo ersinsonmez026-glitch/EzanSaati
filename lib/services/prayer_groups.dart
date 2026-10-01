@@ -64,12 +64,10 @@ String chainLink(String id) => '$kChainLinkBase?k=$id';
 bool validChainId(String id) => RegExp(r'^[A-Za-z0-9]{20}$').hasMatch(id);
 
 /// WhatsApp'ta gönderilen davet.
-String chainInviteMessage(GroupChain c) {
-  final what = c.isHatim ? 'hatim' : '${c.name} zinciri';
-  final until = c.daysLeft <= 0 ? 'bugün' : '${c.daysLeft} gün içinde';
-  return 'Selamün aleyküm, birlikte $what okuyalım inşallah ($until tamamlanacak). '
-      'Payını almak için dokun:\n${chainLink(c.id)}';
-}
+String chainInviteMessage(GroupChain c) => '🤲 Dua Zincirimize Katılır mısın?\n\n'
+    '${c.name} için başlattığımız zincire sen de katılabilirsin.\n\n'
+    '🔗 Zincire Katıl: ${chainLink(c.id)}\n\n'
+    'Allah kabul etsin. 🌿';
 
 /// Uygulamayı önerme mesajı.
 String appSuggestMessage() =>
@@ -206,6 +204,9 @@ class GroupSync extends ChangeNotifier {
   static final instance = GroupSync._();
 
   static const _nameKey = 'cember_ad';
+
+  /// Kişi bir zincir başlattı ya da pay aldı (Zikir Sayacı ancak o zaman sunucuya bağlanır).
+  static const usedKey = 'zincir_kullanildi';
 
   FirebaseFirestore? _db;
   String? _uid;
@@ -445,6 +446,7 @@ class GroupSync extends ChangeNotifier {
       'memberUids': [uid],
     };
     await ref.set(data);
+    await _markUsed();
     final c = GroupChain.fromMap(ref.id, data);
     _docs[ref.id] = c;
     _mine.add(ref.id);
@@ -468,6 +470,7 @@ class GroupSync extends ChangeNotifier {
       b.set(ref.collection('slots').doc('$p'), {'uid': _uid, 'name': myName, 'done': false});
     }
     await b.commit();
+    await _markUsed();
   }
 
   /// Hatimde alınan cüzü bırakır.
@@ -490,6 +493,7 @@ class GroupSync extends ChangeNotifier {
       if (!isMember(c)) 'memberUids': FieldValue.arrayUnion([_uid]),
     });
     await b.commit();
+    await _markUsed();
   }
 
   /// Henüz okumaya başlanmamış payı bırakır.
@@ -534,6 +538,26 @@ class GroupSync extends ChangeNotifier {
     _forget(c.id);
     notifyListeners();
   }
+
+  Future<void> _markUsed() async {
+    _p ??= await SharedPreferences.getInstance();
+    await _p!.setBool(usedKey, true);
+  }
+
+  /// Okumam bekleyen zincirler (Zikir Sayacı'nda en üstte): payımı almışım ama bitirmemişim.
+  List<GroupChain> get pendingReadings {
+    final me = _uid ?? '';
+    return [
+      for (final c in chains)
+        if (c.active &&
+            (c.isHatim
+                ? c.partsOf(me).any((n) => !(c.slots[n]?.done ?? false))
+                : _unfinished(c.claimOf(me))))
+          c,
+    ];
+  }
+
+  static bool _unfinished(ChainClaim? m) => m != null && m.done < m.amount;
 
   bool canDelete(GroupChain c) => _uid != null && c.creatorUid == _uid;
 }
