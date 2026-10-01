@@ -25,7 +25,9 @@ class Premium extends ChangeNotifier {
 
   Future<void> load() async {
     _p ??= await SharedPreferences.getInstance();
-    _active = showTestSwitch && (_p!.getBool(_kTest) ?? false); // mağaza sürümünde deneme kaydı yok sayılır
+    // Deneme sürümünde Premium baştan açık gelir (deneme düğmesiyle kapatılabilir);
+    // mağaza sürümünde deneme kaydı yok sayılır.
+    _active = showTestSwitch && (_p!.getBool(_kTest) ?? const bool.fromEnvironment('DENEME'));
     notifyListeners();
   }
 
