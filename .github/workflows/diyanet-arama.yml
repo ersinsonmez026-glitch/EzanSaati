@@ -18,35 +18,24 @@ jobs:
         run: |
           mkdir -p out
           python3 - <<'PY'
-          import re, urllib.request, urllib.parse
+          import re, time, urllib.request
           def get(u):
               req = urllib.request.Request(u, headers={'User-Agent': 'Mozilla/5.0 EzanSaati/1.0'})
               with urllib.request.urlopen(req, timeout=30) as r:
-                  return r.status, r.geturl(), r.read().decode('utf-8', 'replace')
-          def text(html):
-              html = re.sub(r'<(script|style)[^>]*>.*?</\1>', ' ', html, flags=re.S)
-              return re.sub(r'\s+', ' ', re.sub(r'<[^>]+>', ' ', html)).strip()
-          root = 'https://hadislerleislam.diyanet.gov.tr/'
-          queue, seen = [root, root + 'robots.txt', root + 'sitemap.xml'], set()
-          while queue and len(seen) < 14:
-              u = queue.pop(0)
-              if u in seen: continue
-              seen.add(u)
-              try:
-                  st, final, body = get(u)
-              except Exception as e:
-                  print(f'\n=== {u} -> HATA {e}'); continue
-              n = len(seen)
-              open(f'out/s{n}.html', 'w').write(body)
-              print(f'\n=== {u} -> {st} {final} ({len(body)} bayt)')
-              if u.endswith(('.txt', '.xml')):
-                  print(body[:1200]); continue
-              print('METİN:', text(body)[:1500])
-              links = sorted(set(urllib.parse.urljoin(final, l) for l in re.findall(r'href="([^"#]+)"', body)))
-              own = [l for l in links if 'hadislerleislam' in l and not re.search(r'\.(css|js|ico|png|jpg|svg)', l)]
-              print('SİTE İÇİ BAĞLANTI', len(own))
-              for l in own[:80]: print('  ', l)
-              queue += [l for l in own if l not in seen][:5]
+                  return r.read().decode('utf-8', 'replace')
+          root = 'https://hadislerleislam.diyanet.gov.tr/sayfa.php'
+          for cilt, sayfa in [(1, 371), (1, 372), (1, 373), (4, 101), (4, 102)]:
+              html = get(f'{root}?CILT={cilt}&SAYFA={sayfa}')
+              open(f'out/c{cilt}s{sayfa}.html', 'w').write(html)
+              # Sayfa gezinti listesinden sonraki asıl içerik
+              body = re.split(r'SAYFA=\d+"[^>]*>\s*\d+\s*</a>\s*(?:</[^>]+>\s*)*', html)[-1]
+              body = re.sub(r'<(script|style)[^>]*>.*?</\1>', ' ', body, flags=re.S)
+              print(f'\n===== CİLT {cilt} SAYFA {sayfa} — HTML kesiti')
+              i = html.find('Sayfa:')
+              tail = html[i:]
+              j = tail.find('</a>', tail.rfind('SAYFA='))
+              print(tail[j:j+2500])
+              time.sleep(1)
           PY
 
       - uses: actions/upload-artifact@v4
