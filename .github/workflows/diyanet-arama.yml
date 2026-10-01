@@ -19,39 +19,34 @@ jobs:
           mkdir -p out
           python3 - <<'PY'
           import re, urllib.request, urllib.parse
-          urls = [
-              'https://hadislerleislam.diyanet.gov.tr/',
-              'https://hadislerleislam.diyanet.gov.tr/robots.txt',
-              'https://hadis.diyanet.gov.tr/',
-              'https://hadis.diyanet.gov.tr/robots.txt',
-              'https://www.diyanet.gov.tr/tr-TR/Kurumsal/Detay/11/hadislerle-islam',
-              'https://dinibilgiler.diyanet.gov.tr/',
-          ]
-          seen = set()
-          for n, u in enumerate(urls):
+          def get(u):
+              req = urllib.request.Request(u, headers={'User-Agent': 'Mozilla/5.0 EzanSaati/1.0'})
+              with urllib.request.urlopen(req, timeout=30) as r:
+                  return r.status, r.geturl(), r.read().decode('utf-8', 'replace')
+          def text(html):
+              html = re.sub(r'<(script|style)[^>]*>.*?</\1>', ' ', html, flags=re.S)
+              return re.sub(r'\s+', ' ', re.sub(r'<[^>]+>', ' ', html)).strip()
+          root = 'https://hadislerleislam.diyanet.gov.tr/'
+          queue, seen = [root, root + 'robots.txt', root + 'sitemap.xml'], set()
+          while queue and len(seen) < 14:
+              u = queue.pop(0)
               if u in seen: continue
               seen.add(u)
               try:
-                  req = urllib.request.Request(u, headers={'User-Agent': 'Mozilla/5.0 EzanSaati/1.0'})
-                  with urllib.request.urlopen(req, timeout=30) as r:
-                      body = r.read().decode('utf-8', 'replace')
-                      print(f'\n=== {u} -> {r.status} {r.geturl()} ({len(body)} bayt)')
+                  st, final, body = get(u)
               except Exception as e:
                   print(f'\n=== {u} -> HATA {e}'); continue
-              open(f'out/sayfa{n}.html', 'w').write(body)
-              title = re.search(r'<title[^>]*>(.*?)</title>', body, re.S)
-              print('başlık:', title.group(1).strip() if title else '-')
-              if u.endswith('robots.txt'):
-                  print(body[:1500]); continue
-              links = sorted(set(re.findall(r'href="([^"#]+)"', body)))
-              print('bağlantı', len(links))
-              for l in links[:150]: print('  ', l)
-              # Sitenin ilk birkaç alt sayfasını da indir (yapıyı görmek için).
-              base = u
-              sub = [urllib.parse.urljoin(base, l) for l in links
-                     if re.search(r'hadis|kitap|bolum|konu|detay|cilt', l, re.I)]
-              for s in sub[:6]:
-                  if s not in seen: urls.append(s)
+              n = len(seen)
+              open(f'out/s{n}.html', 'w').write(body)
+              print(f'\n=== {u} -> {st} {final} ({len(body)} bayt)')
+              if u.endswith(('.txt', '.xml')):
+                  print(body[:1200]); continue
+              print('METİN:', text(body)[:1500])
+              links = sorted(set(urllib.parse.urljoin(final, l) for l in re.findall(r'href="([^"#]+)"', body)))
+              own = [l for l in links if 'hadislerleislam' in l and not re.search(r'\.(css|js|ico|png|jpg|svg)', l)]
+              print('SİTE İÇİ BAĞLANTI', len(own))
+              for l in own[:80]: print('  ', l)
+              queue += [l for l in own if l not in seen][:5]
           PY
 
       - uses: actions/upload-artifact@v4
