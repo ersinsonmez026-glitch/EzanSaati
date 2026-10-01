@@ -2,4 +2,6 @@
 <resources>
     <!-- Açılış ekranı zemini (uygulamanın koyu yeşili) -->
     <color name="splash_bg">#FF002215</color>
+    <!-- Uygulama simgesinin zemini (simge kenarındaki yeşil) -->
+    <color name="ic_launcher_bg">#FF003722</color>
 </resources>

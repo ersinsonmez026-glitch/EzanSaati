@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Açılış ekranı: koyu yeşil zemin, ortada Ezan Saati logosu -->
+<!-- Açılış ekranı: koyu yeşil zemin, ortada uygulama simgesi -->
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:drawable="@color/splash_bg" />
     <item>
         <bitmap
             android:gravity="center"
-            android:src="@drawable/launch_logo" />
+            android:src="@drawable/launch_icon" />
     </item>
 </layer-list>
