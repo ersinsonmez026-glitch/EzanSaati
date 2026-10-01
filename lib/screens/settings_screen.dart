@@ -7,6 +7,7 @@ import '../services/app_theme.dart';
 import '../services/ezan_notifications.dart';
 import '../services/location_store.dart';
 import '../services/mosque_mode.dart';
+import '../services/prayer_groups.dart';
 import '../services/premium.dart';
 import '../services/quran_audio.dart';
 import '../widgets/group_card.dart';
@@ -15,6 +16,7 @@ import '../widgets/premium_ui.dart';
 import '../widgets/reading_ui.dart';
 import 'about_screen.dart';
 import 'city_picker_screen.dart';
+import 'dua_circle_screen.dart';
 import 'notifications_screen.dart';
 
 /// Ayarlar: konum, ana ekran görünümü, Kur'an sesi (kârî), bildirimler, hesaplama yöntemi, hakkında ve gizlilik.
@@ -39,6 +41,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   void initState() {
     super.initState();
     _location.addListener(_onChange);
+    GroupSync.instance.load().then((_) => _onChange()); // zincirlerde görünen ad
   }
 
   @override
@@ -217,6 +220,34 @@ class _SettingsScreenState extends State<SettingsScreen> {
               art: 'takvim',
               title: 'Hesaplama yöntemi',
               subtitle: 'Diyanet İşleri Başkanlığı (Türkiye). Vakitler internetsiz hesaplanır.',
+            ),
+          ],
+        ),
+        gap,
+        GroupCard(
+          pal: _pal,
+          art: 'dua_cemberi',
+          title: 'Dua Zinciri',
+          expanded: _section == 'Dua Zinciri',
+          onToggle: () => _toggle('Dua Zinciri'),
+          summary: GroupSync.instance.myName.isEmpty ? 'Ad yazılmadı' : GroupSync.instance.myName,
+          children: [
+            GroupItem(
+              pal: _pal,
+              art: 'dua_cemberi',
+              title: 'Zincirlerde görünen adım',
+              subtitle: GroupSync.instance.myName.isEmpty ? 'Yazmak için dokunun' : GroupSync.instance.myName,
+              onTap: () async {
+                await editChainName(context);
+                if (mounted) setState(() {});
+              },
+            ),
+            GroupItem(
+              pal: _pal,
+              art: 'dini_mesajlar',
+              title: 'Uygulamayı tavsiye et',
+              subtitle: "WhatsApp'tan sevdiklerinize gönderin",
+              onTap: () => recommendApp(context),
             ),
           ],
         ),

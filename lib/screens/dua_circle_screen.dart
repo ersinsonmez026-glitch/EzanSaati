@@ -70,17 +70,6 @@ Widget _plainButton(String t, VoidCallback onTap, {IconData? icon, double h = 42
       ]),
     );
 
-Widget _chip(String t, bool sel, VoidCallback onTap) => IntrinsicWidth(
-      child: PillButton(
-        pal: _pal,
-        selected: sel,
-        height: 34,
-        padding: const EdgeInsets.symmetric(horizontal: 14),
-        onTap: onTap,
-        child: Text(t, style: const TextStyle(fontSize: 13.5)),
-      ),
-    );
-
 InputDecoration _deco({String? hint}) => InputDecoration(
       isDense: true,
       counterText: '',
@@ -235,7 +224,7 @@ Widget _waButton(BuildContext context, GroupChain c) => Semantics(
       ),
     );
 
-/// Zincir kartı (listede).
+/// Zincir kartı (sağ sütundaki listede): ad, durum, ilerleme ve payım.
 class _ChainCard extends StatelessWidget {
   final GroupChain c;
 
@@ -245,21 +234,23 @@ class _ChainCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final p = _pal;
     final me = _sync.uid ?? '';
-    final String mine;
+    final String state;
     if (c.complete) {
-      mine = 'Tamamlandı · Allah kabul etsin';
+      state = 'Tamamlandı';
     } else if (c.expired) {
-      mine = 'Süresi doldu';
-    } else if (c.isHatim) {
-      final parts = c.partsOf(me);
-      mine = parts.isNotEmpty ? 'Sizin: ${_partsText(parts)} cüz' : (c.full ? 'Bütün cüzler alındı' : '${c.free} cüz boşta');
+      state = 'Süresi doldu';
     } else {
-      final cl = c.claimOf(me);
-      mine = cl != null
-          ? 'Sizin: ${trNum(cl.done)} / ${trNum(cl.amount)} okundu'
-          : (c.full ? 'Bütün paylar alındı' : '${trNum(c.free)} ${c.unit} boşta');
+      state = c.daysLeft == 0 ? 'Bugün bitiyor' : '${c.daysLeft} gün kaldı';
     }
-    final left = c.complete || c.expired ? '' : (c.daysLeft == 0 ? 'Bugün bitiyor' : '${c.daysLeft} gün kaldı');
+    final String mine;
+    if (c.isHatim) {
+      final parts = c.partsOf(me);
+      final read = parts.where((n) => c.slots[n]?.done ?? false).length;
+      mine = parts.isEmpty ? '' : 'Payınız: $read/${parts.length} cüz';
+    } else {
+      final m = c.claimOf(me);
+      mine = m == null ? '' : 'Payınız: ${trNum(m.done)}/${trNum(m.amount)}';
+    }
     return Semantics(
       button: true,
       child: GestureDetector(
@@ -267,39 +258,28 @@ class _ChainCard extends StatelessWidget {
         onTap: () => _push(context, ChainScreen(chainId: c.id)),
         child: PaperBox(
           pal: p,
-          padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
+          padding: const EdgeInsets.fromLTRB(10, 8, 10, 9),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Row(children: [
-              Icon(Icons.person, size: 16, color: p.gold),
-              const SizedBox(width: 5),
-              Expanded(
-                child: Text(c.creatorUid == me ? 'Siz başlattınız' : 'Başlatan: ${c.creatorName}',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(color: p.gold, fontSize: 12.5, fontWeight: FontWeight.w700)),
-              ),
-              Text(left, style: TextStyle(color: p.ink2, fontSize: 12)),
-            ]),
-            const SizedBox(height: 3),
             Row(children: [
               Expanded(
                 child: Text(c.name,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: TextStyle(color: p.ink, fontSize: 17, fontWeight: FontWeight.w700)),
+                    style: TextStyle(color: p.ink, fontSize: 15, fontWeight: FontWeight.w700)),
+              ),
+              if (c.complete) const Icon(Icons.check_circle, color: Color(0xFF2E9E57), size: 18),
+            ]),
+            Text(c.creatorUid == me ? state : '${c.creatorName} · $state',
+                maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(color: p.gold, fontSize: 11.5)),
+            const SizedBox(height: 5),
+            _bar(c.progress),
+            const SizedBox(height: 4),
+            Row(children: [
+              Expanded(
+                child: Text(mine, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(color: p.ink2, fontSize: 11.5)),
               ),
               Text(c.isHatim ? '${c.done}/30 cüz' : '${trNum(c.done)}/${trNum(c.total)}',
-                  style: TextStyle(color: p.ink, fontSize: 13.5, fontWeight: FontWeight.w700)),
-            ]),
-            const SizedBox(height: 6),
-            _bar(c.progress),
-            const SizedBox(height: 7),
-            Row(children: [
-              Expanded(child: Text(mine, style: TextStyle(color: p.ink2, fontSize: 13))),
-              if (c.complete)
-                Icon(Icons.check_circle, color: p.gold, size: 20)
-              else
-                Icon(Icons.chevron_right, color: p.gold, size: 22),
+                  style: TextStyle(color: p.ink, fontSize: 12, fontWeight: FontWeight.w700)),
             ]),
           ]),
         ),
@@ -317,7 +297,28 @@ String _partsText(List<int> parts) {
 
 // ============================================================ ana sayfa
 
+/// Ayarlar: zincirlerde görünen adı değiştirir.
+Future<void> editChainName(BuildContext context) async {
+  await _sync.load();
+  if (!context.mounted) return;
+  final n = await _askText(context, 'Zincirlerde görünen adınız', initial: _sync.myName, hint: 'Örn. Ayşe Demir', ok: 'Kaydet');
+  if (n != null && n.isNotEmpty && context.mounted) await _run(context, () => _sync.saveName(n), ok: 'Kaydedildi');
+}
+
+/// Ayarlar: uygulamayı WhatsApp'tan önerir.
+Future<void> recommendApp(BuildContext context) => _openWhatsApp(context, appSuggestMessage());
+
+enum _Pane { create, mine, joined }
+
 class _DuaCircleScreenState extends State<DuaCircleScreen> {
+  _Pane? _pane;
+  String _type = 'salavat';
+  bool _busy = false;
+  final _total = TextEditingController(text: '1000');
+  final _days = TextEditingController(text: '7');
+  final _share = TextEditingController(text: '100');
+  final _name = TextEditingController();
+
   @override
   void initState() {
     super.initState();
@@ -328,6 +329,10 @@ class _DuaCircleScreenState extends State<DuaCircleScreen> {
   @override
   void dispose() {
     _sync.removeListener(_changed);
+    _total.dispose();
+    _days.dispose();
+    _share.dispose();
+    _name.dispose();
     super.dispose();
   }
 
@@ -335,189 +340,234 @@ class _DuaCircleScreenState extends State<DuaCircleScreen> {
     if (mounted) setState(() {});
   }
 
+  List<GroupChain> get _started => _sync.chains.where((c) => c.creatorUid == _sync.uid).toList();
+  List<GroupChain> get _joined => _sync.chains.where((c) => c.creatorUid != _sync.uid).toList();
+
+  /// Açılışta: zinciri olan kendi zincirlerini, olmayan oluşturma formunu görür.
+  _Pane get _current => _pane ?? (_started.isNotEmpty ? _Pane.mine : (_joined.isNotEmpty ? _Pane.joined : _Pane.create));
+
+  void _setType(String t) {
+    setState(() {
+      _type = t;
+      final d = kDuaTypesByKey[t]!;
+      _total.text = '${d.defaultTotal}';
+      _share.text = t == 'hatim' ? '1' : '${max(1, d.defaultTotal ~/ 10)}';
+    });
+  }
+
+  /// Kaydet ve WhatsApp'tan davet et: zincir oluşur, kurucunun payı ayrılır (Zikir Sayacı'nda bekler),
+  /// davet mesajı WhatsApp'ta hazır açılır.
+  Future<void> _create() async {
+    final t = kDuaTypesByKey[_type]!;
+    final hatim = _type == 'hatim';
+    final total = hatim ? 30 : int.tryParse(_total.text) ?? 0;
+    final days = int.tryParse(_days.text) ?? 0;
+    final share = int.tryParse(_share.text) ?? 0;
+    final custom = _type == 'ozel';
+    String? err;
+    if (total <= 0 || total > 10000000) {
+      err = 'Kaç tane okunacağını yazın.';
+    } else if (custom && _name.text.trim().isEmpty) {
+      err = 'Ne okunacağını yazın (örn. Kelime-i Tevhid).';
+    } else if (days < 1 || days > kChainMaxDays) {
+      err = 'Süre 1 ile $kChainMaxDays gün arasında olmalı.';
+    } else if (share < 0 || share > total) {
+      err = 'Kendi payınız en fazla ${trNum(total)} olabilir.';
+    }
+    if (err != null) {
+      showNote(context, err);
+      return;
+    }
+    if (!await _ensureName(context) || !mounted) return;
+    final name = custom ? '${trNum(total)} ${_name.text.trim()}' : (hatim ? 'Hatim' : '${trNum(total)} ${t.title}');
+    setState(() => _busy = true);
+    GroupChain? c;
+    final ok = await _run(context, () async {
+      c = await _sync.startChain(type: _type, name: name, unit: custom ? 'adet' : t.unit, total: total, days: days);
+      if (share > 0) {
+        hatim ? await _sync.takeParts(c!, [for (var i = 1; i <= share; i++) i]) : await _sync.takeAmount(c!, share);
+      }
+    });
+    if (!mounted) return;
+    setState(() => _busy = false);
+    if (!ok || c == null) return;
+    setState(() => _pane = _Pane.mine);
+    if (share > 0) showNote(context, "Payınız Zikir Sayacı'na eklendi.");
+    await _openWhatsApp(context, chainInviteMessage(c!));
+  }
+
   @override
   Widget build(BuildContext context) {
     final p = _pal;
-    final all = _sync.chains;
-    final active = all.where((c) => c.active).toList();
-    final ended = all.where((c) => !c.active).take(5).toList();
+    final pane = _current;
     return PageShell(
       title: 'Dua Zinciri',
       background: p.background,
       padding: const EdgeInsets.fromLTRB(12, 12, 12, 24),
       children: [
         _syncNote(context),
-        _goldButton('Yeni zincir başlat', () => _push(context, const ChainStartScreen()),
-            icon: Icons.add, h: 50, key: const Key('startChain')),
-        if (all.isEmpty) ...[
-          const SizedBox(height: 12),
-          PaperBox(
-            pal: p,
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
+        Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          SizedBox(
+            width: 108,
             child: Column(children: [
-              Text('Nasıl çalışır?', style: TextStyle(color: p.gold, fontSize: 15, fontWeight: FontWeight.w700)),
-              const SizedBox(height: 8),
-              for (final (i, t) in [
-                (1, 'Ne okunacağını, kaç tane olacağını ve süreyi seçin.'),
-                (2, "Zincirin davetini WhatsApp'tan istediğiniz kişiye ya da gruba gönderin."),
-                (3, 'Davete dokunan payını alır; herkes ne kadar okunduğunu görür.'),
-              ])
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 3),
-                  child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    Text('$i.', style: TextStyle(color: p.gold, fontSize: 13.5, fontWeight: FontWeight.w700)),
-                    const SizedBox(width: 6),
-                    Expanded(child: Text(t, style: TextStyle(color: p.ink2, fontSize: 13.5, height: 1.4))),
-                  ]),
-                ),
+              _menu('Zincir oluştur', Icons.add, pane == _Pane.create, () => setState(() => _pane = _Pane.create),
+                  key: const Key('paneCreate')),
+              _menu('Başlattıklarım', Icons.campaign_outlined, pane == _Pane.mine, () => setState(() => _pane = _Pane.mine),
+                  count: _started.length, key: const Key('paneMine')),
+              _menu('Katıldıklarım', Icons.groups_outlined, pane == _Pane.joined, () => setState(() => _pane = _Pane.joined),
+                  count: _joined.length, key: const Key('paneJoined')),
             ]),
           ),
-        ],
-        if (active.isNotEmpty) _label('Devam edenler'),
-        for (final c in active) ...[_ChainCard(c), const SizedBox(height: 8)],
-        if (ended.isNotEmpty) _label('Bitenler'),
-        for (final c in ended) ...[_ChainCard(c), const SizedBox(height: 8)],
-        const SizedBox(height: 10),
-        _plainButton('Uygulamayı tavsiye et', () => _openWhatsApp(context, appSuggestMessage()), icon: Icons.share),
-        if (_sync.myName.isNotEmpty) ...[
-          const SizedBox(height: 6),
-          Center(
-            child: TextButton.icon(
-              onPressed: () async {
-                final n = await _askText(context, 'Zincirlerde görünen adınız', initial: _sync.myName, ok: 'Kaydet');
-                if (n != null && n.isNotEmpty && context.mounted) await _run(context, () => _sync.saveName(n), ok: 'Kaydedildi');
-              },
-              icon: Icon(Icons.edit, size: 16, color: p.gold),
-              label: Text('Adım: ${_sync.myName}', style: TextStyle(color: p.ink2, fontSize: 13)),
-            ),
+          const SizedBox(width: 7),
+          Expanded(
+            child: switch (pane) {
+              _Pane.create => _form(),
+              _Pane.mine => _list(_started, 'Henüz başlattığınız zincir yok. "Zincir oluştur" ile başlayın.'),
+              _Pane.joined => _list(_joined, 'Size gelen davet bağlantısına dokunduğunuzda zincir burada görünür.'),
+            },
           ),
-        ],
+        ]),
       ],
     );
   }
-}
 
-// ============================================================ zincir başlat
-
-class ChainStartScreen extends StatefulWidget {
-  const ChainStartScreen({super.key});
-
-  @override
-  State<ChainStartScreen> createState() => _ChainStartScreenState();
-}
-
-class _ChainStartScreenState extends State<ChainStartScreen> {
-  String _type = 'hatim';
-  int _days = 7;
-  bool _busy = false;
-  final _total = TextEditingController(text: '30');
-  final _name = TextEditingController();
-
-  @override
-  void dispose() {
-    _total.dispose();
-    _name.dispose();
-    super.dispose();
-  }
-
-  void _setType(String t) {
-    setState(() {
-      _type = t;
-      _total.text = '${kDuaTypesByKey[t]!.defaultTotal}';
-    });
-  }
-
-  Future<void> _start() async {
-    final t = kDuaTypesByKey[_type]!;
-    final total = _type == 'hatim' ? 30 : int.tryParse(_total.text) ?? 0;
-    if (total <= 0 || total > 10000000) {
-      showNote(context, 'Kaç tane okunacağını yazın.');
-      return;
-    }
-    final custom = _type == 'ozel';
-    if (custom && _name.text.trim().isEmpty) {
-      showNote(context, 'Ne okunacağını yazın (örn. Kelime-i Tevhid).');
-      return;
-    }
-    if (!await _ensureName(context) || !mounted) return;
-    final name = custom ? '${trNum(total)} ${_name.text.trim()}' : (_type == 'hatim' ? 'Hatim' : '${trNum(total)} ${t.title}');
-    setState(() => _busy = true);
-    GroupChain? c;
-    final ok = await _run(
-      context,
-      () async => c = await _sync.startChain(
-          type: _type, name: name, unit: custom ? 'adet' : t.unit, total: total, days: _days),
-    );
-    if (!mounted) return;
-    setState(() => _busy = false);
-    if (ok && c != null) {
-      Navigator.of(context).pushReplacement(AppRoute(builder: (_) => ChainScreen(chainId: c!.id, justCreated: true)));
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final p = _pal;
-    return PageShell(
-      title: 'Yeni Zincir',
-      subtitle: 'Birlikte okuyalım',
-      background: p.background,
-      padding: const EdgeInsets.fromLTRB(12, 12, 12, 24),
-      children: [
-        _syncNote(context),
-        PaperBox(
-          pal: p,
-          padding: const EdgeInsets.fromLTRB(12, 2, 12, 12),
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            _label('1. Ne okunacak?'),
-            Wrap(spacing: 7, runSpacing: 7, children: [
-              for (final t in kDuaTypes) _chip(t.title, _type == t.key, () => _setType(t.key)),
-            ]),
-            if (_type == 'ozel') ...[
-              const SizedBox(height: 8),
-              TextField(
-                controller: _name,
-                maxLength: 40,
-                textCapitalization: TextCapitalization.words,
-                style: TextStyle(color: p.ink, fontSize: 14.5),
-                decoration: _deco(hint: 'Ne okunacak? (örn. Kelime-i Tevhid)'),
+  Widget _menu(String label, IconData icon, bool on, VoidCallback onTap, {int? count, Key? key}) => Padding(
+        padding: const EdgeInsets.only(bottom: 5),
+        child: Semantics(
+          button: true,
+          selected: on,
+          child: GestureDetector(
+            key: key,
+            behavior: HitTestBehavior.opaque,
+            onTap: onTap,
+            child: Container(
+              constraints: const BoxConstraints(minHeight: 54),
+              padding: const EdgeInsets.fromLTRB(7, 6, 7, 6),
+              decoration: BoxDecoration(
+                gradient: on ? RC.bronze : RC.darkPanel,
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: on ? RC.bronzeBorder : RC.gold(0.75), width: on ? 1.5 : 1),
               ),
-            ],
-            _label('2. Kaç tane?'),
-            if (_type == 'hatim')
-              Text('30 cüz · her kişi okuyacağı cüzü kendisi alır.', style: TextStyle(color: p.ink2, fontSize: 13.5))
-            else
-              Row(children: [
-                SizedBox(
-                  width: 140,
-                  child: TextField(
-                    key: const Key('total'),
-                    controller: _total,
-                    keyboardType: TextInputType.number,
-                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                    maxLength: 8,
-                    style: TextStyle(color: p.ink, fontSize: 15, fontWeight: FontWeight.w700),
-                    decoration: _deco(hint: 'Adet'),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Text('Herkes okuyabileceği kadarını alır.', style: TextStyle(color: p.ink2, fontSize: 12.5)),
+              child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+                Icon(icon, size: 19, color: on ? RC.bronzeText : RC.goldText),
+                const SizedBox(height: 2),
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(count == null || count == 0 ? label : '$label ($count)',
+                      style: TextStyle(color: on ? RC.bronzeText : RC.cream, fontSize: 11.5, fontWeight: FontWeight.w700)),
                 ),
               ]),
-            _label('3. Ne zamana kadar?'),
-            Wrap(spacing: 7, runSpacing: 7, children: [
-              for (final (d, t) in [(3, '3 gün'), (7, '1 hafta'), (15, '15 gün'), (kChainMaxDays, '1 ay')])
-                _chip(t, _days == d, () => setState(() => _days = d)),
-            ]),
-          ]),
+            ),
+          ),
         ),
+      );
+
+  Widget _list(List<GroupChain> all, String empty) {
+    final p = _pal;
+    final active = all.where((c) => c.active).toList();
+    final ended = all.where((c) => !c.active).take(5).toList();
+    if (all.isEmpty) {
+      return PaperBox(
+        pal: p,
+        padding: const EdgeInsets.fromLTRB(12, 14, 12, 14),
+        child: Text(empty, textAlign: TextAlign.center, style: TextStyle(color: p.ink2, fontSize: 13, height: 1.4)),
+      );
+    }
+    return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+      for (final c in active) ...[_ChainCard(c), const SizedBox(height: 7)],
+      if (ended.isNotEmpty) Padding(
+        padding: const EdgeInsets.fromLTRB(4, 4, 4, 5),
+        child: Text('BİTENLER', style: TextStyle(color: p.gold, fontSize: 12, fontWeight: FontWeight.w700)),
+      ),
+      for (final c in ended) ...[_ChainCard(c), const SizedBox(height: 7)],
+    ]);
+  }
+
+  Widget _field(TextEditingController c, {Key? key, String? hint}) => TextField(
+        key: key,
+        controller: c,
+        keyboardType: TextInputType.number,
+        inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+        maxLength: 8,
+        style: TextStyle(color: _pal.ink, fontSize: 15, fontWeight: FontWeight.w700),
+        decoration: _deco(hint: hint),
+      );
+
+  Widget _q(String t) => Padding(
+        padding: const EdgeInsets.fromLTRB(2, 10, 2, 5),
+        child: Text(t, style: TextStyle(color: _pal.gold, fontSize: 12.5, fontWeight: FontWeight.w700)),
+      );
+
+  Widget _form() {
+    final p = _pal;
+    final hatim = _type == 'hatim';
+    return PaperBox(
+      pal: p,
+      padding: const EdgeInsets.fromLTRB(10, 2, 10, 12),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        _q('Ne okunacak?'),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10),
+          decoration: BoxDecoration(
+            color: p.chip,
+            borderRadius: BorderRadius.circular(11),
+            border: Border.all(color: p.line),
+          ),
+          child: DropdownButtonHideUnderline(
+            child: DropdownButton<String>(
+              key: const Key('typePick'),
+              value: _type,
+              isExpanded: true,
+              dropdownColor: p.night ? const Color(0xFF0B2A1E) : const Color(0xFFF3E7CC),
+              iconEnabledColor: p.gold,
+              style: TextStyle(color: p.ink, fontSize: 15, fontWeight: FontWeight.w700, fontFamily: 'Lora'),
+              items: [for (final t in kDuaTypes) DropdownMenuItem(value: t.key, child: Text(t.title))],
+              onChanged: (v) => v == null ? null : _setType(v),
+            ),
+          ),
+        ),
+        if (_type == 'ozel') ...[
+          const SizedBox(height: 6),
+          TextField(
+            controller: _name,
+            maxLength: 40,
+            textCapitalization: TextCapitalization.words,
+            style: TextStyle(color: p.ink, fontSize: 14.5),
+            decoration: _deco(hint: 'Ne okunacak? (örn. Kelime-i Tevhid)'),
+          ),
+        ],
+        _q('Kaç tane?'),
+        if (hatim)
+          Text('30 cüz', style: TextStyle(color: p.ink, fontSize: 15, fontWeight: FontWeight.w700))
+        else
+          _field(_total, key: const Key('total'), hint: 'Adet'),
+        _q('Kaç gün?'),
+        _field(_days, key: const Key('days'), hint: '1 – $kChainMaxDays gün'),
+        _q(hatim ? 'Sen kaç cüz okuyacaksın?' : 'Sen kaç tane okuyacaksın?'),
+        _field(_share, key: const Key('myShare'), hint: hatim ? 'Cüz' : 'Adet'),
         const SizedBox(height: 12),
-        _goldButton(_busy ? 'Hazırlanıyor…' : 'Zinciri oluştur', _busy ? null : _start, h: 50, key: const Key('doStart')),
+        Semantics(
+          button: true,
+          child: GestureDetector(
+            key: const Key('doStart'),
+            onTap: _busy ? null : _create,
+            child: Opacity(
+              opacity: _busy ? 0.5 : 1,
+              child: Container(
+                padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
+                alignment: Alignment.center,
+                decoration: BoxDecoration(color: _wa, borderRadius: BorderRadius.circular(12)),
+                child: Text(_busy ? 'Hazırlanıyor…' : "Kaydet ve WhatsApp'tan davet et",
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(color: Colors.white, fontSize: 14.5, fontWeight: FontWeight.w700, height: 1.25)),
+              ),
+            ),
+          ),
+        ),
         const SizedBox(height: 6),
-        Text("Sonraki adımda davetini WhatsApp'tan gönderirsiniz.",
-            textAlign: TextAlign.center, style: TextStyle(color: p.ink2, fontSize: 12.5)),
-      ],
+        Text("Payınız Zikir Sayacı'na eklenir. Davete dokunan kişi kendi payını seçer.",
+            textAlign: TextAlign.center, style: TextStyle(color: p.ink2, fontSize: 11.5, height: 1.35)),
+      ]),
     );
   }
 }
@@ -527,10 +577,7 @@ class _ChainStartScreenState extends State<ChainStartScreen> {
 class ChainScreen extends StatefulWidget {
   final String chainId;
 
-  /// Zincir az önce oluşturuldu: davet gönderme öne çıkar.
-  final bool justCreated;
-
-  const ChainScreen({super.key, required this.chainId, this.justCreated = false});
+  const ChainScreen({super.key, required this.chainId});
 
   @override
   State<ChainScreen> createState() => _ChainScreenState();
@@ -608,22 +655,6 @@ class _ChainScreenState extends State<ChainScreen> {
       background: p.background,
       padding: const EdgeInsets.fromLTRB(12, 12, 12, 24),
       children: [
-        if (widget.justCreated && c.active) ...[
-          PaperBox(
-            pal: p,
-            padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
-            child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-              Text('Zincir hazır', textAlign: TextAlign.center,
-                  style: TextStyle(color: p.gold, fontSize: 17, fontWeight: FontWeight.w700)),
-              const SizedBox(height: 4),
-              Text('Davetini WhatsApp\'tan istediğiniz kişiye ya da gruba gönderin. Davete dokunan payını alır.',
-                  textAlign: TextAlign.center, style: TextStyle(color: p.ink2, fontSize: 13.5, height: 1.4)),
-              const SizedBox(height: 12),
-              _waButton(context, c),
-            ]),
-          ),
-          const SizedBox(height: 10),
-        ],
         if (c.full && !mineAny && c.active) ...[
           PaperBox(
             pal: p,
@@ -643,7 +674,7 @@ class _ChainScreenState extends State<ChainScreen> {
           const SizedBox(height: 10),
         ],
         if (c.isHatim) ..._hatim(context, c) else ..._count(context, c),
-        if (!widget.justCreated && c.active && !c.full) ...[
+        if (c.active && !c.full) ...[
           const SizedBox(height: 12),
           _waButton(context, c),
         ],
