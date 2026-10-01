@@ -1,9 +1,10 @@
-name: Kısa hadis listesi (Diyanet, Hadislerle İslâm)
+name: Hadis listesi (Diyanet, Hadislerle İslâm)
 
-# Diyanet İşleri Başkanlığı'nın "Hadislerle İslâm" eserinden (hadislerleislam.diyanet.gov.tr) kısa
-# hadisleri toplar: metin içinde tırnakla verilen ve dipnotu Kütüb-i Sitte'yi (Buhârî, Müslim, Ebû Dâvûd,
-# Tirmizî, Nesâî, İbn Mâce) gösteren sözler. Metin değiştirilmez. Sonuç diyanet-hadisler paketinde;
-# uygulamaya eklenmez (önce gözden geçirilecek).
+# Diyanet İşleri Başkanlığı'nın "Hadislerle İslâm" eserinden (hadislerleislam.diyanet.gov.tr) hadisleri
+# toplar: metin içinde Hz. Peygamber'in sözü olarak tırnakla verilen ve dipnotu Kütüb-i Sitte'yi (Buhârî,
+# Müslim, Ebû Dâvûd, Tirmizî, Nesâî, İbn Mâce) gösteren sözler; her birinin eserdeki konu başlığıyla.
+# Metin değiştirilmez. Sonuç diyanet-hadisler paketinde ve iş kaydında; uygulamaya eklenmez
+# (önce gözden geçirilir).
 
 on:
   workflow_dispatch:
@@ -15,7 +16,7 @@ on:
 jobs:
   topla:
     runs-on: ubuntu-latest
-    timeout-minutes: 90
+    timeout-minutes: 120
     steps:
       - name: Hadisleri topla
         run: |
@@ -23,21 +24,37 @@ jobs:
           python3 - <<'PY'
           import html as H, json, re, time, urllib.request
           from concurrent.futures import ThreadPoolExecutor
-          ROOT = 'https://hadislerleislam.diyanet.gov.tr/sayfa.php'
+          SITE = 'https://hadislerleislam.diyanet.gov.tr/'
+          ROOT = SITE + 'sayfa.php'
           def get(u):
               for i in range(4):
                   try:
                       req = urllib.request.Request(u, headers={'User-Agent': 'Mozilla/5.0 EzanSaati/1.0'})
                       with urllib.request.urlopen(req, timeout=40) as r:
                           return r.read().decode('utf-8', 'replace')
-                  except Exception as e:
+                  except Exception:
                       time.sleep(3 + i * 5)
               print('alınamadı', u); return ''
           def plain(x):
               x = re.sub(r'<[^>]+>', '', x)
               return re.sub(r'\s+', ' ', H.unescape(x)).strip()
-          BOOKS = r'^(Buhârî|Müslim|Ebû Dâvûd|Tirmizî|Nesâî|İbn Mâce)\b'
-          PROPHET = r'Peygamber|Resûl|Resul|Nebî|Efendimiz|buyur'
+
+          # Konu başlıkları: içindekiler sayfasındaki bağlantılar (cilt, başlangıç sayfası, başlık)
+          toc = {}
+          idx = get(SITE + 'icindekiler.php')
+          for c, p, t in re.findall(r'sayfa\.php\?CILT=(\d+)&(?:amp;)?SAYFA=(\d+)"[^>]*>(.*?)</a>', idx, re.S):
+              t = re.sub(r'^\d+\s*\|\s*', '', plain(t))
+              if t: toc.setdefault(int(c), []).append((int(p), t))
+          for c in toc: toc[c].sort()
+          print('konu sayısı', {c: len(v) for c, v in toc.items()})
+          def topic(c, p):
+              best = ''
+              for start, t in toc.get(c, []):
+                  if start <= p: best = t
+              return best
+
+          BOOKS = r'^(Buhârî|Müslim|Ebû Dâvûd|Tirmizî|Nesâî|İbn Mâce),'
+          SPEAKER = r'(Peygamber|Resûl|Resul|Nebî|Efendimiz|Allah Elçisi)'
           def page(cv):
               cilt, sayfa = cv
               h = get(f'{ROOT}?CILT={cilt}&SAYFA={sayfa}')
@@ -48,23 +65,21 @@ jobs:
               for n, body in re.findall(r'<p>(\d+)\s*</font>\s*<font color="black">(.*?)</p>', notes, re.S):
                   src[n] = re.sub(r'^[A-ZİÜÖÇŞĞ]+\d+(/\d+)?\s+', '', plain(body))
               out = []
-              for m in re.finditer(r'“([^“”]{20,220})”(.{0,120}?)<sup[^>]*>(\d+)</sup>', main, re.S):
+              for m in re.finditer(r'“([^“”]{15,700})”(.{0,160}?)<sup[^>]*>(\d+)</sup>', main, re.S):
                   quote, between, n = plain(m.group(1)), plain(m.group(2)), m.group(3)
-                  source = src.get(n, '')
+                  source = re.sub(r'[.;:,]\s*$', '', src.get(n, '').strip())
                   if not re.search(BOOKS, source): continue
-                  if len(quote) > 170 or len(between) > 40: continue
-                  before = plain(main[max(0, m.start() - 300):m.start()])[-160:]
-                  if not re.search(PROPHET, before + ' ' + between): continue
+                  if len(between) > 60: continue
+                  before = plain(main[max(0, m.start() - 600):m.start()])[-200:]
+                  if not re.search(SPEAKER, before[-140:] + ' ' + between): continue
                   out.append({'text': quote, 'source': source, 'cilt': cilt, 'sayfa': sayfa,
-                              'url': f'{ROOT}?CILT={cilt}&SAYFA={sayfa}'})
+                              'topic': topic(cilt, sayfa), 'before': before[-140:], 'after': between})
               return out
           jobs = []
           for cilt in range(1, 8):
               first = get(f'{ROOT}?CILT={cilt}&SAYFA=1')
               nums = re.findall(r'<option[^>]*>\s*(\d+)\s*</option>', first) + re.findall(r'SAYFA=(\d+)', first)
               last = max(int(x) for x in nums) if nums else 0
-              if last < 50:
-                  print('sayfa listesi bulunamadı:', first[first.find('Sayfa:'):][:800])
               print('cilt', cilt, 'sayfa', last)
               jobs += [(cilt, p) for p in range(1, last + 1)]
           found = []
@@ -75,15 +90,13 @@ jobs:
               k = re.sub(r'\W', '', f['text'].lower())
               if k in seen: continue
               seen.add(k); keep.append(f)
-          keep.sort(key=lambda x: len(x['text']))
-          json.dump(keep, open('out/diyanet_hadisler.json', 'w'), ensure_ascii=False, indent=1)
-          print('\nTARANAN SAYFA', len(jobs), 'SEÇİLEN', len(keep))
+          json.dump(keep, open('out/diyanet_hadisler_tum.json', 'w'), ensure_ascii=False, indent=1)
+          print('\nTARANAN SAYFA', len(jobs), 'BULUNAN', len(keep))
           for k in keep:
-              print(f"- {k['text']}  ({k['source']} · Hadislerle İslâm {k['cilt']}/{k['sayfa']})")
+              print('#', json.dumps(k, ensure_ascii=False))
           PY
 
       - uses: actions/upload-artifact@v4
-        if: always()
         with:
           name: diyanet-hadisler
           path: out
