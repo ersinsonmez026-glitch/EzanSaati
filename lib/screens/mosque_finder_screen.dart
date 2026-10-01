@@ -4,16 +4,19 @@ import 'package:url_launcher/url_launcher.dart';
 import '../services/location_store.dart';
 import '../services/mosque_store.dart';
 import '../widgets/gold_icon.dart';
+import '../widgets/mosque_map.dart';
 import '../widgets/page_shell.dart';
 import '../widgets/reading_ui.dart';
 import 'city_picker_screen.dart';
 import '../services/app_theme.dart';
 
-/// Cami Bulucu: yakındaki camiler (OpenStreetMap), uzaklık ve yön; yol tarifi harita uygulamasında.
+/// Cami Bulucu: üstte uygulamanın içinde harita (ekranın yarısı), altta yakındaki camiler (OpenStreetMap).
+/// Listeden bir camiye dokununca harita o camiyi, "Yol tarifi" deyince yürüme yolunu gösterir; uygulamadan çıkılmaz.
 class MosqueFinderScreen extends StatefulWidget {
   final MosqueStore? store;
+  final GooglePlaces? places;
 
-  const MosqueFinderScreen({super.key, this.store});
+  const MosqueFinderScreen({super.key, this.store, this.places});
 
   @override
   State<MosqueFinderScreen> createState() => _MosqueFinderScreenState();
@@ -22,11 +25,15 @@ class MosqueFinderScreen extends StatefulWidget {
 class _MosqueFinderScreenState extends State<MosqueFinderScreen> {
   PagePalette get _pal => PagePalette.current(); // Gündüz/Gece değişince hemen yenilensin
   late final MosqueStore _store = widget.store ?? MosqueStore();
+  late final GooglePlaces _places = widget.places ?? GooglePlaces();
+  bool _fromGoogle = false; // liste Google Haritalar'dan mı geldi
   final _location = LocationStore.instance;
   List<Mosque>? _items;
   String? _error;
   bool _loading = false;
   bool _gpsBusy = false;
+  Mosque? _selected; // haritada gösterilen cami (yoksa çevredeki bütün camiler)
+  bool _route = false; // seçili camiye yol tarifi
 
   @override
   void initState() {
@@ -42,8 +49,25 @@ class _MosqueFinderScreenState extends State<MosqueFinderScreen> {
       _error = null;
     });
     try {
-      final items = await _store.near(loc.lat, loc.lng);
-      if (mounted) setState(() => _items = items);
+      // Önce Google (adlarıyla, eksiksiz); kullanılamıyorsa OpenStreetMap'te adı kayıtlı en yakın camiler.
+      final google = await _places.near(loc.lat, loc.lng);
+      if (google != null && google.isNotEmpty) {
+        if (mounted) {
+          setState(() {
+            _items = google;
+            _fromGoogle = true;
+          });
+        }
+        return;
+      }
+      final all = await _store.near(loc.lat, loc.lng);
+      final named = all.where((m) => m.name != Mosque.unnamed).toList();
+      if (mounted) {
+        setState(() {
+          _items = (named.isEmpty ? all : named).take(GooglePlaces.resultCount).toList();
+          _fromGoogle = false;
+        });
+      }
     } catch (_) {
       if (mounted) {
         setState(() => _error = 'Camiler yüklenemedi. İnternet bağlantınızı kontrol edip tekrar deneyin ya da '
@@ -64,13 +88,6 @@ class _MosqueFinderScreenState extends State<MosqueFinderScreen> {
     } else {
       await _load();
     }
-  }
-
-  Future<void> _launch(Uri uri) async {
-    try {
-      if (await launchUrl(uri, mode: LaunchMode.externalApplication)) return;
-    } catch (_) {}
-    if (mounted) showNote(context, 'Harita uygulaması açılamadı.');
   }
 
   /// Harita uygulamasında "cami" araması (uygulama içi liste açılamazsa).
@@ -123,7 +140,7 @@ class _MosqueFinderScreenState extends State<MosqueFinderScreen> {
               ),
             ]
           : [
-              _hero(loc),
+              _mapCard(loc),
               if (!loc.fromGps) ...[gap, _gpsHint()],
               gap,
               if (_error != null)
@@ -180,8 +197,10 @@ class _MosqueFinderScreenState extends State<MosqueFinderScreen> {
               gap,
               SourceNote(
                 pal: _pal,
-                text: 'Harita verisi © OpenStreetMap katkıcıları (ODbL). Uzaklıklar kuş uçuşudur; yol tarifi '
-                    'telefonunuzdaki harita uygulamasında açılır. Listede olmayan camiler için "Haritada ara".',
+                text: _fromGoogle
+                    ? 'Harita ve liste: Google Haritalar. Uzaklıklar kuş uçuşudur.'
+                    : 'Harita: Google Haritalar. Liste: © OpenStreetMap katkıcıları (ODbL). Uzaklıklar kuş uçuşudur. '
+                        'Listede olmayan camiler haritada adlarıyla görünür.',
               ),
               gap,
               Center(
@@ -195,50 +214,61 @@ class _MosqueFinderScreenState extends State<MosqueFinderScreen> {
     );
   }
 
-  Widget _hero(AppLocation loc) {
+  /// Üstte, ekranın yaklaşık yarısında harita ve ne gösterdiğini anlatan şerit.
+  Widget _mapCard(AppLocation loc) {
+    final m = _selected;
+    final url = m == null
+        ? MosqueMap.search(loc.lat, loc.lng)
+        : _route
+            ? MosqueMap.route(loc.lat, loc.lng, m.lat, m.lng)
+            : MosqueMap.place(m.lat, m.lng);
     final n = _items?.length;
+    final h = (MediaQuery.sizeOf(context).height * 0.46).clamp(260.0, 520.0);
     return Container(
-      padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
+      clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
         color: tc(0xFF062A1C),
         borderRadius: BorderRadius.circular(18),
         border: Border.all(color: RC.gold(0.75), width: 1.5),
-        image: const DecorationImage(
-          image: AssetImage('assets/images/tiles/cami_bulucu.webp'),
-          fit: BoxFit.cover,
-          opacity: 0.3,
+      ),
+      child: Column(children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(12, 8, 8, 8),
+          child: Row(children: [
+            GoldIcon(m == null ? Icons.mosque : (_route ? Icons.directions_walk : Icons.place), size: 20),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                m == null
+                    ? (n == null ? '${loc.name} çevresinde aranıyor…' : 'Size en yakın $n cami')
+                    : (_route ? '${m.name} · yürüyüş yolu' : '${m.name} · ${m.distanceText}'),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w700),
+              ),
+            ),
+            if (_loading && _items != null)
+              const Padding(
+                padding: EdgeInsets.only(right: 6),
+                child: SizedBox(
+                    width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: RC.goldText)),
+              ),
+            if (m != null)
+              PillButton(
+                pal: _pal,
+                selected: true,
+                height: 30,
+                onTap: () => setState(() {
+                  _selected = null;
+                  _route = false;
+                }),
+                child: const Text('Tümü',
+                    style: TextStyle(color: RC.bronzeText, fontSize: 12.5, fontWeight: FontWeight.w700)),
+              ),
+          ]),
         ),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 58,
-            height: 58,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: const Color(0x40000000),
-              border: Border.all(color: RC.goldBorder, width: 1.5),
-            ),
-            child: const Center(child: ArtIcon('cami_bulucu', size: 40)),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text('Yakındaki Camiler',
-                    style: TextStyle(color: Colors.white, fontSize: 22, height: 1.15, fontWeight: FontWeight.w800)),
-                Text(
-                  n == null ? '${loc.name} çevresinde aranıyor…' : '${loc.name} çevresinde $n cami',
-                  style: const TextStyle(color: RC.goldText, fontSize: 13),
-                ),
-              ],
-            ),
-          ),
-          if (_loading && _items != null)
-            const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: RC.goldText)),
-        ],
-      ),
+        SizedBox(height: h, child: MosqueMap(url: url)),
+      ]),
     );
   }
 
@@ -273,46 +303,57 @@ class _MosqueFinderScreenState extends State<MosqueFinderScreen> {
   }
 
   Widget _row(Mosque m) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(12, 10, 10, 10),
-      child: Row(
-        children: [
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(color: _pal.pill, borderRadius: BorderRadius.circular(10)),
-            child: Center(
-              child: Transform.rotate(
-                angle: m.bearing * 3.141592653589793 / 180,
-                child: GoldIcon(Icons.navigation, size: 20, light: !_pal.night),
+    final on = _selected == m;
+    return InkWell(
+      onTap: () => setState(() {
+        _selected = m;
+        _route = false;
+      }),
+      child: Container(
+        color: on ? _pal.gold.withValues(alpha: 0.14) : null,
+        padding: const EdgeInsets.fromLTRB(12, 10, 10, 10),
+        child: Row(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(color: _pal.pill, borderRadius: BorderRadius.circular(10)),
+              child: Center(
+                child: Transform.rotate(
+                  angle: m.bearing * 3.141592653589793 / 180,
+                  child: GoldIcon(Icons.navigation, size: 20, light: !_pal.night),
+                ),
               ),
             ),
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(m.name, style: TextStyle(color: _pal.ink, fontSize: 14.5, fontWeight: FontWeight.w700)),
-                Text('${m.distanceText} · ${m.directionText}', style: TextStyle(color: _pal.ink2, fontSize: 12)),
-              ],
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(m.name, style: TextStyle(color: _pal.ink, fontSize: 14.5, fontWeight: FontWeight.w700)),
+                  Text('${m.distanceText} · ${m.directionText}', style: TextStyle(color: _pal.ink2, fontSize: 12)),
+                ],
+              ),
             ),
-          ),
-          const SizedBox(width: 8),
-          PillButton(
-            pal: _pal,
-            selected: false,
-            onTap: () => _launch(m.directionsUri),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                GoldIcon(Icons.directions_walk, size: 16, light: !_pal.night),
-                const SizedBox(width: 4),
-                Text('Yol tarifi', style: TextStyle(color: _pal.ink, fontSize: 12, fontWeight: FontWeight.w700)),
-              ],
+            const SizedBox(width: 8),
+            PillButton(
+              pal: _pal,
+              selected: on && _route,
+              onTap: () => setState(() {
+                _selected = m;
+                _route = true;
+              }),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  GoldIcon(Icons.directions_walk, size: 16, light: !_pal.night),
+                  const SizedBox(width: 4),
+                  Text('Yol tarifi', style: TextStyle(color: _pal.ink, fontSize: 12, fontWeight: FontWeight.w700)),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

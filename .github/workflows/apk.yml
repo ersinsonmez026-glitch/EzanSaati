@@ -37,12 +37,17 @@ jobs:
       # kurar (arm64-v8a: günümüz telefonlarının neredeyse tamamı; armeabi-v7a: eski telefonlar).
       # Deneme sürümü: mağaza sürümüyle aynı (küçük ve hızlı), yalnız Premium deneme anahtarı açık;
       # günümüz telefonları için tek APK (arm64-v8a) yüklenir.
+      # Cami Bulucu'nun Google cami listesi için anahtar (depo ayarlarındaki GOOGLE_PLACES_KEY secret'ı).
+      # Secret yoksa boş kalır; uygulama o zaman OpenStreetMap listesini kullanır.
       - name: APK derle
+        env:
+          PLACES_KEY: ${{ secrets.GOOGLE_PLACES_KEY }}
         run: |
+          KEY="--dart-define=PLACES_KEY=$PLACES_KEY"
           case "${{ inputs.mode || 'release' }}" in
-            debug)  flutter build apk --debug ;;
-            deneme) flutter build apk --release --split-per-abi --dart-define=DENEME=true ;;
-            *)      flutter build apk --release --split-per-abi ;;
+            debug)  flutter build apk --debug "$KEY" ;;
+            deneme) flutter build apk --release --split-per-abi --dart-define=DENEME=true "$KEY" ;;
+            *)      flutter build apk --release --split-per-abi "$KEY" ;;
           esac
 
       - name: APK'yı yükle

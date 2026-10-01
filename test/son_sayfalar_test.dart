@@ -26,6 +26,7 @@ import 'package:ezan_saati/services/quran_audio.dart';
 import 'package:ezan_saati/services/takvim.dart';
 import 'package:ezan_saati/widgets/page_shell.dart';
 import 'package:ezan_saati/widgets/reading_ui.dart';
+import 'package:ezan_saati/widgets/mosque_map.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -138,10 +139,80 @@ void main() {
       await t.pumpWidget(MaterialApp(home: MosqueFinderScreen(store: MosqueStore(fetch: (_) async => resp(6)))));
       await t.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 50)));
       await t.pumpAndSettle();
-      expect(find.text('Yakındaki Camiler'), findsOneWidget);
+      expect(find.byType(MosqueMap), findsOneWidget);
+      // Google anahtarı yok: OpenStreetMap'te adı kayıtlı en yakın 5 cami.
+      expect(find.textContaining('Size en yakın 5 cami'), findsOneWidget);
       expect(find.text('Cami 0'), findsOneWidget);
-      expect(find.text('Yol tarifi'), findsNWidgets(6));
+      expect(find.text(Mosque.unnamed), findsNothing);
+      expect(find.text('Yol tarifi'), findsNWidgets(5));
       expect(find.textContaining('Şehir merkezine göre aranıyor'), findsOneWidget);
+
+      // Camiye dokununca harita o camiyi, yol tarifi deyince yürüme yolunu gösterir (uygulamadan çıkmadan).
+      await t.tap(find.text('Cami 0'));
+      await t.pump();
+      expect(t.widget<MosqueMap>(find.byType(MosqueMap)).url.queryParameters['z'], '17');
+      expect(find.text('Tümü'), findsOneWidget);
+      await t.tap(find.text('Yol tarifi').first);
+      await t.pump();
+      expect(t.widget<MosqueMap>(find.byType(MosqueMap)).url.queryParameters['dirflg'], 'w');
+      await t.tap(find.text('Tümü'));
+      await t.pump();
+      expect(t.widget<MosqueMap>(find.byType(MosqueMap)).url.queryParameters['q'], 'cami');
+    });
+
+    Map<String, dynamic> places(int n) => {
+          'places': [
+            for (var i = n - 1; i >= 0; i--)
+              {
+                'displayName': {'text': 'G Camii $i'},
+                'location': {'latitude': 41.01 + i * 0.001, 'longitude': 28.97},
+              },
+          ],
+        };
+
+    test('Google: en yakın camiler, kişi başı günde 4 arama, aynı yer için yeniden aranmaz', () async {
+      SharedPreferences.setMockInitialValues({});
+      GooglePlaces.clearSession();
+      var calls = 0;
+      Map<String, dynamic>? sent;
+      final g = GooglePlaces(apiKey: 'test', fetch: (body) async {
+        calls++;
+        sent = body;
+        return places(5);
+      });
+      final day = DateTime(2026, 10, 1, 9);
+      final list = (await g.near(41.01, 28.97, now: day))!;
+      expect(list.first.name, 'G Camii 0');
+      expect(list.length, 5);
+      expect(sent!['includedTypes'], ['mosque']);
+      expect(sent!['maxResultCount'], 5);
+      await g.near(41.01, 28.97, now: day); // aynı yer: arama yapılmaz
+      expect(calls, 1);
+      for (var i = 1; i <= 3; i++) {
+        expect(await g.near(41.01 + i * 0.01, 28.97, now: day), isNotNull);
+      }
+      expect(calls, 4);
+      expect(await g.near(41.2, 28.97, now: day), isNull); // günlük hak bitti
+      expect(calls, 4);
+      expect(await g.near(41.2, 28.97, now: day.add(const Duration(days: 1))), isNotNull); // ertesi gün yenilenir
+      expect(GooglePlaces(apiKey: '').enabled, isFalse);
+    });
+
+    testWidgets('Google listesi varsa sayfa onu gösterir', (t) async {
+      SharedPreferences.setMockInitialValues({'loc_name': 'İstanbul', 'loc_lat': 41.01, 'loc_lng': 28.97});
+      GooglePlaces.clearSession();
+      t.view.physicalSize = const Size(390, 1400);
+      t.view.devicePixelRatio = 1;
+      addTearDown(t.view.reset);
+      await t.pumpWidget(MaterialApp(
+          home: MosqueFinderScreen(
+              store: MosqueStore(fetch: (_) async => resp(6)),
+              places: GooglePlaces(apiKey: 'test', fetch: (_) async => places(5)))));
+      await t.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 50)));
+      await t.pumpAndSettle();
+      expect(find.text('G Camii 0'), findsOneWidget);
+      expect(find.text('Cami 0'), findsNothing);
+      expect(find.textContaining('Harita ve liste: Google Haritalar'), findsOneWidget);
     });
 
     testWidgets('bağlantı yoksa anlaşılır uyarı ve haritada arama', (t) async {
