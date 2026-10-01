@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../services/content_store.dart';
 import '../widgets/page_shell.dart';
 import '../widgets/reading_ui.dart';
+import '../services/hadith_store.dart';
 import 'hadiths_screen.dart';
 import 'prayer_read_screen.dart';
 
@@ -172,7 +173,7 @@ class _PrayersScreenState extends State<PrayersScreen> {
       'namaz': '${duas.where((d) => d.group == 'namaz').length} dua ve sure',
       'diger': '${duas.where((d) => d.group == 'diger').length} dua',
       'esma': '99 isim',
-      'hadis': 'HadeethEnc',
+      'hadis': '${kHadiths.length} hadis',
     };
     return Container(
       padding: const EdgeInsets.all(4),

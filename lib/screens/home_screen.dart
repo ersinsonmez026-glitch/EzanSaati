@@ -3,6 +3,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import '../data/gunun_sozu.dart';
 import '../services/app_prefs.dart';
 import '../services/location_store.dart';
 import '../services/prayer_groups.dart';
@@ -151,19 +152,18 @@ class _HomeScreenState extends State<HomeScreen> {
             final tileW = (w - 2 * pad - 2 * gap) / 3;
             double gridFor(double tileH) => _rows * tileH + (_rows - 1) * gap + pad + 2;
 
-            // Tuşlar resimleriyle aynı oranda (600 x 508). Kalan yükseklik üst alana (fotoğraf, ayet, konum,
-            // geri sayım) verilir; fotoğraf gerekirse üstten kesilir. Kısa ekranda cami görünsün diye tuşlar
-            // biraz alçalır (en çok %20); resimleri yalnız alttan kesilir.
+            // Üst alan (fotoğraf, konum, ayet, hadis, geri sayım) her telefonda aynı yükseklikte: iPhone 13'teki
+            // gibi. Tuşlar resimleriyle aynı oranda (600 x 508); daha uzun ekranda kalan yer tuşlara verilir
+            // (biraz uzarlar), daha kısa ekranda tuşlar küçülmez, sayfa aşağı kaydırılır.
             final fullTileH = tileW * MenuTile.photoAspect;
-            final roomTile = (h - _heroMin(w, k) - (_rows - 1) * gap - pad - 2) / _rows;
-            final tileH = math.min(fullTileH, math.max(fullTileH * 0.8, roomTile));
+            final roomTile = (h - _heroBody - (_rows - 1) * gap - pad - 2) / _rows;
+            // Tuşlar en çok %85'e kadar alçalır (resimleri alttan kesilir); daha kısa ekranda sayfa kaydırılır.
+            final tileH = math.max(fullTileH * 0.85, roomTile);
             final gridH = gridFor(tileH);
-            // Tüm isimler aynı boyutta; boyutu en uzun isim değil ikinci en uzun isim belirler (en uzun isim
-            // levhaya sığmak için kendiliğinden biraz küçülür), böylece yazılar gereğinden küçük kalmaz.
             final fits = [for (final e in _items) MenuTile.fitLabelSize([e.title], tileW)]..sort();
             double labelSize(String _) => fits[1];
-            final heroH = math.max(_heroMin(w, k), h - gridH) + topInset;
-            // Çok kısa ekranlarda (ör. yatay) sığmazsa kaydırılabilir; normalde kaydırma yok.
+            final heroH = _heroBody + topInset;
+            // iPhone 13'ten kısa ekranlarda kaydırılır; normalde kaydırma yok.
             final scrolls = heroH - topInset + gridH > h + 0.5;
 
             return SingleChildScrollView(
@@ -211,36 +211,74 @@ class _HomeScreenState extends State<HomeScreen> {
   // ============================================================
   // ÜST YARI - ANA GÖRSEL, LEVHALAR, KONUM/TARİH, AYET, GERİ SAYIM
   // ============================================================
-  // Üst alanın ölçüleri (k: ekran genişliği ölçeği)
+  // Üst alanın ölçüleri (k: ekran genişliği ölçeği). Ekranlar 390 genişliğe ölçeklenir (DesignScale);
+  // üst alan durum çubuğunun altında her telefonda 384 yüksekliktedir (iPhone 13'te tuşlar %85 boyda, alttan kesik sığar).
   static double _bannerW(double w) => math.min(w * 0.96, 540);
-  // En az: geri sayım paneli ve caminin tamamı görünecek kadar (kısa ekranda tuşlar alçalır).
-  static double _heroMin(double w, double k) => _bannerW(w) / CountdownBanner.aspect + 2 + 125 * k;
+  static const double _heroBody = 384;
 
   Widget _hero(AppLocation? loc, double k, List<Shadow> shadow, double topInset) {
     return LayoutBuilder(builder: (context, box) {
       final bannerH = _bannerW(box.maxWidth) / CountdownBanner.aspect;
       // Caminin tabanı "kalan" satırının hemen üstüne oturur (alt tarafı görünür); fotoğraf gerekirse üstten kesilir.
-      final mosqueBase = box.maxHeight - 2 - bannerH;
+      // Fotoğrafın büyüklüğü: caminin tabanı düğmelerin hemen üstüne gelecek kadar. Sonra fotoğraf
+      // üstten kesilerek cami 70 birim yukarı alınır; altında ayet ve hadise yer kalır.
+      final sizeBase = box.maxHeight - 2 - bannerH - 36 * k;
+      final mosqueBase = sizeBase - 70 * k;
+      // Yerler üst alanın tepesinden sabit uzaklıkta; her telefonda aynı.
+      final buttonsBottom = 2 + bannerH + 5 * k;
+      final wordBottom = buttonsBottom;
+      final wordH = box.maxHeight - (topInset + 60 * k) - wordBottom;
+      final wordW = (box.maxWidth - 24 - 12) / 2;
       return Stack(
         children: [
           _heroPhoto(box.biggest, mosqueBase),
-          // Ayet sol altta: alt kenarı vakit kartlarına değer. Kalan süre üst ortada, konum sağ üstte.
-          Positioned(
-            left: 12,
-            bottom: 2 + bannerH * (1 - CountdownBanner.sideTop) + 3 * k,
-            child: _verse(k, shadow),
-          ),
-          // Sonraki vakte kalan süre: üst ortada
+          // Caminin altındaki ışıklar ayet ve hadisin okunmasını zorlaştırmasın: o şerit aşağı doğru koyulaşır.
           Positioned(
             left: 0,
             right: 0,
-            top: topInset + 26 * k,
-            child: Center(child: RemainingLine(status: _status, k: k)),
+            top: mosqueBase - 6 * k,
+            bottom: 0,
+            child: const IgnorePointer(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [Color(0x00000000), Color(0xC7000000), Color(0xE0000000)],
+                    stops: [0, 0.18, 1],
+                  ),
+                ),
+              ),
+            ),
+          ),
+          // Sol üstte konum, sağ üstte sonraki vakte kalan süre; ikisi de durum çubuğunun (saat, pil, ön kamera)
+          // hemen altında, orta açık kalır. Gündüz/gece görünümü otomatik değişir (elle: Ayarlar).
+          Positioned(
+            left: 8,
+            top: topInset + 2 * k,
+            child: _locationCard(loc, k),
           ),
           Positioned(
-            right: 10,
-            top: topInset + 64 * k,
-            child: _locationLabel(loc, k, shadow),
+            right: 8,
+            top: topInset + 2 * k,
+            child: _TopText(
+              label: _status == null ? 'Konum seçin' : CountdownBanner.remainingLabel(_status!),
+              value: _status == null ? '' : RemainingLine.withSeconds(_status!.remaining),
+              k: k,
+              end: true,
+              tabular: true,
+            ),
+          ),
+          // Günün ayeti solda, günün hadisi sağda; düğmelerin üstünde.
+          Positioned(
+            left: 12,
+            bottom: wordBottom,
+            child: _DailyWord(k: k, hadith: false, width: wordW, maxHeight: wordH, shadow: shadow),
+          ),
+          Positioned(
+            right: 12,
+            bottom: wordBottom,
+            child: _DailyWord(k: k, hadith: true, width: wordW, maxHeight: wordH, shadow: shadow),
           ),
           Column(
             children: [
@@ -258,12 +296,6 @@ class _HomeScreenState extends State<HomeScreen> {
               const SizedBox(height: 2),
             ],
           ),
-          // Gündüz/gece düğmesi: her ekranda sağda, geri sayım çerçevesinin sağ kenarının biraz üstünde
-          Positioned(
-            right: 12,
-            bottom: 2 + bannerH * (1 - CountdownBanner.sideTop) + 5 * k,
-            child: DayNightSwitch(height: 24 * k, labels: true),
-          ),
         ],
       );
     });
@@ -271,10 +303,15 @@ class _HomeScreenState extends State<HomeScreen> {
 
   /// Arka plan fotoğrafı: caminin tabanı (görselde %54, %66) kutuda [mosqueY] yüksekliğine gelir;
   /// fotoğraf kutuyu her zaman tamamen kaplar (gece ve gündüz aynı kadraj).
-  Widget _heroPhoto(Size box, double mosqueY) {
+  Widget _heroPhoto(Size box, double mosqueY, [double? sizeY]) {
     const imgW = 1536.0, imgH = 1024.0, fx = 0.54, fy = 0.66;
-    final scale = [box.width / imgW, box.height / imgH, mosqueY / (fy * imgH), (box.height - mosqueY) / ((1 - fy) * imgH)]
-        .reduce(math.max);
+    final sy = sizeY ?? mosqueY;
+    final scale = [
+      box.width / imgW,
+      box.height / imgH,
+      sy / (fy * imgH),
+      (box.height - mosqueY) / ((1 - fy) * imgH),
+    ].reduce(math.max);
     final w = imgW * scale, h = imgH * scale;
     final left = (box.width / 2 - fx * w).clamp(box.width - w, 0.0);
     final top = (mosqueY - fy * h).clamp(box.height - h, 0.0);
@@ -291,37 +328,52 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   /// Sağ üstteki konum; dokununca şehir seçimi açılır.
-  Widget _locationLabel(AppLocation? loc, double k, List<Shadow> shadow) {
-    return InkWell(
-      borderRadius: BorderRadius.circular(12),
+  /// Sol üst: üstte il, altında (GPS ile bulunduysa) ilçe ya da mahalle. Dokununca şehir seçimi açılır.
+  Widget _locationCard(AppLocation? loc, double k) {
+    final district = loc?.district ?? '';
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
       onTap: () => Navigator.of(context).push(AppRoute(builder: (_) => const CityPickerScreen())),
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(2, 0, 2, 2),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            GoldIcon(Icons.location_on, size: 17 * k),
-            const SizedBox(width: 2),
-            Text(
-              loc?.name ?? 'Konum Seç',
-              maxLines: 1,
-              style: TextStyle(color: Colors.white, fontSize: 17.5 * k, fontWeight: FontWeight.w700, shadows: shadow),
-            ),
-          ],
-        ),
+      child: _TopText(
+        icon: Icons.location_on,
+        label: loc?.name ?? 'Konum Seç',
+        value: loc != null && district != loc.name ? district : '',
+        k: k,
       ),
     );
   }
 
 
-  /// Nisâ 103 (eski yazı tipiyle kalın italik); ayrılan alana sığmazsa küçülür, hiç gizlenmez.
-  Widget _verse(double k, List<Shadow> shadow) {
-    // Satırlar aşağı doğru uzar; kaynak son satırın yanında (altındaki kalan süre satırına yer kalsın).
-    return Text.rich(
+
+
+
+}
+
+/// Günün ayeti (solda) ya da günün hadisi (sağda). Dokununca ikisi kaynaklarıyla birlikte açılır.
+/// Uzun metin ayrılan alana sığmazsa küçülür, hiç gizlenmez.
+class _DailyWord extends StatelessWidget {
+  final double k;
+  final bool hadith;
+  final double width;
+  final double maxHeight;
+  final List<Shadow> shadow;
+
+  const _DailyWord(
+      {required this.k, required this.hadith, required this.width, required this.maxHeight, required this.shadow});
+
+  @override
+  Widget build(BuildContext context) {
+    final now = DateTime.now();
+    final ayah = ayahOfDay(now), h = hadithOfDay(now);
+    final text = hadith ? h.text : ayah.meal;
+    final source = hadith ? 'Hadis-i Şerif · ${h.source}' : ayah.source;
+    final align = hadith ? Alignment.bottomRight : Alignment.bottomLeft;
+    final body = Text.rich(
+      textAlign: hadith ? TextAlign.right : TextAlign.left,
       TextSpan(children: [
-        const TextSpan(text: '“Şüphesiz namaz,\nmüminler üzerine\nvakitleri belirlenmiş\nbir farzdır.”\n'),
+        TextSpan(text: '“$text”\n'),
         TextSpan(
-          text: 'Nisâ, 103',
+          text: source,
           style: TextStyle(
               color: const Color(0xFFE8C88A), fontSize: 9.5 * k, fontStyle: FontStyle.normal, fontWeight: FontWeight.w700),
         ),
@@ -336,8 +388,102 @@ class _HomeScreenState extends State<HomeScreen> {
         shadows: shadow,
       ),
     );
+    return GestureDetector(
+      key: Key(hadith ? 'dailyHadith' : 'dailyAyah'),
+      behavior: HitTestBehavior.opaque,
+      onTap: () => _showBoth(context, ayah, h),
+      child: SizedBox(
+        width: width,
+        height: math.max(0.0, maxHeight),
+        child: Align(
+          alignment: align,
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: align,
+            child: SizedBox(width: width, child: body),
+          ),
+        ),
+      ),
+    );
   }
 
+  static void _showBoth(BuildContext context, DailyAyah ayah, DailyHadith hadith) {
+    const gold = Color(0xFFE8C88A);
+    Widget block(String title, String text, String source, String note) => Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(title, style: const TextStyle(color: gold, fontSize: 13, fontWeight: FontWeight.w700, letterSpacing: 0.6)),
+            const SizedBox(height: 6),
+            Text('“$text”',
+                style: const TextStyle(color: Colors.white, fontSize: 17, height: 1.4, fontStyle: FontStyle.italic)),
+            const SizedBox(height: 6),
+            Text(source, style: const TextStyle(color: gold, fontSize: 13.5, fontWeight: FontWeight.w700)),
+            Text(note, style: const TextStyle(color: Colors.white70, fontSize: 12)),
+          ],
+        );
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: AppColors.darkGreen,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      builder: (ctx) => SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.fromLTRB(22, 22, 22, 18),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              block('GÜNÜN AYETİ', ayah.meal, ayah.source, 'Meal: Ruvvâd Tercüme Merkezi'),
+              const Divider(color: Colors.white24, height: 32),
+              block('GÜNÜN HADİSİ', hadith.text, hadith.source,
+                  'Diyanet İşleri Başkanlığı, ${hadith.book}'),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Ana ekranın üst köşelerindeki iki satırlık beyaz yazı: üstte ad (il ya da "İmsaka kalan", ikisi aynı
+/// biçimde), altında değer (ilçe ya da saniyeli kalan süre).
+class _TopText extends StatelessWidget {
+  final String label;
+  final String value;
+  final double k;
+  final IconData? icon;
+  final bool end; // sağa yaslı
+  final bool tabular;
+
+  const _TopText(
+      {required this.label, required this.value, required this.k, this.icon, this.end = false, this.tabular = false});
+
+  static const _shadow = [Shadow(color: Colors.black87, blurRadius: 5, offset: Offset(1, 1))];
+
+  @override
+  Widget build(BuildContext context) {
+    final head = TextStyle(
+        fontFamily: 'Lora', fontSize: 15.5 * k, fontWeight: FontWeight.w700, color: Colors.white, shadows: _shadow, height: 1.15);
+    final sub = head.copyWith(
+        fontSize: (tabular ? 18 : 13.5) * k,
+        fontWeight: tabular ? FontWeight.w700 : FontWeight.w600,
+        fontFeatures: tabular ? const [FontFeature.tabularFigures()] : null);
+    return Column(
+      crossAxisAlignment: end ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Row(mainAxisSize: MainAxisSize.min, children: [
+          if (icon != null) ...[GoldIcon(icon!, size: 15 * k), SizedBox(width: 2 * k)],
+          Text(label, maxLines: 1, style: head),
+        ]),
+        if (value.isNotEmpty)
+          Padding(
+            padding: EdgeInsets.only(left: icon != null ? 17 * k : 0),
+            child: Text(value, maxLines: 1, style: sub),
+          ),
+      ],
+    );
+  }
 }
 
 /// İlk açılışta çıkan "adınız" penceresi: Dua Zinciri gruplarında görünecek ad.

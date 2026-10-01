@@ -7,7 +7,7 @@ import '../widgets/reading_ui.dart';
 import 'hadith_read_screen.dart';
 
 /// Hadisler (onizleme/08-hadisler.html): günün hadisi, Tüm Hadisler / Favorilerim, arama.
-/// Metinler HadeethEnc.com'dan değiştirilmeden alınır (bkz. HadithStore).
+/// Metinler Diyanet'in "Hadislerle İslâm" eserinden değiştirilmeden alınır (bkz. HadithStore).
 class HadithsScreen extends StatefulWidget {
   /// Testlerde sahte kaynak verilebilir.
   final HadithStore? store;
@@ -24,7 +24,7 @@ class HadithsScreen extends StatefulWidget {
 
 class _HadithsScreenState extends State<HadithsScreen> {
   PagePalette get _pal => PagePalette.current(); // Gündüz/Gece değişince hemen yenilensin
-  late final HadithStore _store = widget.store ?? HadithStore();
+  late final HadithStore _store = widget.store ?? const HadithStore();
   List<Hadith>? _items;
   ReadingPrefs? _prefs;
   String? _error;
@@ -54,8 +54,7 @@ class _HadithsScreenState extends State<HadithsScreen> {
       if (mounted) _set(items);
     } catch (_) {
       if (mounted) {
-        setState(() => _error = 'Hadisler HadeethEnc.com\'dan indirilemedi. İlk açılışta internet bağlantısı '
-            'gerekir; bağlantınızı kontrol edip tekrar deneyin.');
+        setState(() => _error = 'Hadisler açılamadı.');
       }
     } finally {
       if (mounted) setState(() => _loading = false);
@@ -142,7 +141,7 @@ class _HadithsScreenState extends State<HadithsScreen> {
     final shown = [
       for (var i = 0; i < items.length; i++)
         if ((!_onlyFav || favs.contains(items[i].id)) &&
-            (q.isEmpty || trSearchKey('${items[i].title} ${items[i].text}').contains(q)))
+            (q.isEmpty || trSearchKey('${items[i].text} ${items[i].attribution}').contains(q)))
           i,
     ];
     return [
@@ -198,8 +197,8 @@ class _HadithsScreenState extends State<HadithsScreen> {
       gap,
       SourceNote(
         pal: _pal,
-        text: 'Kaynak: HadeethEnc.com (Nebevi Hadisler Ansiklopedisi Tercümesi). Metinler, Türkçe tercümeleri ve '
-            'açıklamaları değiştirilmeden gösterilir.',
+        text: 'Kaynak: Diyanet İşleri Başkanlığı, Hadislerle İslâm (hadislerleislam.diyanet.gov.tr). Hadisler, '
+            'eserdeki metinleri ve dipnotlarındaki kaynaklarıyla değiştirilmeden gösterilir.',
       ),
     ];
   }
@@ -218,16 +217,14 @@ class _HadithsScreenState extends State<HadithsScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(h.title,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
+                  Text('“${h.text}”',
                       style: TextStyle(color: _pal.ink, fontSize: 14.5, height: 1.35, fontWeight: FontWeight.w700)),
                   Text(h.attribution, style: TextStyle(color: _pal.ink2, fontSize: 11.5)),
                 ],
               ),
             ),
             const SizedBox(width: 8),
-            HeartButton(pal: _pal, on: fav, label: h.title, onTap: () => _toggleFav(h)),
+            HeartButton(pal: _pal, on: fav, label: h.text, onTap: () => _toggleFav(h)),
           ],
         ),
       ),

@@ -229,8 +229,9 @@ class _HeaderDelegate extends SliverPersistentHeaderDelegate {
 
   static const _shadow = [Shadow(color: Color(0xCC000000), blurRadius: 6, offset: Offset(0, 1))];
 
-  /// Yerleşimin dayandığı üst hiza: durum çubuğu (en az 24; logo bu çubuğun hizasından başlar).
-  double get _base => math.max(topInset, 24);
+  /// Yerleşimin dayandığı üst hiza: durum çubuğunun (saat, pil, ön kamera; en az 24) 18 altı. Logo durum
+  /// çubuğunun hemen altından başlar, kameranın arkasına girmez.
+  double get _base => math.max(topInset, 24) + 18;
 
   @override
   double get maxExtent => PageShell.fullHeight + _base;
@@ -312,7 +313,7 @@ class _HeaderDelegate extends SliverPersistentHeaderDelegate {
             ),
 
             if (fade > 0) ...[
-              // Logo: durum çubuğu hizasından başlar, ortada
+              // Logo: durum çubuğunun hemen altından başlar, ortada
               Positioned(
                 top: base - 14 - shrinkOffset,
                 left: 0,

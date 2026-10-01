@@ -43,6 +43,9 @@ class CountdownBanner extends StatelessWidget {
     'Yatsı': 'Yatsıya',
   };
 
+  /// "İmsaka kalan", "Öğleye kalan" gibi.
+  static String remainingLabel(PrayerStatus s) => '${_to[s.next.name] ?? s.next.name} kalan';
+
   /// Kalan süre "2:40" (saat:dakika); son bir saatte "0:25".
   static String remainingText(Duration d) => '${d.inHours}:${(d.inMinutes % 60).toString().padLeft(2, '0')}';
 
@@ -118,6 +121,14 @@ class RemainingLine extends StatelessWidget {
   final double k;
 
   const RemainingLine({super.key, required this.status, required this.k});
+
+  /// Kalan süre saat:dakika:saniye ("5:49:07", bir saatten azsa "49:07").
+  static String withSeconds(Duration d) {
+    if (d.isNegative) d = Duration.zero;
+    String two(int n) => n.toString().padLeft(2, '0');
+    final h = d.inHours, m = d.inMinutes % 60, sec = d.inSeconds % 60;
+    return h > 0 ? '$h:${two(m)}:${two(sec)}' : '${two(m)}:${two(sec)}';
+  }
 
   @override
   Widget build(BuildContext context) {

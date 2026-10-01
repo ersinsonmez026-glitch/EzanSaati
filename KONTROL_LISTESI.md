@@ -48,14 +48,15 @@ hazır ve doğrulanmış kaynaklardan birebir alındığı için listede yok. A�
 - [ ] Önerilen hedef sayıları (33 / 100)
 - [ ] Namazdan sonra tesbihat sırası (33-33-33 ve ardından tevhid) ve tevhid metni
 
-## 4. Hadisler sayfası
-Metinler HadeethEnc.com'dan (Nebevi Hadisler Ansiklopedisi Tercümesi) alınacak. Kullanım şartı: metin değiştirilmeden,
-kaynak (HadeethEnc.com) ve sürüm belirtilerek kullanılmalı. Uygulama metinleri doğrudan HadeethEnc'ten çeker
-(ilk açılışta internet gerekir, sonra telefonda saklanır ve haftada bir yenilenir).
-- [ ] Seçilen hadislerin uygunluğu (HadeethEnc no: 5803, 66511, 4709, 4555, 5437, 8289, 5435, 5348, 3852,
-      66255, 5516, 5478, 3074, 5493, 3779) ve eklenecek diğerleri
-- [ ] HadeethEnc Türkçe çevirilerindeki yazım hataları (ör. "dışgörünüşünüze", "hamtederek") HadeethEnc'e
-      bildirilecek; kendimiz düzeltemeyiz (kullanım şartı)
+## 4. Hadisler sayfası ve ana ekrandaki Günün Ayeti / Günün Hadisi
+Hadisler Diyanet İşleri Başkanlığı'nın "Hadislerle İslâm" eserinden (hadislerleislam.diyanet.gov.tr) alınır:
+eserde Hz. Peygamber'in sözü olarak tırnak içinde verilen ve dipnotta Kütüb-i Sitte'ye dayandırılan kısa
+hadisler; metin değiştirilmez (yalnız sitedeki " işareti kesme işaretine ’ çevrilir), kaynak olarak eserdeki
+dipnot ile cilt/sayfa gösterilir. Liste: lib/data/gunun_sozu.dart (74 hadis, 40 ayet). Ayet mealleri
+uygulamanın Kur'an mealinden (Ruvvâd) aynen alınır.
+- [ ] 74 hadisin seçimi ve tek başına okunduğunda anlamının doğru anlaşılması
+- [ ] 40 ayetin seçimi
+- [ ] Diyanet'ten (diniyayinlar@diyanet.gov.tr) kullanım izni
 
 ## 5. Dini Mesajlar sayfası
 - [ ] Hazır mesaj metinleri (Cuma, Kandil, Ramazan, Bayram, Hayırlı Sabahlar, Dua; toplam 19 kısa mesaj)

@@ -27,19 +27,10 @@ import 'package:ezan_saati/services/takvim.dart';
 import 'package:ezan_saati/widgets/page_shell.dart';
 import 'package:ezan_saati/widgets/reading_ui.dart';
 import 'package:ezan_saati/widgets/mosque_map.dart';
+import 'package:ezan_saati/data/gunun_sozu.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
-Map<String, dynamic> _fakeHadith(String id) => {
-      'id': id,
-      'title': 'Başlık $id',
-      'hadeeth': 'Metin $id',
-      'hadeeth_ar': 'نص $id',
-      'attribution': 'Müslim rivayet etmiştir',
-      'grade': 'Sahih Hadis',
-      'explanation': 'Açıklama $id',
-    };
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -50,58 +41,40 @@ void main() {
     await LocationStore.instance.load();
   });
 
-  group('Hadisler (HadeethEnc)', () {
-    test('metinler kaynaktan değiştirilmeden alınır, saklanır ve internetsiz de açılır', () async {
-      var calls = 0;
-      var day = DateTime(2026, 9, 28);
-      final store = HadithStore(fetch: (id) async {
-        calls++;
-        return _fakeHadith(id);
-      }, now: () => day);
-      final items = await store.load();
-      expect(items.map((h) => h.id), kHadithIds);
-      expect(items.first.text, 'Metin ${kHadithIds.first}');
-      expect(items.first.url, 'https://hadeethenc.com/tr/browse/hadith/${kHadithIds.first}');
-      expect(calls, kHadithIds.length);
-
-      // Bir hafta dolmadan yeniden indirilmez
-      await store.load();
-      expect(calls, kHadithIds.length);
-
-      // Bağlantı yoksa saklanan metinler döner
-      day = DateTime(2026, 10, 10);
-      final offline = HadithStore(fetch: (_) async => throw Exception('internet yok'), now: () => day);
-      expect((await offline.load()).length, kHadithIds.length);
+  group('Hadisler (Diyanet, Hadislerle İslâm)', () {
+    test('liste uygulamanın içinde; her hadisin kaynağı ve eser sayfası var', () async {
+      final items = await const HadithStore().load();
+      expect(items.length, kDailyHadiths.length);
+      expect(items.map((h) => h.id).toSet().length, items.length);
+      for (final h in items) {
+        expect(h.attribution, matches(RegExp(r'^(Buhârî|Müslim|Ebû Dâvûd|Tirmizî|Nesâî|İbn Mâce),')));
+        expect(h.url, startsWith('https://hadislerleislam.diyanet.gov.tr/sayfa.php?CILT='));
+        expect(h.text, isNot(contains('"')));
+      }
+      expect(items[2].text, 'Her iyilik bir sadakadır.');
+      expect(items[2].attribution, 'Buhârî, Edeb, 33');
+      expect(items[2].book, 'Hadislerle İslâm, 2/488');
     });
 
-    test('hiç indirilmemişse ve internet yoksa hata verir', () async {
-      final store = HadithStore(fetch: (_) async => throw Exception('internet yok'));
-      expect(store.load(), throwsException);
-    });
-
-    testWidgets('sayfa: liste, favori sekmesi ve okuma (günün hadisi kartı yok)', (t) async {
+    testWidgets('sayfa: liste, favori sekmesi ve okuma', (t) async {
       t.view.physicalSize = const Size(390, 1600);
       t.view.devicePixelRatio = 1;
       addTearDown(t.view.reset);
-      final store = HadithStore(fetch: (id) async => _fakeHadith(id));
-      await t.pumpWidget(MaterialApp(home: HadithsScreen(store: store)));
+      await t.pumpWidget(const MaterialApp(home: HadithsScreen()));
       await t.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 100)));
       await t.pumpAndSettle();
-      expect(find.text('Günün Hadisi'), findsNothing);
       expect(find.text('Tüm Hadisler'), findsOneWidget);
-      expect(find.text('Başlık ${kHadithIds[1]}'), findsOneWidget);
+      expect(find.text('“Sadaka malı eksiltmez!”'), findsOneWidget);
       await t.tap(find.text('Favorilerim'));
       await t.pump();
       expect(find.textContaining('Henüz favori hadisiniz yok'), findsOneWidget);
       await t.tap(find.text('Tüm Hadisler'));
       await t.pump();
-      await t.tap(find.text('Başlık ${kHadithIds[1]}'));
+      await t.tap(find.text('“Sadaka malı eksiltmez!”'));
       await t.pumpAndSettle();
-      expect(find.text('Metin ${kHadithIds[1]}'), findsOneWidget);
-      expect(find.text('Sahih Hadis'), findsOneWidget);
-      await t.tap(find.text('Açıklama'));
-      await t.pump();
-      expect(find.text('Açıklama ${kHadithIds[1]}'), findsOneWidget);
+      expect(find.text('“Sadaka malı eksiltmez!”'), findsOneWidget);
+      expect(find.text('Müslim, Birr, 69'), findsWidgets);
+      expect(find.text('Hadislerle İslâm, 1/660'), findsOneWidget);
     });
   });
 
@@ -325,7 +298,7 @@ void main() {
     await t.pumpAndSettle();
     expect(find.byType(AboutScreen), findsOneWidget);
     expect(find.text('Gizlilik'), findsOneWidget);
-    expect(find.textContaining('HadeethEnc'), findsWidgets);
+    expect(find.textContaining('Hadislerle İslâm'), findsWidgets);
   });
 
   testWidgets('Şehir seçimi: konum düğmesi ve Türkçe arama', (t) async {

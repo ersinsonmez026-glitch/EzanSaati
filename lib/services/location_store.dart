@@ -1,6 +1,8 @@
 import 'dart:math' as math;
+import 'dart:ui' show Locale;
 
 import 'package:flutter/foundation.dart';
+import 'package:geocoding/geocoding.dart' show Geocoding;
 import 'package:geolocator/geolocator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -13,11 +15,15 @@ class AppLocation {
   final double lng;
   final bool fromGps;
 
+  /// GPS ile bulunduysa ilçe ya da mahalle adı (telefonun adres çözümleyicisinden); yoksa boş.
+  final String district;
+
   const AppLocation({
     required this.name,
     required this.lat,
     required this.lng,
     this.fromGps = false,
+    this.district = '',
   });
 }
 
@@ -31,6 +37,7 @@ class LocationStore extends ChangeNotifier {
   static const _kLat = 'loc_lat';
   static const _kLng = 'loc_lng';
   static const _kGps = 'loc_gps';
+  static const _kDistrict = 'loc_ilce';
 
   AppLocation? _current;
 
@@ -49,6 +56,7 @@ class LocationStore extends ChangeNotifier {
         lat: lat,
         lng: lng,
         fromGps: prefs.getBool(_kGps) ?? false,
+        district: prefs.getString(_kDistrict) ?? '',
       );
       notifyListeners();
     }
@@ -62,6 +70,7 @@ class LocationStore extends ChangeNotifier {
     await prefs.setDouble(_kLat, loc.lat);
     await prefs.setDouble(_kLng, loc.lng);
     await prefs.setBool(_kGps, loc.fromGps);
+    await prefs.setString(_kDistrict, loc.district);
   }
 
   /// Listeden il seçildiğinde çağrılır.
@@ -112,6 +121,7 @@ class LocationStore extends ChangeNotifier {
         lat: pos.latitude,
         lng: pos.longitude,
         fromGps: true,
+        district: await _district(pos.latitude, pos.longitude),
       ));
       return null;
     } catch (e) {
@@ -119,6 +129,25 @@ class LocationStore extends ChangeNotifier {
       return 'Konum alınamadı. Telefonun Ayarlar › Konum bölümünde "Google Konum Doğruluğu" (Wi-Fi ile konum) '
           'açıkken tekrar deneyin ya da şehrinizi listeden seçin.';
     }
+  }
+
+  /// Konumun ilçe adı, yoksa mahalle adı (telefonun kendi adres çözümleyicisi; internet gerekir, ücretsiz).
+  /// Bulunamazsa boş: ana ekranda yalnız il adı görünür.
+  static Future<String> _district(double lat, double lng) async {
+    try {
+      final places = await Geocoding(locale: const Locale('tr', 'TR'))
+          .placemarkFromCoordinates(lat, lng)
+          .timeout(const Duration(seconds: 8));
+      for (final p in places) {
+        for (final n in [p.subAdministrativeArea, p.subLocality, p.locality]) {
+          final t = (n ?? '').trim();
+          if (t.isNotEmpty && !RegExp(r'^\d').hasMatch(t)) return t;
+        }
+      }
+    } catch (e) {
+      debugPrint('İlçe adı alınamadı: $e');
+    }
+    return '';
   }
 
   /// Verilen koordinata en yakın il.

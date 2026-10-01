@@ -12,7 +12,7 @@ Bunlar Flutter koduna aktarılacak sayfaların örnekleridir; uygulamanın kendi
 | 05-namaz-ogren.html | Namaz Öğren | Onaylandı |
 | 06-zikir-sayaci.html | Zikir Sayacı | Onaylandı |
 | 07-kible.html | Kıble | Onaylandı |
-| 08-hadisler.html | Hadisler | Uygulamada (metinler HadeethEnc.com'dan canlı alınır) |
+| 08-hadisler.html | Hadisler | Uygulamada (metinler Diyanet'in Hadislerle İslâm eserinden, uygulamanın içinde) |
 | 09-dini-mesajlar.html | Dini Mesajlar | Uygulamada (96 mesaj) |
 | 10-dua-zinciri.html | Dua Zinciri + Online Dua | Uygulamada (Online Dua genel toplamı sunucu kuralı bekliyor) |
 | 11-ramazan.html | Ramazan (imsakiye, niyet ve dua, önemli günler) | Uygulamada |
