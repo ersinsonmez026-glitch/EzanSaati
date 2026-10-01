@@ -31,6 +31,7 @@ class _HadithsScreenState extends State<HadithsScreen> {
   bool _loading = true;
   String _query = '';
   bool _onlyFav = false;
+  String? _topic; // seçili konu başlığı; null: tümü
 
   @override
   void initState() {
@@ -141,7 +142,8 @@ class _HadithsScreenState extends State<HadithsScreen> {
     final shown = [
       for (var i = 0; i < items.length; i++)
         if ((!_onlyFav || favs.contains(items[i].id)) &&
-            (q.isEmpty || trSearchKey('${items[i].text} ${items[i].attribution}').contains(q)))
+            (_topic == null || items[i].topic == _topic) &&
+            (q.isEmpty || trSearchKey('${items[i].text} ${items[i].attribution} ${items[i].topic}').contains(q)))
           i,
     ];
     return [
@@ -166,6 +168,8 @@ class _HadithsScreenState extends State<HadithsScreen> {
       gap,
       if (!widget.embedded) ...[
         SearchBox(pal: _pal, hint: 'Hadislerde ara', onChanged: (v) => setState(() => _query = v)),
+        gap,
+        _topicButton(items),
         gap,
       ],
       PaperBox(
@@ -197,10 +201,82 @@ class _HadithsScreenState extends State<HadithsScreen> {
       gap,
       SourceNote(
         pal: _pal,
-        text: 'Kaynak: Diyanet İşleri Başkanlığı, Hadislerle İslâm (hadislerleislam.diyanet.gov.tr). Hadisler, '
-            'eserdeki metinleri ve dipnotlarındaki kaynaklarıyla değiştirilmeden gösterilir.',
+        text: 'Kaynak: Diyanet İşleri Başkanlığı, Hadislerle İslâm (hadislerleislam.diyanet.gov.tr). Eserde '
+            'Hz. Peygamber\'in sözü olarak verilen ve dipnotta Kütüb-i Sitte\'ye dayandırılan ${items.length} hadis, '
+            'eserdeki konu başlıklarıyla ve metinleri değiştirilmeden gösterilir.',
       ),
     ];
+  }
+
+  /// Konu seçimi: eserdeki konu başlıkları (alfabetik, hadis sayısıyla); "Tüm konular" ile kaldırılır.
+  Widget _topicButton(List<Hadith> items) {
+    return PillButton(
+      pal: _pal,
+      selected: _topic != null,
+      height: 40,
+      onTap: () => _pickTopic(items),
+      child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+        Icon(Icons.topic_outlined, size: 18, color: _topic != null ? RC.bronzeText : _pal.gold),
+        const SizedBox(width: 6),
+        Flexible(
+          child: Text(_topic == null ? 'Konu seç (tüm konular)' : 'Konu: $_topic',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                  color: _topic != null ? RC.bronzeText : _pal.ink, fontSize: 13.5, fontWeight: FontWeight.w700)),
+        ),
+        Icon(Icons.expand_more, size: 20, color: _topic != null ? RC.bronzeText : _pal.ink2),
+      ]),
+    );
+  }
+
+  Future<void> _pickTopic(List<Hadith> items) async {
+    final counts = <String, int>{};
+    for (final h in items) {
+      counts[h.topic] = (counts[h.topic] ?? 0) + 1;
+    }
+    final topics = counts.keys.toList()..sort((a, b) => trSearchKey(a).compareTo(trSearchKey(b)));
+    final picked = await showModalBottomSheet<String>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: _pal.paper,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (ctx) {
+        var filter = '';
+        return StatefulBuilder(builder: (ctx, setSheet) {
+          final shown = [for (final t in topics) if (filter.isEmpty || trSearchKey(t).contains(filter)) t];
+          return SizedBox(
+            height: MediaQuery.sizeOf(ctx).height * 0.8,
+            child: Column(children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(12, 14, 12, 6),
+                child: SearchBox(
+                    pal: _pal, hint: 'Konu ara (${topics.length} konu)', onChanged: (v) => setSheet(() => filter = trSearchKey(v.trim()))),
+              ),
+              ListTile(
+                key: const Key('topicAll'),
+                title: Text('Tüm konular', style: TextStyle(color: _pal.ink, fontWeight: FontWeight.w700)),
+                trailing: Text('${items.length}', style: TextStyle(color: _pal.ink2)),
+                onTap: () => Navigator.of(ctx).pop(''),
+              ),
+              Expanded(
+                child: ListView.builder(
+                  itemCount: shown.length,
+                  itemBuilder: (ctx, i) => ListTile(
+                    dense: true,
+                    title: Text(shown[i], style: TextStyle(color: _pal.ink, fontSize: 14.5)),
+                    trailing: Text('${counts[shown[i]]}', style: TextStyle(color: _pal.ink2)),
+                    selected: shown[i] == _topic,
+                    onTap: () => Navigator.of(ctx).pop(shown[i]),
+                  ),
+                ),
+              ),
+            ]),
+          );
+        });
+      },
+    );
+    if (picked != null && mounted) setState(() => _topic = picked.isEmpty ? null : picked);
   }
 
   Widget _row(List<Hadith> items, int index, int n, bool fav) {
@@ -219,7 +295,7 @@ class _HadithsScreenState extends State<HadithsScreen> {
                 children: [
                   Text('“${h.text}”',
                       style: TextStyle(color: _pal.ink, fontSize: 14.5, height: 1.35, fontWeight: FontWeight.w700)),
-                  Text(h.attribution, style: TextStyle(color: _pal.ink2, fontSize: 11.5)),
+                  Text('${h.topic} · ${h.attribution}', style: TextStyle(color: _pal.ink2, fontSize: 11.5)),
                 ],
               ),
             ),

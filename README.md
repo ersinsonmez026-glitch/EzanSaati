@@ -36,7 +36,7 @@ flutter run
 | Dua Zinciri – 1. aşama (zincir kurma, rehberden kişi seçme, paylaştırma, WhatsApp daveti; veriler telefonda) | ✅ |
 | Dua Zinciri – 2. aşama (Firebase: uygulama içi davet/kabul/ret, ortak ilerleme ve tamamlanma) | ✅ (konsol ayarı gerekli, aşağıda) |
 | Dua Zinciri – Online Dua genel toplamı, uygulama kapalıyken bildirim | ⏳ |
-| Hadisler (74 kısa hadis, arama, favoriler; Diyanet'in Hadislerle İslâm eserinden metin değiştirilmeden, internetsiz) ve ana ekranda Günün Ayeti / Günün Hadisi | ✅ |
+| Hadisler (889 hadis, eserdeki konu başlıklarına göre konu seçimi, arama, favoriler; Diyanet'in Hadislerle İslâm eserinden metin değiştirilmeden, internetsiz) ve ana ekranda Günün Ayeti / Günün Hadisi | ✅ |
 
 ## Klasörler
 

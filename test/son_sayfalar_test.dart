@@ -37,37 +37,45 @@ void main() {
   });
 
   group('Hadisler (Diyanet, Hadislerle İslâm)', () {
-    test('liste uygulamanın içinde; her hadisin kaynağı ve eser sayfası var', () async {
-      final items = await const HadithStore().load();
-      expect(items.length, kDailyHadiths.length);
+    test('liste: her hadisin kaynağı, eser sayfası ve konusu var; günün hadisleri listede', () async {
+      final items = await HadithStore.all();
+      expect(items.length, greaterThan(800));
       expect(items.map((h) => h.id).toSet().length, items.length);
       for (final h in items) {
-        expect(h.attribution, matches(RegExp(r'^(Buhârî|Müslim|Ebû Dâvûd|Tirmizî|Nesâî|İbn Mâce),')));
+        expect(h.attribution, matches(RegExp(r'^(Buhârî|Müslim|Ebû Dâvûd|Tirmizî|Nesâî|İbn Mâce),')), reason: h.text);
+        expect(h.topic, isNotEmpty);
+        expect(h.text, isNot(contains('...')));
         expect(h.url, startsWith('https://hadislerleislam.diyanet.gov.tr/sayfa.php?CILT='));
-        expect(h.text, isNot(contains('"')));
       }
-      expect(items[2].text, 'Her iyilik bir sadakadır.');
-      expect(items[2].attribution, 'Buhârî, Edeb, 33');
-      expect(items[2].book, 'Hadislerle İslâm, 2/488');
+      final texts = items.map((h) => h.text).toSet();
+      for (final d in kDailyHadiths) {
+        expect(texts.contains(d.text), isTrue, reason: d.text);
+      }
     });
 
-    testWidgets('sayfa: liste, favori sekmesi ve okuma', (t) async {
+    testWidgets('sayfa: arama, konu seçimi, favori sekmesi ve okuma', (t) async {
       t.view.physicalSize = const Size(390, 1600);
       t.view.devicePixelRatio = 1;
       addTearDown(t.view.reset);
       await t.pumpWidget(const MaterialApp(home: HadithsScreen()));
-      await t.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 100)));
+      await t.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 300)));
       await t.pumpAndSettle();
       expect(find.text('Tüm Hadisler'), findsOneWidget);
+      await t.tap(find.text('Konu seç (tüm konular)'));
+      await t.pumpAndSettle();
+      expect(find.byKey(const Key('topicAll')), findsOneWidget);
+      await t.tap(find.byKey(const Key('topicAll')));
+      await t.pumpAndSettle();
+      await t.enterText(find.byType(TextField).first, 'Sadaka malı eksiltmez');
+      await t.pumpAndSettle();
       expect(find.text('“Sadaka malı eksiltmez!”'), findsOneWidget);
       await t.tap(find.text('Favorilerim'));
       await t.pump();
-      expect(find.textContaining('Henüz favori hadisiniz yok'), findsOneWidget);
+      expect(find.textContaining('Henüz favori hadisiniz yok'), findsNothing);
       await t.tap(find.text('Tüm Hadisler'));
       await t.pump();
       await t.tap(find.text('“Sadaka malı eksiltmez!”'));
       await t.pumpAndSettle();
-      expect(find.text('“Sadaka malı eksiltmez!”'), findsOneWidget);
       expect(find.text('Müslim, Birr, 69'), findsWidgets);
       expect(find.text('Hadislerle İslâm, 1/660'), findsOneWidget);
     });

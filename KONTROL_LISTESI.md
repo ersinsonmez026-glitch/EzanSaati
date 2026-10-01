@@ -52,7 +52,7 @@ hazır ve doğrulanmış kaynaklardan birebir alındığı için listede yok. A�
 Hadisler Diyanet İşleri Başkanlığı'nın "Hadislerle İslâm" eserinden (hadislerleislam.diyanet.gov.tr) alınır:
 eserde Hz. Peygamber'in sözü olarak tırnak içinde verilen ve dipnotta Kütüb-i Sitte'ye dayandırılan kısa
 hadisler; metin değiştirilmez (yalnız sitedeki " işareti kesme işaretine ’ çevrilir), kaynak olarak eserdeki
-dipnot ile cilt/sayfa gösterilir. Liste: lib/data/gunun_sozu.dart (74 hadis, 40 ayet). Ayet mealleri
+dipnot ile cilt/sayfa gösterilir. Hadisler sayfası: assets/data/hadisler.json (889 hadis, konu başlıklarıyla); günün hadisi ve ayeti: lib/data/gunun_sozu.dart (74 hadis, 40 ayet). Ayet mealleri
 uygulamanın Kur'an mealinden (Ruvvâd) aynen alınır.
 - [ ] 74 hadisin seçimi ve tek başına okunduğunda anlamının doğru anlaşılması
 - [ ] 40 ayetin seçimi
