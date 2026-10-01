@@ -1,0 +1,73 @@
+name: Kısa hadis listesi (HadeethEnc)
+
+# Ana ekrandaki "Günün hadisi" için HadeethEnc.com'un (Nebevi Hadisler Ansiklopedisi Tercümesi) resmî
+# API'sinden Türkçe kısa hadisleri toplar. Metinler değiştirilmez; yalnız Kütüb-i Sitte kaynaklı
+# (Buhârî, Müslim, Ebû Dâvûd, Tirmizî, Nesâî, İbn Mâce), sahih/hasen ve kısa olanlar seçilir.
+# Sonuç hadis-adaylari paketinde (hadisler.json); uygulamaya eklenmez.
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [claude/charming-davinci-6c5fkr]
+    paths:
+      - .github/workflows/hadis-arama.yml
+
+jobs:
+  topla:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Hadisleri topla
+        run: |
+          mkdir -p out
+          python3 - <<'EOF'
+          import json, re, time, urllib.request
+          API = 'https://hadeethenc.com/api/v1'
+          def get(url):
+              for i in range(4):
+                  try:
+                      req = urllib.request.Request(url, headers={'User-Agent': 'EzanSaati/1.0'})
+                      with urllib.request.urlopen(req, timeout=30) as r:
+                          return json.loads(r.read().decode('utf-8'))
+                  except Exception as e:
+                      print('tekrar', url, e); time.sleep(2 + i * 3)
+              return None
+          cats = get(f'{API}/categories/list/?language=tr') or []
+          print('kategori', len(cats))
+          ids = {}
+          for c in cats:
+              page = 1
+              while True:
+                  r = get(f"{API}/hadeeths/list/?language=tr&category_id={c['id']}&page={page}&per_page=100")
+                  if not r: break
+                  for h in r.get('data', []):
+                      ids.setdefault(h['id'], h.get('title', ''))
+                  meta = r.get('meta', {})
+                  if page >= int(meta.get('last_page', 1)): break
+                  page += 1
+          print('hadis kimliği', len(ids))
+          books = r'Buhârî|Buhari|Müslim|Muslim|Ebû Dâvûd|Ebu Davud|Tirmizî|Tirmizi|Nesâî|Nesai|İbn Mâce|İbni Mâce|Ibn Mace'
+          keep = []
+          for n, i in enumerate(ids):
+              h = get(f'{API}/hadeeths/one/?language=tr&id={i}')
+              if not h: continue
+              text = (h.get('hadeeth') or '').strip()
+              attr = (h.get('attribution') or '').strip()
+              grade = (h.get('grade') or '').strip()
+              if not re.search(books, attr, re.I): continue
+              if not re.search(r'sahih|sahîh|hasen|hasan', grade, re.I): continue
+              if len(text) > 160: continue
+              keep.append({'id': str(h.get('id', i)), 'text': text, 'attribution': attr, 'grade': grade,
+                           'title': (h.get('title') or '').strip()})
+              time.sleep(0.15)
+          keep.sort(key=lambda x: len(x['text']))
+          json.dump(keep, open('out/hadisler.json', 'w'), ensure_ascii=False, indent=1)
+          print('\nSEÇİLEN', len(keep))
+          for k in keep:
+              print(f"[{k['id']}] {k['text']}  ({k['attribution']} · {k['grade']})")
+          EOF
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hadis-adaylari
+          path: out
+          retention-days: 14
