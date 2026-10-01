@@ -3,11 +3,10 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
 /// Cami Bulucu haritası: Google Haritalar'ın gömülü görünümü, uygulamanın içinde (anahtar gerekmez).
-/// Harita kaydırılıp yakınlaştırılabilir; harita dışındaki bir bağlantıya dokunulursa harita uygulaması açılır.
+/// Harita kaydırılıp yakınlaştırılabilir; hiçbir bağlantı uygulamanın dışına (tarayıcıya) çıkmaz.
 class MosqueMap extends StatefulWidget {
   final Uri url;
 
@@ -51,13 +50,12 @@ class _MosqueMapState extends State<MosqueMap> {
           if (e.isForMainFrame ?? true) _set(loading: false, failed: true);
         },
         onNavigationRequest: (r) {
-          final u = Uri.tryParse(r.url);
-          // Gömülü harita içinde kalır; "büyük haritada aç" gibi bağlantılar harita uygulamasında açılır.
-          if (!r.isMainFrame || u == null || u.queryParameters['output'] == 'embed' || r.url == 'about:blank') {
-            return NavigationDecision.navigate;
-          }
-          launchUrl(u, mode: LaunchMode.externalApplication);
-          return NavigationDecision.prevent;
+          // Harita her zaman uygulamanın içinde kalır. Google haritayı açarken kendi içinde başka adreslere
+          // yönlendirir (ör. /maps/embed); bunlar da burada açılır, telefonun tarayıcısına hiç gidilmez.
+          final scheme = Uri.tryParse(r.url)?.scheme ?? '';
+          return const {'http', 'https', 'about', 'data', 'blob'}.contains(scheme)
+              ? NavigationDecision.navigate
+              : NavigationDecision.prevent;
         },
       ))
       ..loadRequest(widget.url);

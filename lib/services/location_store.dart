@@ -88,12 +88,22 @@ class LocationStore extends ChangeNotifier {
             'ya da şehrinizi listeden seçebilirsiniz.';
       }
 
-      final pos = await Geolocator.getCurrentPosition(
-        locationSettings: const LocationSettings(
-          accuracy: LocationAccuracy.medium,
-          timeLimit: Duration(seconds: 20),
-        ),
-      );
+      // Namaz vakti için ilçe düzeyi yeterli: SIM'siz, yalnız Wi-Fi'lı telefonda da konum bulunsun diye
+      // önce ağ (Wi-Fi) konumu, olmazsa telefonun bildiği son konum, en son uydu (GPS) denenir.
+      Position? pos;
+      for (final (acc, sec) in const [(LocationAccuracy.low, 15), (LocationAccuracy.medium, 25)]) {
+        try {
+          pos = await Geolocator.getCurrentPosition(
+            locationSettings: LocationSettings(accuracy: acc, timeLimit: Duration(seconds: sec)),
+          );
+          break;
+        } catch (e) {
+          debugPrint('Konum denemesi ($acc): $e');
+          pos ??= await Geolocator.getLastKnownPosition();
+          if (pos != null) break;
+        }
+      }
+      if (pos == null) throw StateError('konum yok');
 
       final nearest = nearestCity(pos.latitude, pos.longitude);
       final km = distanceKm(pos.latitude, pos.longitude, nearest.lat, nearest.lng);
@@ -106,7 +116,8 @@ class LocationStore extends ChangeNotifier {
       return null;
     } catch (e) {
       debugPrint('Konum alınamadı: $e');
-      return 'Konum alınamadı. Açık alanda tekrar deneyin ya da şehrinizi listeden seçin.';
+      return 'Konum alınamadı. Telefonun Ayarlar › Konum bölümünde "Google Konum Doğruluğu" (Wi-Fi ile konum) '
+          'açıkken tekrar deneyin ya da şehrinizi listeden seçin.';
     }
   }
 
