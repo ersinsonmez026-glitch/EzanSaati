@@ -11,6 +11,9 @@ class Premium extends ChangeNotifier {
 
   static const _kTest = 'premium_test';
 
+  /// Deneme anahtarı yalnız geliştirme ve deneme (--dart-define=DENEME=true) sürümlerinde görünür.
+  static const showTestSwitch = kDebugMode || bool.fromEnvironment('DENEME');
+
   static const monthlyPrice = '49,90 TL';
   static const yearlyPrice = '299,90 TL';
   static const yearlyPerMonth = '24,99 TL';
@@ -22,7 +25,7 @@ class Premium extends ChangeNotifier {
 
   Future<void> load() async {
     _p ??= await SharedPreferences.getInstance();
-    _active = _p!.getBool(_kTest) ?? false;
+    _active = showTestSwitch && (_p!.getBool(_kTest) ?? false); // mağaza sürümünde deneme kaydı yok sayılır
     notifyListeners();
   }
 

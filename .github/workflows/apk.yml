@@ -6,9 +6,9 @@ on:
   workflow_dispatch:
     inputs:
       mode:
-        description: 'Derleme türü (release ya da debug)'
+        description: 'Derleme türü (release, deneme ya da debug)'
         type: choice
-        options: [release, debug]
+        options: [release, deneme, debug]
         default: release
 
 jobs:
@@ -35,12 +35,19 @@ jobs:
 
       # Mağaza sürümü işlemci türüne göre ayrı APK'lara bölünür: her telefon yalnız kendine uygun olanı
       # kurar (arm64-v8a: günümüz telefonlarının neredeyse tamamı; armeabi-v7a: eski telefonlar).
+      # Deneme sürümü: mağaza sürümüyle aynı (küçük ve hızlı), yalnız Premium deneme anahtarı açık;
+      # günümüz telefonları için tek APK (arm64-v8a) yüklenir.
       - name: APK derle
-        run: flutter build apk --${{ inputs.mode || 'release' }} ${{ (inputs.mode || 'release') == 'release' && '--split-per-abi' || '' }}
+        run: |
+          case "${{ inputs.mode || 'release' }}" in
+            debug)  flutter build apk --debug ;;
+            deneme) flutter build apk --release --split-per-abi --dart-define=DENEME=true ;;
+            *)      flutter build apk --release --split-per-abi ;;
+          esac
 
       - name: APK'yı yükle
         uses: actions/upload-artifact@v4
         with:
-          name: EzanSaati-${{ inputs.mode == 'debug' && 'debug-' || '' }}apk
-          path: build/app/outputs/flutter-apk/app-*${{ inputs.mode || 'release' }}.apk
+          name: EzanSaati-${{ inputs.mode == 'debug' && 'debug-' || inputs.mode == 'deneme' && 'deneme-' || '' }}apk
+          path: build/app/outputs/flutter-apk/${{ inputs.mode == 'debug' && 'app-debug.apk' || inputs.mode == 'deneme' && 'app-arm64-v8a-release.apk' || 'app-*release.apk' }}
           retention-days: 14

@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../services/premium.dart';
@@ -88,7 +87,7 @@ class _PremiumScreenState extends State<PremiumScreen> {
             ],
             const SizedBox(height: 6),
             _freeBox(),
-            if (kDebugMode) ...[
+            if (Premium.showTestSwitch) ...[
               const SizedBox(height: 12),
               _testSwitch(active),
             ],
