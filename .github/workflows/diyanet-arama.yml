@@ -24,17 +24,16 @@ jobs:
               with urllib.request.urlopen(req, timeout=30) as r:
                   return r.read().decode('utf-8', 'replace')
           root = 'https://hadislerleislam.diyanet.gov.tr/sayfa.php'
-          for cilt, sayfa in [(1, 371), (1, 372), (1, 373), (4, 101), (4, 102)]:
+          for cilt, sayfa in [(1, 372), (3, 200)]:
               html = get(f'{root}?CILT={cilt}&SAYFA={sayfa}')
               open(f'out/c{cilt}s{sayfa}.html', 'w').write(html)
               # Sayfa gezinti listesinden sonraki asıl içerik
               body = re.split(r'SAYFA=\d+"[^>]*>\s*\d+\s*</a>\s*(?:</[^>]+>\s*)*', html)[-1]
               body = re.sub(r'<(script|style)[^>]*>.*?</\1>', ' ', body, flags=re.S)
-              print(f'\n===== CİLT {cilt} SAYFA {sayfa} — HTML kesiti')
-              i = html.find('Sayfa:')
-              tail = html[i:]
-              j = tail.find('</a>', tail.rfind('SAYFA='))
-              print(tail[j:j+2500])
+              main = html[:html.find('dipnotdiv')]
+              k = main.rfind('post-content')
+              print(f'\n===== CİLT {cilt} SAYFA {sayfa} — ANA METİN HTML')
+              print(main[k:k+3000])
               time.sleep(1)
           PY
 
