@@ -19,9 +19,9 @@ void main() {
 
   const order = [
     'Namaz Vakitleri', 'Sureler', 'Dualar', //
-    'Zikir Sayacı', 'Kıble Bulucu', 'Cami Bulucu', //
-    'Dua Zinciri', 'Takibim', 'Ramazan', //
-    'Namaz Öğren', 'Dini Mesajlar', 'Ayarlar',
+    'Hadisler', 'Zikir Sayacı', 'Kıble Bulucu', //
+    'Cami Bulucu', 'Dua Zinciri', 'Takibim', //
+    'Ramazan', 'Dini Mesajlar', 'Ayarlar',
   ];
 
   // Üst alan (fotoğraf, konum, kalan süre, ayet, hadis, vakit kartları) her ekranda aynı yükseklikte; uzun
@@ -36,7 +36,7 @@ void main() {
 
       final tiles = t.widgetList<MenuTile>(find.byType(MenuTile)).toList();
       expect(tiles.map((m) => m.title), order);
-      for (final removed in ['İlahiler', 'Dini Hikâyeler', 'Bebek İsimleri']) {
+      for (final removed in ['İlahiler', 'Dini Hikâyeler', 'Bebek İsimleri', 'Namaz Öğren']) {
         expect(find.text(removed), findsNothing);
       }
 

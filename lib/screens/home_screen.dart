@@ -16,7 +16,7 @@ import 'city_picker_screen.dart';
 import 'dhikr_screen.dart';
 import 'dua_circle_screen.dart';
 import 'tracking_screen.dart';
-import 'learn_namaz_screen.dart';
+import 'hadiths_screen.dart';
 import 'messages_screen.dart';
 import 'mosque_finder_screen.dart';
 import 'prayer_times_screen.dart';
@@ -51,13 +51,13 @@ class _HomeScreenState extends State<HomeScreen> {
     _MenuItem('namaz_vakitleri', 'Namaz Vakitleri', 'namaz_vakitleri', () => const PrayerTimesScreen()),
     _MenuItem('sureler', 'Sureler', 'kuran', () => const SurahsScreen()),
     _MenuItem('dualar', 'Dualar', 'dualar', () => const PrayersScreen()),
+    _MenuItem('hadisler', 'Hadisler', 'kuran', () => const HadithsScreen()),
     _MenuItem('zikir_sayaci', 'Zikir Sayacı', 'tesbih', () => const DhikrScreen()),
     _MenuItem('kible_bulucu', 'Kıble Bulucu', 'kible_bulucu', () => const QiblaScreen()),
     _MenuItem('cami_bulucu', 'Cami Bulucu', 'cami_bulucu', () => const MosqueFinderScreen()),
     _MenuItem('dua_cemberi', 'Dua Zinciri', 'dua_cemberi', () => const DuaCircleScreen()),
     _MenuItem('takibim', 'Takibim', 'takvim', () => const TrackingScreen()),
     _MenuItem('ramazan', 'Ramazan', 'fener', () => const RamadanScreen()),
-    _MenuItem('namaz_ogren', 'Namaz Öğren', 'cami', () => const LearnNamazScreen()),
     _MenuItem('dini_mesajlar', 'Dini Mesajlar', 'dini_mesajlar', () => const MessagesScreen()),
     _MenuItem('ayarlar', 'Ayarlar', 'ayarlar', () => const SettingsScreen()),
   ];
@@ -518,6 +518,15 @@ class _NameSheetState extends State<_NameSheet> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
+          // Besmele (Fâtiha 1; uygulamanın Kur'an verisindeki metin)
+          const Text('بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ',
+              textAlign: TextAlign.center,
+              textDirection: TextDirection.rtl,
+              style: TextStyle(fontFamily: 'Amiri', fontSize: 28, height: 1.6, color: Color(0xFFE8C88A))),
+          const Text('Bismillâhirrahmânirrahîm',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: Colors.white70, fontSize: 13, fontStyle: FontStyle.italic)),
+          const SizedBox(height: 14),
           const ArtIcon('cami', size: 60),
           const SizedBox(height: 12),
           const Text(

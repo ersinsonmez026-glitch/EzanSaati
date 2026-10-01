@@ -1,7 +1,5 @@
 import 'dart:io';
 
-import 'package:ezan_saati/data/namaz_ogren.dart';
-import 'package:ezan_saati/screens/learn_namaz_screen.dart';
 import 'package:ezan_saati/screens/messages_screen.dart';
 import 'package:ezan_saati/screens/prayers_screen.dart';
 import 'package:ezan_saati/screens/ramadan_screen.dart';
@@ -39,25 +37,6 @@ void main() {
       expect(d.map((e) => e.title).toSet().length, 106);
     });
 
-    test("Namaz Öğren adımlarındaki bütün dualar ve görseller mevcut", () async {
-      final nd = await DuaData.namaz();
-      for (final n in namazlar) {
-        for (final p in n.parts) {
-          for (final s in namazSteps(n, p)) {
-            for (final t in s.duas) {
-              expect(nd.containsKey(t), isTrue, reason: '${n.title} / ${p.name}: $t');
-            }
-          }
-        }
-      }
-      for (final t in zammSurahs) {
-        expect(nd.containsKey(t), isTrue, reason: t);
-      }
-      for (final img in poseImages.values.toSet()) {
-        expect(File('assets/images/namaz/$img.webp').existsSync(), isTrue, reason: img);
-      }
-    });
-
     test('Dini Mesajlar: kartların görseli var, her hafta sıradaki kart', () {
       final ids = kMessageCards.map((c) => c.id).toSet();
       expect(ids.length, kMessageCards.length);
@@ -89,14 +68,6 @@ void main() {
       expect(r.fasting.map((f) => f.kind), ['bozar', 'bozmaz', 'bilgi']);
     });
 
-    test('Rekât sayıları anlatımla uyumlu', () {
-      for (final n in namazlar) {
-        for (final p in n.parts) {
-          final rakats = namazSteps(n, p).where((s) => s.rakat != null).length;
-          expect(rakats, p.rakats, reason: '${n.title} ${p.name}');
-        }
-      }
-    });
   });
 
   group('Sayfalar', () {
@@ -140,20 +111,6 @@ void main() {
       await t.tap(find.text('Diğer Dualar').first);
       await t.pumpAndSettle();
       expect(find.text("Hz. Âdem'in Tövbe Duası"), findsOneWidget);
-    });
-
-    testWidgets('Namaz Öğren: sol sütun kaydırınca sabit kalır', (t) async {
-      await pump(t, const LearnNamazScreen());
-      expect(find.text('Sabah Namazı'), findsOneWidget);
-      final before = t.getTopLeft(find.text('Sabah')).dy;
-      await t.drag(find.text('Niyet'), const Offset(0, -600));
-      await t.pumpAndSettle();
-      final after = t.getTopLeft(find.text('Sabah')).dy;
-      expect(after, greaterThan(40)); // başlık şeridinin altında görünür
-      expect(after, lessThan(before));
-      await t.tap(find.text('Abdest'));
-      await t.pumpAndSettle();
-      expect(find.text('Abdestin Farzları (4)'), findsOneWidget);
     });
 
     testWidgets('Dini Mesajlar: bu cumanın kartı ve favoriler', (t) async {

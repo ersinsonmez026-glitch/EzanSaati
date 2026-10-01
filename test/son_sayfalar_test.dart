@@ -1,17 +1,12 @@
 import 'dart:io';
 
 import 'package:ezan_saati/data/cuz.dart';
-import 'package:ezan_saati/data/namaz_ogren.dart';
-import 'package:ezan_saati/data/namaz_videolari.dart';
 import 'package:ezan_saati/screens/about_screen.dart';
-import 'package:ezan_saati/screens/learn_namaz_screen.dart';
-import 'package:ezan_saati/screens/video_screen.dart';
 import 'package:ezan_saati/screens/city_picker_screen.dart';
 import 'package:ezan_saati/screens/fasting_tracker_screen.dart';
 import 'package:ezan_saati/screens/hadiths_screen.dart';
 import 'package:ezan_saati/screens/mosque_finder_screen.dart';
 import 'package:ezan_saati/screens/notifications_screen.dart';
-import 'package:ezan_saati/screens/prayer_read_screen.dart';
 import 'package:ezan_saati/screens/ramadan_screen.dart';
 import 'package:ezan_saati/screens/surah_read_screen.dart';
 import 'package:ezan_saati/screens/settings_screen.dart';
@@ -328,78 +323,9 @@ void main() {
   });
 
   group('Namaz videoları (Diyanet)', () {
-    test('her namaz ve abdest/gusül/teyemmüm için video var, kimlikler benzersiz', () {
-      expect(namazVideolari.map((v) => v.id).toSet().length, namazVideolari.length);
-      for (final n in namazlar) {
-        expect(videosFor(n.key), isNotEmpty, reason: n.key);
-      }
-      for (final k in ['abdest', 'gusul', 'teyemmum']) {
-        expect(videosFor(k), isNotEmpty, reason: k);
-      }
-      for (final v in namazVideolari) {
-        expect(kVideoTopics.containsKey(v.topic), isTrue, reason: v.id);
-        expect(RegExp(r'^[\w-]{11}$').hasMatch(v.id), isTrue, reason: v.id);
-        expect(v.channel, contains('Diyanet'));
-      }
-    });
-
-    testWidgets('Namaz Öğren: videolu anlatım kartı, Videolar listesi ve video ekranı', (t) async {
-      t.view.physicalSize = const Size(412, 2400);
-      t.view.devicePixelRatio = 1;
-      addTearDown(t.view.reset);
-      await t.pumpWidget(const MaterialApp(home: LearnNamazScreen()));
-      await t.pump();
-      expect(find.text('Videolu Anlatım (Diyanet)'), findsOneWidget);
-      await t.tap(find.text('Videolar'));
-      await t.pump();
-      expect(find.text('Bayram Namazı'), findsOneWidget);
-      await t.tap(find.text('Abdest Nasıl Alınır?'));
-      await t.pumpAndSettle();
-      expect(find.byType(VideoScreen), findsOneWidget);
-      expect(find.text("YouTube'da aç"), findsOneWidget);
-      expect(find.text('Diğer Videolar'), findsOneWidget);
-    });
   });
 
   group('Duaların sesli okunuşu', () {
-    test("Kur'an dualarının hepsinde ses, namaz dualarında Diyanet videosu var", () async {
-      final all = await DuaData.all();
-      expect(all.where((d) => d.hasAudio).length, 66);
-      expect(all.where((d) => d.fromMeal).every((d) => d.hasAudio), isTrue);
-      final ids = {...namazVideolari.map((v) => v.id), ...gunlukDuaVideolari.map((v) => v.id)};
-      for (final d in all.where((d) => d.videos.isNotEmpty)) {
-        expect(d.videos.every(ids.contains), isTrue, reason: d.title);
-      }
-      Dua byTitle(String t) => all.firstWhere((d) => d.title == t);
-      expect(byTitle('Sübhâneke').videos, isNotEmpty);
-      expect(byTitle("Seyyidü'l-İstiğfâr").videos, isNotEmpty);
-      expect(videoById(byTitle("Seyyidü'l-İstiğfâr").videos.first)!.topic, 'gunluk');
-      expect(gunlukDuaVideolari.map((v) => v.id).toSet().length, gunlukDuaVideolari.length);
-      // Zamm-ı sure: başa besmele eklenir; Fâtiha'da eklenmez; tek ayetlik dua tek dosya.
-      expect(duaAudioUrls(byTitle('Fîl Sûresi').audio).length, 6);
-      expect(duaAudioUrls(byTitle('Fîl Sûresi').audio).first, kReciterMaher.ayahUrl(1));
-      expect(duaAudioUrls(byTitle('Fâtiha Sûresi').audio).length, 7);
-      expect(duaAudioUrls(byTitle('Rabbenâ Duaları').audio), [
-        kReciterMaher.ayahUrl(globalAyahNumber(2, 201)),
-        kReciterMaher.ayahUrl(globalAyahNumber(14, 41)),
-      ]);
-    });
-
-    testWidgets('dua sayfasında Sesli Dinle ve Videolu Dinle düğmeleri', (t) async {
-      t.view.physicalSize = const Size(390, 1600);
-      t.view.devicePixelRatio = 1;
-      addTearDown(t.view.reset);
-      final all = await t.runAsync(() => DuaData.all());
-      final i = all!.indexWhere((d) => d.title == 'Rabbenâ Duaları');
-      await t.pumpWidget(MaterialApp(home: PrayerReadScreen(duas: all, index: i)));
-      await t.pump();
-      expect(find.text('Sesli Dinle'), findsOneWidget);
-      expect(find.text('Videolu Dinle'), findsOneWidget);
-      await t.tap(find.text('Videolu Dinle'));
-      await t.pumpAndSettle();
-      expect(find.byType(VideoScreen), findsOneWidget);
-      expect(find.text('Rabbenâ Âtinâ Duası'), findsOneWidget);
-    });
   });
 
   group('Ramazan ve Esmâü\'l-Hüsnâ', () {

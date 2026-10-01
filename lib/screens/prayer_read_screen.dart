@@ -4,13 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:just_audio/just_audio.dart';
 
-import '../data/namaz_videolari.dart';
 import '../services/content_store.dart';
 import '../services/quran_audio.dart';
 import '../widgets/page_shell.dart';
 import '../widgets/reading_ui.dart';
 import 'dhikr_screen.dart';
-import 'video_screen.dart';
 
 /// Tek bir duanın okunduğu sayfa: Arapça, okunuşu, anlamı ve kaynağı.
 class PrayerReadScreen extends StatefulWidget {
@@ -167,7 +165,7 @@ class _PrayerReadScreenState extends State<PrayerReadScreen> {
             ),
           ],
         ),
-        if (d.hasAudio || d.videos.isNotEmpty) ...[const SizedBox(height: 10), _listenRow(d)],
+        if (d.hasAudio) ...[const SizedBox(height: 10), _listenRow(d)],
         const SizedBox(height: 10),
         _article(d),
         const SizedBox(height: 10),
@@ -195,7 +193,7 @@ class _PrayerReadScreenState extends State<PrayerReadScreen> {
     );
   }
 
-  /// Sesli dinleme (Kur'an duaları) ve Diyanet'in okunuş videosu.
+  /// Sesli dinleme (yalnız ayetlerin tamamı olan Kur'an duaları ve sûreler).
   Widget _listenRow(Dua d) {
     final buttons = <Widget>[
       if (d.hasAudio)
@@ -203,14 +201,6 @@ class _PrayerReadScreenState extends State<PrayerReadScreen> {
           label: _playing ? 'Durdur' : (_busy ? 'Yükleniyor…' : 'Sesli Dinle'),
           onTap: () => _toggleListen(d),
         ),
-      if (d.videos.isNotEmpty)
-        DarkButton(
-          label: 'Videolu Dinle',
-          onTap: () {
-            _player?.pause();
-            openDuaVideo(context, d);
-          },
-              ),
     ];
     return Row(
       children: [
@@ -261,7 +251,7 @@ class _PrayerReadScreenState extends State<PrayerReadScreen> {
               d.fromMeal
                   ? 'Anlam, ayetin mealidir (Ruvvâd Tercüme Merkezi, QuranEnc.com). Kaynak: ${d.source}'
                   : 'Kaynak: ${d.source}',
-              if (d.hasAudio) 'Ses: ${currentReciter().name} (murattal); ayetin tamamı okunur.',
+              if (d.hasAudio) 'Ses: ${currentReciter().name} (murattal).',
             ].join('\n'),
             style: TextStyle(fontSize: 12, color: _pal.ink2),
           ),
@@ -271,9 +261,3 @@ class _PrayerReadScreenState extends State<PrayerReadScreen> {
   }
 }
 
-/// Duanın okunuş videosunu açar (Diyanet namaz duaları ya da günlük dua videoları).
-void openDuaVideo(BuildContext context, Dua d) {
-  final list = videosFor('dualar').any((v) => v.id == d.videos.first) ? videosFor('dualar') : gunlukDuaVideolari;
-  final i = list.indexWhere((v) => v.id == d.videos.first);
-  Navigator.of(context).push(AppRoute(builder: (_) => VideoScreen(videos: list, index: i < 0 ? 0 : i)));
-}

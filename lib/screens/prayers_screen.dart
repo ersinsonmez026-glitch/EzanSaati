@@ -3,11 +3,9 @@ import 'package:flutter/material.dart';
 import '../services/content_store.dart';
 import '../widgets/page_shell.dart';
 import '../widgets/reading_ui.dart';
-import '../services/hadith_store.dart';
-import 'hadiths_screen.dart';
 import 'prayer_read_screen.dart';
 
-/// Dualar: günün duası, Namaz Duaları / Diğer Dualar / Esmâü'l-Hüsnâ / Hadisler sekmeleri, arama ve favoriler.
+/// Dualar: günün duası, Namaz Duaları / Diğer Dualar / Esmâü'l-Hüsnâ sekmeleri, arama ve favoriler.
 /// Tasarım: onizleme/04-dualar.html · Veri: assets/data/dualar.json (106 dua)
 class PrayersScreen extends StatefulWidget {
   const PrayersScreen({super.key});
@@ -80,15 +78,13 @@ class _PrayersScreenState extends State<PrayersScreen> {
     return [
       SearchBox(
         pal: _pal,
-        hint: _group == 'hadis' ? 'Hadislerde ara' : 'Dua ara (ör. yemek, yolculuk, anne)',
+        hint: 'Dua ara (ör. yemek, yolculuk, anne)',
         onChanged: (v) => setState(() => _query = v),
       ),
       gap,
       _tabs(duas),
       gap,
-      if (_group == 'hadis')
-        HadithsScreen(embedded: true, query: _query)
-      else if (_group == 'esma' && !searching)
+      if (_group == 'esma' && !searching)
         ..._esmaView()
       else ...[
         SectionHead(
@@ -173,7 +169,6 @@ class _PrayersScreenState extends State<PrayersScreen> {
       'namaz': '${duas.where((d) => d.group == 'namaz').length} dua ve sure',
       'diger': '${duas.where((d) => d.group == 'diger').length} dua',
       'esma': '99 isim',
-      'hadis': '${kHadiths.length} hadis',
     };
     return Container(
       padding: const EdgeInsets.all(4),
@@ -182,12 +177,12 @@ class _PrayersScreenState extends State<PrayersScreen> {
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: _pal.line),
       ),
-      // 2×2: Namaz Duaları · Diğer Dualar / Esmâü'l-Hüsnâ · Hadisler
+      // Namaz Duaları · Diğer Dualar / Esmâü'l-Hüsnâ
       child: Column(
         children: [
           for (final row in const [
             ['namaz', 'diger'],
-            ['esma', 'hadis']
+            ['esma']
           ]) ...[
             if (row.first == 'esma') const SizedBox(height: 4),
             Row(
@@ -208,7 +203,7 @@ class _PrayersScreenState extends State<PrayersScreen> {
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Text(kDuaGroupNames[g] ?? (g == 'hadis' ? 'Hadisler' : "Esmâü'l-Hüsnâ"),
+                            Text(kDuaGroupNames[g] ?? "Esmâü'l-Hüsnâ",
                                 style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, height: 1.1)),
                             Text(
                               counts[g]!,
@@ -339,12 +334,12 @@ class _PrayersScreenState extends State<PrayersScreen> {
               ),
             ),
             const SizedBox(width: 6),
-            // Ses kaydı ya da okunuş videosu olan dualarda dinle simgesi
-            if (d.hasAudio || d.videos.isNotEmpty)
+            // Ses kaydı olan dualarda dinle simgesi
+            if (d.hasAudio)
               ListenButton(
                 pal: _pal,
                 label: d.title,
-                onTap: () => d.hasAudio ? _open(index, listen: true) : openDuaVideo(context, d),
+                onTap: () => _open(index, listen: true),
               ),
             HeartButton(pal: _pal, on: fav, label: d.title, onTap: () => _toggleFav(d)),
           ],
