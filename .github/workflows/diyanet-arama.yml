@@ -30,10 +30,15 @@ jobs:
               # Sayfa gezinti listesinden sonraki asıl içerik
               body = re.split(r'SAYFA=\d+"[^>]*>\s*\d+\s*</a>\s*(?:</[^>]+>\s*)*', html)[-1]
               body = re.sub(r'<(script|style)[^>]*>.*?</\1>', ' ', body, flags=re.S)
-              main = html[:html.find('dipnotdiv')]
-              k = main.rfind('post-content')
-              print(f'\n===== CİLT {cilt} SAYFA {sayfa} — ANA METİN HTML')
-              print(main[k:k+3000])
+              t = re.sub(r'<(script|style)[^>]*>.*?</\1>', ' ', html, flags=re.S)
+              t = re.sub(r'<[^>]+>', ' ', t)
+              t = re.sub(r'\s+', ' ', t)
+              t = re.sub(r'(?:\b\d{1,3} ){20,}\d{1,3}', ' ', t)
+              t = t[:t.find('Dini Yayınlar Genel Müdürlüğü diniyayinlar')]
+              print(f'\n===== CİLT {cilt} SAYFA {sayfa} — DÜZ METİN')
+              print(re.sub(r'[\u0600-\u06ff\u0750-\u077f]+[\u0600-\u06ff\s،.«»()]*', '[Ar] ', t)[:3500])
+              m = re.search(r'<sup|class="dipnot|font color="red"', html)
+              if m: print('İLK İŞARET HTML:', html[max(0, m.start()-400):m.start()+300])
               time.sleep(1)
           PY
 
