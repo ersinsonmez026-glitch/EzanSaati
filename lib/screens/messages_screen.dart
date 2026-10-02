@@ -1,16 +1,14 @@
-import 'dart:ui' as ui;
-
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../services/content_store.dart';
 import '../widgets/gold_icon.dart';
+import '../widgets/message_card.dart';
 import '../widgets/page_shell.dart';
 import '../widgets/reading_ui.dart';
 import '../services/app_theme.dart';
 
-/// Dini Mesajlar: bu cumanın kartı, favoriler ve hazır "Hayırlı Cumalar" kartları.
+/// Dini Mesajlar: bu haftanın kartı, favoriler ve ayet/hadis kartları.
 class MessagesScreen extends StatefulWidget {
   const MessagesScreen({super.key});
 
@@ -165,7 +163,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
           final fav = favs.contains(c.id);
           return Semantics(
             button: true,
-            label: 'Hayırlı Cumalar, ${c.ref}',
+            label: c.ref,
             child: GestureDetector(
               onTap: () => _open(list, i),
               child: Stack(children: [
@@ -205,15 +203,10 @@ class _MessagesScreenState extends State<MessagesScreen> {
 /// Kartı telefonun paylaş menüsüyle görsel (PNG) olarak gönderir.
 Future<void> shareMessageCard(BuildContext context, MessageCardImage c) async {
   try {
-    final data = await rootBundle.load(c.asset);
-    final codec = await ui.instantiateImageCodec(data.buffer.asUint8List());
-    final frame = await codec.getNextFrame();
-    final png = await frame.image.toByteData(format: ui.ImageByteFormat.png);
-    frame.image.dispose();
-    if (png == null) throw StateError('görsel üretilemedi');
+    final png = await MessageCardPainter.png(c);
     await SharePlus.instance.share(ShareParams(
-      files: [XFile.fromData(png.buffer.asUint8List(), mimeType: 'image/png', name: 'hayirli-cumalar.png')],
-      fileNameOverrides: const ['hayirli-cumalar.png'],
+      files: [XFile.fromData(png, mimeType: 'image/png', name: 'ezan-saati-mesaj.png')],
+      fileNameOverrides: const ['ezan-saati-mesaj.png'],
     ));
   } catch (_) {
     if (context.mounted) showNote(context, 'Kart paylaşılamadı');
@@ -327,15 +320,8 @@ class _CardImage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final img = Image.asset(
-      card.asset,
-      fit: fit,
-      width: width,
-      height: width == null ? null : width! * 4 / 3,
-      alignment: Alignment.topCenter,
-      filterQuality: FilterQuality.medium,
-    );
-    return Container(
+    final img = MessageCard(card: card);
+    final box = Container(
       clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
         color: tc(0xFF03170F),
@@ -344,6 +330,7 @@ class _CardImage extends StatelessWidget {
       ),
       child: img,
     );
+    return width == null ? box : SizedBox(width: width, child: box);
   }
 }
 

@@ -4,6 +4,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../data/gunun_sozu.dart';
+
 
 // ---------------------------------------------------------------------------
 // Kur'an: assets/data/kuran.json
@@ -178,73 +180,46 @@ class EsmaName {
 }
 
 // ---------------------------------------------------------------------------
-// Dini Mesajlar: hazır "Hayırlı Cumalar" kartları (assets/images/mesaj/*.webp)
-// Kartlardaki ayet mealleri ve sûre/ayet numaraları tek tek kontrol edildi; yazım hatası, yanlış
-// numara ya da mealden uzak ifadesi olan kartlar alınmadı.
+// Dini Mesajlar: ayet ve hadis kartları; yazısız arka plan (assets/images/mesaj/*.webp) üstüne metin,
+// kaynak ve logo uygulamada yazılır (MessageCardPainter).
 // ---------------------------------------------------------------------------
 
 class MessageCardImage {
-  final String id; // görsel dosyasının adı (favori anahtarı)
-  final String ref; // kartın altındaki kaynak: "Fâtiha, 1/1"
+  final String id; // favori anahtarı: "a3" (3. ayet), "h12" (12. hadis)
+  final String text; // ayet meali ya da hadis metni (gunun_sozu.dart; değiştirilmez)
+  final String ref; // kartın altındaki kaynak: "İnşirâh, 5" ya da "Hadis-i Şerif · Buhârî, Edeb, 33"
+  final int background; // assets/images/mesaj/mNN.webp (1–40)
 
-  const MessageCardImage(this.id, this.ref);
+  const MessageCardImage(this.id, this.text, this.ref, this.background);
 
-  String get asset => 'assets/images/mesaj/$id.webp';
+  String get asset => 'assets/images/mesaj/m${background.toString().padLeft(2, '0')}.webp';
+
+  /// Yazının arkasındaki karartmanın en koyu değeri (görselin üst yarısının aydınlığına göre).
+  double get shade => kMessageBackgroundShade[background - 1];
 }
 
-const kMessageCards = [
-  MessageCardImage('fatiha_1', 'Fâtiha, 1/1'),
-  MessageCardImage('fatiha_2', 'Fâtiha, 1/2'),
-  MessageCardImage('fatiha_3', 'Fâtiha, 1/3'),
-  MessageCardImage('fatiha_4', 'Fâtiha, 1/4'),
-  MessageCardImage('fatiha_5', 'Fâtiha, 1/5'),
-  MessageCardImage('fatiha_6', 'Fâtiha, 1/6'),
-  MessageCardImage('bakara_148a', 'Bakara, 2/148'),
-  MessageCardImage('bakara_148b', 'Bakara, 2/148'),
-  MessageCardImage('bakara_152', 'Bakara, 2/152'),
-  MessageCardImage('bakara_153', 'Bakara, 2/153'),
-  MessageCardImage('bakara_195', 'Bakara, 2/195'),
-  MessageCardImage('bakara_201', 'Bakara, 2/201'),
-  MessageCardImage('bakara_222', 'Bakara, 2/222'),
-  MessageCardImage('bakara_286a', 'Bakara, 2/286'),
-  MessageCardImage('bakara_286b', 'Bakara, 2/286'),
-  MessageCardImage('aliimran_134a', 'Âl-i İmrân, 3/134'),
-  MessageCardImage('aliimran_159a', 'Âl-i İmrân, 3/159'),
-  MessageCardImage('aliimran_159b', 'Âl-i İmrân, 3/159'),
-  MessageCardImage('aliimran_160a', 'Âl-i İmrân, 3/160'),
-  MessageCardImage('aliimran_160b', 'Âl-i İmrân, 3/160'),
-  MessageCardImage('nisa_40', 'Nisâ, 4/40'),
-  MessageCardImage('nisa_69', 'Nisâ, 4/69'),
-  MessageCardImage('nisa_103', 'Nisâ, 4/103'),
-  MessageCardImage('maide_2', 'Mâide, 5/2'),
-  MessageCardImage('maide_23', 'Mâide, 5/23'),
-  MessageCardImage('maide_42', 'Mâide, 5/42'),
-  MessageCardImage('enam_101', "En'âm, 6/101"),
-  MessageCardImage('araf_56', "A'râf, 7/56"),
-  MessageCardImage('yusuf_90', 'Yûsuf, 12/90'),
-  MessageCardImage('rad_28', "Ra'd, 13/28"),
-  MessageCardImage('nahl_18', 'Nahl, 16/18'),
-  MessageCardImage('nahl_90', 'Nahl, 16/90'),
-  MessageCardImage('taha_114', 'Tâhâ, 20/114'),
-  MessageCardImage('enbiya_107', 'Enbiyâ, 21/107'),
-  MessageCardImage('nur_35a', 'Nûr, 24/35'),
-  MessageCardImage('nur_35b', 'Nûr, 24/35'),
-  MessageCardImage('kasas_24', 'Kasas, 28/24'),
-  MessageCardImage('ankebut_69a', 'Ankebût, 29/69'),
-  MessageCardImage('ankebut_69b', 'Ankebût, 29/69'),
-  MessageCardImage('secde_7', 'Secde, 32/7'),
-  MessageCardImage('muhammed_12', 'Muhammed, 47/12'),
-  MessageCardImage('talak_2', 'Talâk, 65/2'),
-  MessageCardImage('talak_3a', 'Talâk, 65/3'),
-  MessageCardImage('insirah_5', 'İnşirâh, 94/5'),
-  MessageCardImage('insirah_6', 'İnşirâh, 94/6'),
-  MessageCardImage('insirah_7', 'İnşirâh, 94/7-8'),
-  MessageCardImage('ihlas_1', 'İhlâs, 112/1'),
-  MessageCardImage('ihlas_3', 'İhlâs, 112/3'),
-  MessageCardImage('ihlas_4', 'İhlâs, 112/4'),
-];
+/// Arka planların (yazısız manzara fotoğrafları) üst yarısı için karartma oranı.
+const kMessageBackgroundShade = <double>[0.7, 0.74, 0.74, 0.62, 0.68, 0.56, 0.72, 0.46, 0.63, 0.7, 0.49, 0.63, 0.36, 0.68, 0.82, 0.82, 0.6, 0.74, 0.57, 0.68, 0.55, 0.6, 0.66, 0.61, 0.67, 0.47, 0.57, 0.55, 0.58, 0.39, 0.68, 0.67, 0.57, 0.52, 0.56, 0.64, 0.61, 0.78, 0.75, 0.63];
 
-const kMessageFavKey = 'mesaj_kart_fav'; // kartlar değişti, eski favoriler karışmasın
+/// Kartlar: günün ayetleri ve hadisleri (lib/data/gunun_sozu.dart), sırayla arka planlarla eşleşir.
+final List<MessageCardImage> kMessageCards = () {
+  final out = <MessageCardImage>[];
+  final n = kDailyAyahs.length > kDailyHadiths.length ? kDailyAyahs.length : kDailyHadiths.length;
+  for (var i = 0; i < n; i++) {
+    if (i < kDailyAyahs.length) {
+      final a = kDailyAyahs[i];
+      out.add(MessageCardImage('a${i + 1}', a.meal, a.source, out.length % kMessageBackgroundShade.length + 1));
+    }
+    if (i < kDailyHadiths.length) {
+      final h = kDailyHadiths[i];
+      out.add(MessageCardImage(
+          'h${i + 1}', h.text, 'Hadis-i Şerif · ${h.source}', out.length % kMessageBackgroundShade.length + 1));
+    }
+  }
+  return out;
+}();
+
+const kMessageFavKey = 'mesaj_kart_fav2'; // kartlar değişti, eski favoriler karışmasın
 
 /// Bu haftanın kartı: her hafta (cuma günü) sıradaki kart.
 int weeklyMessageIndex(DateTime day) {

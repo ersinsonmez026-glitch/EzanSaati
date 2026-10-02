@@ -385,7 +385,7 @@ class _HeaderDelegate extends SliverPersistentHeaderDelegate {
                     behavior: HitTestBehavior.opaque,
                     onTap: () => Navigator.of(context).maybePop(),
                     child: const Center(
-                      child: Image(image: AssetImage('assets/images/ikon/geri.webp'), width: 34),
+                      child: Opacity(opacity: 0.8, child: Image(image: AssetImage('assets/images/ikon/geri.webp'), width: 24)),
                     ),
                   ),
                 ),

@@ -42,10 +42,12 @@ void main() {
       expect(ids.length, kMessageCards.length);
       for (final c in kMessageCards) {
         expect(File(c.asset).existsSync(), isTrue, reason: c.id);
-        expect(c.ref, matches(RegExp(r'^.+, \d+/\d+(-\d+)?$')), reason: c.id);
+        expect(c.text, isNotEmpty, reason: c.id);
+        expect(c.ref, matches(RegExp(r'^(.+, \d+|Hadis-i Şerif · (Buhârî|Müslim|Ebû Dâvûd|Tirmizî|Nesâî|İbn Mâce), .+)$')),
+            reason: c.id);
       }
       final files = Directory('assets/images/mesaj').listSync().map((f) => f.uri.pathSegments.last).toSet();
-      expect(files, {for (final id in ids) '$id.webp'}); // kullanılmayan görsel kalmasın
+      expect(files, {for (final c in kMessageCards) c.asset.split('/').last}); // kullanılmayan görsel kalmasın
       // Cuma'dan perşembeye aynı kart, sonraki cuma bir sonraki.
       final w = weeklyMessageIndex(DateTime(2026, 10, 2));
       expect(weeklyMessageIndex(DateTime(2026, 10, 8)), w);

@@ -527,7 +527,7 @@ class _NameSheetState extends State<_NameSheet> {
               textAlign: TextAlign.center,
               style: TextStyle(color: Colors.white70, fontSize: 13, fontStyle: FontStyle.italic)),
           const SizedBox(height: 14),
-          const ArtIcon('cami', size: 60),
+          Image.asset('assets/images/logo_ezan_saati.webp', height: 64),
           const SizedBox(height: 12),
           const Text(
             'Hoş Geldiniz',
@@ -633,7 +633,7 @@ class _LocationSheetState extends State<_LocationSheet> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const ArtIcon('cami', size: 60),
+          Image.asset('assets/images/logo_ezan_saati.webp', height: 64),
           const SizedBox(height: 12),
           const Text(
             'Hoş Geldiniz',
