@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../services/content_store.dart';
 import '../widgets/page_shell.dart';
@@ -111,6 +112,13 @@ class _PrayersScreenState extends State<PrayersScreen> {
     return [
       SectionHead(pal: _pal, title: "Esmâü'l-Hüsnâ"),
       const SizedBox(height: 6),
+      // İstisna: Esmâü'l-Hüsnâ okunuşu YouTube uygulamasında açılır (uygulamaya gömülmez, indirilmez).
+      DarkButton(
+        label: 'Sesli dinle (YouTube)',
+        onTap: () => launchUrl(Uri.parse('https://www.youtube.com/watch?v=PiBj0Yi-Wa0'),
+            mode: LaunchMode.externalApplication),
+      ),
+      const SizedBox(height: 8),
       PaperBox(
         pal: _pal,
         child: Column(
