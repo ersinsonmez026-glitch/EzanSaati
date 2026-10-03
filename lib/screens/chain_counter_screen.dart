@@ -4,9 +4,11 @@ import 'package:flutter/material.dart';
 
 import '../services/dhikr_store.dart';
 import '../services/prayer_groups.dart';
+import '../services/tesbih_sound.dart';
 import '../services/vibration.dart';
 import '../widgets/page_shell.dart';
 import '../widgets/reading_ui.dart';
+import 'dhikr_screen.dart';
 import 'surah_read_screen.dart';
 
 /// Zincirdeki payın sayacı: "12 / 50 salavat". Her dokunuş bir sayar; okunan sayı birkaç saniyede bir
@@ -20,24 +22,36 @@ class ChainCounterScreen extends StatefulWidget {
   State<ChainCounterScreen> createState() => _ChainCounterScreenState();
 }
 
-class _ChainCounterScreenState extends State<ChainCounterScreen> {
+class _ChainCounterScreenState extends State<ChainCounterScreen> with SingleTickerProviderStateMixin {
   PagePalette get _pal => PagePalette.current();
   GroupSync get _sync => GroupSync.instance;
 
   int? _n; // ekranda görünen sayı (zincire henüz yazılmamış olabilir)
   int _sent = -1;
   Timer? _flushTimer;
+  late final AnimationController _beads = AnimationController(vsync: this, duration: const Duration(milliseconds: 200));
+  int _beadDir = -1;
+  double _drag = 0;
+  bool _sound = true, _vibrate = true; // Zikir Sayacı'ndaki ayarlar
 
   @override
   void initState() {
     super.initState();
     _sync.addListener(_changed);
+    DhikrState.load().then((d) {
+      if (!mounted) return;
+      setState(() {
+        _sound = d.sound;
+        _vibrate = d.vibrate;
+      });
+    });
   }
 
   @override
   void dispose() {
     _sync.removeListener(_changed);
     _flushTimer?.cancel();
+    _beads.dispose();
     _flush();
     super.dispose();
   }
@@ -64,13 +78,16 @@ class _ChainCounterScreenState extends State<ChainCounterScreen> {
     if (n >= m.amount) return;
     final next = n + 1;
     setState(() => _n = next);
+    _beadDir = -1;
+    _beads.forward(from: 0);
+    if (_sound) TesbihSound.play();
     _flushTimer?.cancel();
     if (next >= m.amount) {
-      Vibration.heavy();
+      if (_vibrate) Vibration.heavy();
       _flush();
       showNote(context, 'Payınızı tamamladınız · Allah kabul etsin');
     } else {
-      Vibration.light();
+      if (_vibrate) Vibration.light();
       _flushTimer = Timer(const Duration(seconds: 2), _flush);
     }
   }
@@ -80,6 +97,8 @@ class _ChainCounterScreenState extends State<ChainCounterScreen> {
     final n = _n ?? m?.done ?? 0;
     if (m == null || n <= 0) return;
     setState(() => _n = n - 1);
+    _beadDir = 1;
+    _beads.forward(from: 0);
     _flushTimer?.cancel();
     _flushTimer = Timer(const Duration(seconds: 2), _flush);
   }
@@ -112,49 +131,76 @@ class _ChainCounterScreenState extends State<ChainCounterScreen> {
       background: p.background,
       padding: const EdgeInsets.fromLTRB(12, 12, 12, 24),
       children: [
-        if (text != null)
-          PaperBox(
-            pal: p,
-            padding: const EdgeInsets.fromLTRB(12, 8, 12, 10),
-            child: Column(children: [
-              Text(text.arabic,
-                  textAlign: TextAlign.center,
-                  textDirection: TextDirection.rtl,
-                  style: TextStyle(fontFamily: kArabicFont, fontSize: 24, height: 1.6, color: p.gold)),
-              Text(text.title, textAlign: TextAlign.center, style: TextStyle(color: p.ink, fontSize: 15, fontWeight: FontWeight.w700)),
-              Text(text.meaning, textAlign: TextAlign.center, style: TextStyle(color: p.ink2, fontSize: 12.5)),
-            ]),
-          )
-        else if (surah != null)
+        if (surah != null) ...[
           DarkButton(
             label: surah == 36 ? 'Yâsin Sûresi\'ni aç' : 'İhlâs Sûresi\'ni aç',
             onTap: () => Navigator.of(context).push(AppRoute(builder: (_) => SurahReadScreen(surah: surah))),
           ),
-        const SizedBox(height: 16),
-        Center(
-          child: Semantics(
-            button: true,
-            label: 'Say: $n / ${m.amount}',
-            child: GestureDetector(
-              key: const Key('chainTap'),
-              onTap: _tap,
-              child: Container(
-                width: 230,
-                height: 230,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: RadialGradient(colors: [p.gold.withValues(alpha: 0.30), p.gold.withValues(alpha: 0.08)]),
-                  border: Border.all(color: p.gold, width: 2),
-                ),
-                child: Column(mainAxisSize: MainAxisSize.min, children: [
-                  Text('$n', style: TextStyle(color: p.ink, fontSize: 64, fontWeight: FontWeight.w700, height: 1)),
-                  Text('/ ${trNum(m.amount)} ${c.unit}', style: TextStyle(color: p.ink2, fontSize: 16)),
-                  const SizedBox(height: 6),
-                  Text(done ? 'Tamamlandı' : (surah != null ? 'Okudukça dokunun' : 'Dokunarak sayın'),
-                      style: TextStyle(color: p.gold, fontSize: 13, fontWeight: FontWeight.w700)),
-                ]),
+          const SizedBox(height: 10),
+        ],
+        // Zikir Sayacı'ndaki kartın aynısı: metin, büyük sayı, "okunan/pay", tesbih taneleri.
+        Semantics(
+          button: true,
+          label: 'Say: $n / ${m.amount}',
+          child: GestureDetector(
+            key: const Key('chainTap'),
+            behavior: HitTestBehavior.opaque,
+            onTap: _tap,
+            onHorizontalDragStart: (_) => _drag = 0,
+            onHorizontalDragUpdate: (d) {
+              _drag += d.delta.dx.abs();
+              while (_drag >= kSwipeStep) {
+                _drag -= kSwipeStep;
+                _tap();
+              }
+            },
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: p.paperGradient,
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(color: RC.gold(0.6), width: 1.5),
+                boxShadow: const [BoxShadow(color: Color(0x24281905), blurRadius: 12, offset: Offset(0, 3))],
               ),
+              padding: const EdgeInsets.fromLTRB(12, 12, 12, 8),
+              child: Column(children: [
+                if (text != null) ...[
+                  Text(text.arabic,
+                      textAlign: TextAlign.center,
+                      textDirection: TextDirection.rtl,
+                      style: TextStyle(fontFamily: kArabicFont, fontSize: 23, height: 1.8, color: p.gold)),
+                  Text(text.title,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: p.ink, fontSize: 17, height: 1.3, fontWeight: FontWeight.w700)),
+                  Text(text.meaning,
+                      textAlign: TextAlign.center, style: TextStyle(color: p.ink2, fontSize: 12.5, height: 1.4)),
+                ] else
+                  Text(c.name,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: p.ink, fontSize: 17, height: 1.3, fontWeight: FontWeight.w700)),
+                const SizedBox(height: 8),
+                Text('$n',
+                    style: TextStyle(
+                        color: p.ink,
+                        fontSize: 60,
+                        height: 1,
+                        fontWeight: FontWeight.w700,
+                        fontFeatures: const [FontFeature.tabularFigures()])),
+                const SizedBox(height: 4),
+                Text('$n/${m.amount}',
+                    style: TextStyle(color: p.ink2, fontSize: 22, fontWeight: FontWeight.w600, letterSpacing: 0.5)),
+                const SizedBox(height: 4),
+                ExcludeSemantics(
+                  child: BeadString(
+                    animation: _beads,
+                    dir: _beadDir,
+                    image: p.night ? 'assets/images/zikir/b_krem.webp' : 'assets/images/zikir/b_yes.webp',
+                    color: p.gold,
+                  ),
+                ),
+                Text(done ? 'Tamamlandı' : 'Saymak için karta dokunun ya da yana kaydırın',
+                    style: TextStyle(
+                        color: done ? p.gold : p.ink2, fontSize: 11.5, fontWeight: done ? FontWeight.w700 : null)),
+              ]),
             ),
           ),
         ),

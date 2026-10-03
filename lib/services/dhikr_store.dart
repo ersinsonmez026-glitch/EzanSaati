@@ -66,6 +66,7 @@ class DhikrState {
   final Map<String, int> targets = {}; // kullanıcının seçtiği hedef
   final List<Dhikr> custom = [];
   bool vibrate = true;
+  bool sound = true; // tesbih tanesi sesi
   String day = '';
   final Map<String, int> today = {}; // bugün çekilen (zikir başına)
   final Map<String, int> history = {}; // gün → o gün çekilen toplam (Takibim sayfası; son 120 gün)
@@ -167,6 +168,11 @@ class DhikrState {
     save();
   }
 
+  void toggleSound() {
+    sound = !sound;
+    save();
+  }
+
   Dhikr addCustom(String name, int target) {
     final z = Dhikr('c${_now().microsecondsSinceEpoch}', name.trim(), '', '', target, custom: true);
     custom.add(z);
@@ -245,6 +251,7 @@ class DhikrState {
     });
     (j['tg'] as Map? ?? const {}).forEach((k, v) => targets[k as String] = (v as num).toInt());
     vibrate = j['vib'] as bool? ?? true;
+    sound = j['ses'] as bool? ?? true;
     day = j['day'] as String? ?? '';
     (j['dn'] as Map? ?? const {}).forEach((k, v) => today[k as String] = (v as num).toInt());
     (j['h'] as Map? ?? const {}).forEach((k, v) => history[k as String] = (v as num).toInt());
@@ -264,6 +271,7 @@ class DhikrState {
         'tg': targets,
         'custom': [for (final z in custom) z.toJson()],
         'vib': vibrate,
+        'ses': sound,
         'day': day,
         'dn': today,
         'h': _recentHistory(),

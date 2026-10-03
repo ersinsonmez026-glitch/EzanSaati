@@ -166,7 +166,7 @@ void main() {
     // Sayaç: her dokunuş bir sayar, zincire yazılır.
     await t.tap(find.byKey(const Key('continueRead')));
     await t.pumpAndSettle();
-    expect(find.text('/ 20 istiğfar'), findsOneWidget);
+    expect(find.text('0/20'), findsOneWidget);
     for (var i = 0; i < 3; i++) {
       await t.tap(find.byKey(const Key('chainTap')));
       await t.pump();

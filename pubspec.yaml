@@ -46,6 +46,7 @@ flutter:
     - assets/images/kible/
     - assets/images/ikon/
     - assets/data/
+    - assets/audio/
     - assets/fonts/OFL.txt
     - assets/fonts/Lora-OFL.txt
 

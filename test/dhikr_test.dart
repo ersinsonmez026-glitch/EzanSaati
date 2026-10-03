@@ -108,9 +108,9 @@ void main() {
       expect(find.text(l), findsWidgets, reason: l);
     }
     expect(find.text('0/33'), findsOneWidget);
-    await t.tap(find.text('Saymak için karta dokunun'));
+    await t.tap(find.text('Saymak için karta dokunun ya da yana kaydırın'));
     await t.pump(const Duration(milliseconds: 300));
-    await t.tap(find.text('Saymak için karta dokunun'));
+    await t.tap(find.text('Saymak için karta dokunun ya da yana kaydırın'));
     await t.pump(const Duration(milliseconds: 300));
     expect(find.text('2/33'), findsOneWidget);
     expect(find.text('Bugün toplam 2 zikir'), findsOneWidget);
@@ -140,7 +140,7 @@ void main() {
     expect(find.text('TESBİHAT · 1 / 4'), findsOneWidget);
     for (var step = 0; step < 3; step++) {
       for (var i = 0; i < 33; i++) {
-        await t.tap(find.text('Saymak için karta dokunun'));
+        await t.tap(find.text('Saymak için karta dokunun ya da yana kaydırın'));
         await t.pump(const Duration(milliseconds: 250));
       }
     }

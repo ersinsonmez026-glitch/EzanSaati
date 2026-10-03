@@ -18,7 +18,7 @@ void main() {
   });
 
   const order = [
-    'Namaz Vakitleri', 'Sureler', 'Dualar', //
+    'Namaz Vakitleri', "Kur'ân-ı Kerîm", 'Dualar', //
     'Hadisler', 'Zikir Sayacı', 'Kıble Bulucu', //
     'Cami Bulucu', 'Dua Zinciri', 'Takibim', //
     'Ramazan', 'Dini Mesajlar', 'Ayarlar',

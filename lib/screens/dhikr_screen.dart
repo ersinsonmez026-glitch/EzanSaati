@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../services/dhikr_store.dart';
+import '../services/tesbih_sound.dart';
 import '../services/prayer_groups.dart';
 import '../services/vibration.dart';
 import '../widgets/page_shell.dart';
@@ -22,6 +23,7 @@ class DhikrScreen extends StatefulWidget {
 }
 
 class _DhikrScreenState extends State<DhikrScreen> with SingleTickerProviderStateMixin, WidgetsBindingObserver {
+  double _drag = 0; // yana kaydırma birikimi
   PagePalette get _pal => PagePalette.current(); // Gündüz/Gece değişince hemen yenilensin
   DhikrState? _s;
   late final AnimationController _beads = AnimationController(vsync: this, duration: const Duration(milliseconds: 200));
@@ -85,6 +87,7 @@ class _DhikrScreenState extends State<DhikrScreen> with SingleTickerProviderStat
     final hit = s.add();
     if (hit == DhikrHit.ignored) return;
     _moveBeads(-1);
+    if (s.sound) TesbihSound.play();
     setState(() => _hit = true);
     Timer(const Duration(milliseconds: 110), () {
       if (mounted) setState(() => _hit = false);
@@ -376,6 +379,15 @@ class _DhikrScreenState extends State<DhikrScreen> with SingleTickerProviderStat
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTap: _add,
+        // Tesbih çeker gibi yana kaydırmak da sayar: her kısa kaydırmada bir tane.
+        onHorizontalDragStart: (_) => _drag = 0,
+        onHorizontalDragUpdate: (d) {
+          _drag += d.delta.dx.abs();
+          while (_drag >= kSwipeStep) {
+            _drag -= kSwipeStep;
+            _add();
+          }
+        },
         child: Container(
           clipBehavior: Clip.antiAlias,
           decoration: BoxDecoration(
@@ -473,7 +485,7 @@ class _DhikrScreenState extends State<DhikrScreen> with SingleTickerProviderStat
           ),
         const SizedBox(height: 4),
         ExcludeSemantics(
-          child: _BeadString(
+          child: BeadString(
             animation: _beads,
             dir: _beadDir,
             image: _pal.night ? 'assets/images/zikir/b_krem.webp' : 'assets/images/zikir/b_yes.webp',
@@ -482,7 +494,7 @@ class _DhikrScreenState extends State<DhikrScreen> with SingleTickerProviderStat
         ),
         Padding(
           padding: const EdgeInsets.only(bottom: 8),
-          child: Text('Saymak için karta dokunun', style: TextStyle(color: _pal.ink2, fontSize: 11.5)),
+          child: Text('Saymak için karta dokunun ya da yana kaydırın', style: TextStyle(color: _pal.ink2, fontSize: 11.5)),
         ),
       ],
     );
@@ -645,6 +657,12 @@ class _DhikrScreenState extends State<DhikrScreen> with SingleTickerProviderStat
               ),
             ),
             const SizedBox(width: 5),
+            iconBtn(s.sound ? Icons.volume_up : Icons.volume_off, 'Tesbih sesi', () {
+              setState(() => s.toggleSound());
+              showNote(context, s.sound ? 'Tesbih sesi açık' : 'Tesbih sesi kapalı');
+              if (s.sound) TesbihSound.play();
+            }, on: s.sound),
+            const SizedBox(width: 5),
             iconBtn(Icons.vibration, 'Titreşim', () {
               setState(() => s.toggleVibrate());
               showNote(context, s.vibrate ? 'Titreşim açık' : 'Titreşim kapalı');
@@ -657,14 +675,17 @@ class _DhikrScreenState extends State<DhikrScreen> with SingleTickerProviderStat
   }
 }
 
-/// Sayınca sola kayan tesbih taneleri (ipte 14 tane, ortada boşluk).
-class _BeadString extends StatelessWidget {
+/// Yana kaydırırken bir tane çekmek için gereken mesafe.
+const kSwipeStep = 36.0;
+
+/// Sayınca sola kayan tesbih taneleri (Dua Zinciri sayacında da kullanılır) (ipte 14 tane, ortada boşluk).
+class BeadString extends StatelessWidget {
   final Animation<double> animation;
   final int dir;
   final String image;
   final Color color;
 
-  const _BeadString({required this.animation, required this.dir, required this.image, required this.color});
+  const BeadString({super.key, required this.animation, required this.dir, required this.image, required this.color});
 
   static const n = 14;
   static const d = 27.0; // taneler arası
@@ -742,7 +763,7 @@ class _StringPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final p = Path();
     for (var x = 0.0; x <= size.width; x += 6) {
-      final y = _BeadString.yOf(x, size.width);
+      final y = BeadString.yOf(x, size.width);
       x == 0 ? p.moveTo(x, y) : p.lineTo(x, y);
     }
     canvas.drawPath(

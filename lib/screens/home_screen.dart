@@ -49,7 +49,7 @@ class _HomeScreenState extends State<HomeScreen> {
   // 12 tuş, 3 sütun × 4 sıra. Sıra sabittir (kullanıcı onayı), değiştirme.
   static final List<_MenuItem> _items = [
     _MenuItem('namaz_vakitleri', 'Namaz Vakitleri', 'namaz_vakitleri', () => const PrayerTimesScreen()),
-    _MenuItem('sureler', 'Sureler', 'kuran', () => const SurahsScreen()),
+    _MenuItem('sureler', "Kur'ân-ı Kerîm", 'kuran', () => const SurahsScreen()),
     _MenuItem('dualar', 'Dualar', 'dualar', () => const PrayersScreen()),
     _MenuItem('hadisler', 'Hadisler', 'kuran', () => const HadithsScreen()),
     _MenuItem('zikir_sayaci', 'Zikir Sayacı', 'tesbih', () => const DhikrScreen()),
